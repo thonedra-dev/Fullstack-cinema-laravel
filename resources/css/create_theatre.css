@@ -1,7 +1,7 @@
 /* ============================================================
    create_theatre.css  —  Create Theatre feature styles
    Place at: resources/css/create_theatre.css
-   Shared card styles live in admin_team.css.
+   Shared card / vc-hidden styles live in admin_team.css.
    ============================================================ */
 
 /* ── Selection mode title ────────────────────────────────── */
@@ -17,8 +17,10 @@
 .ct-select-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     padding: 10px 22px;
+    width: 100%;
     background: var(--bg-surface);
     border: 1px dashed var(--border);
     border-radius: var(--radius-sm);
@@ -28,8 +30,6 @@
     font-weight: 600;
     cursor: pointer;
     transition: border-color var(--transition), background var(--transition);
-    width: 100%;
-    justify-content: center;
     margin-top: 4px;
 }
 
@@ -63,6 +63,31 @@
     font-weight: 500;
 }
 
+/* ── Seats summary strip in main form ────────────────────── */
+.ct-seats-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 0 4px;
+}
+
+.ct-seat-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.ct-seat-chip--standard { background: rgba(74,222,128,0.12); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.ct-seat-chip--couple   { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.3); }
+.ct-seat-chip--premium  { background: rgba(212,175,55,0.12);  color: #d4af37; border: 1px solid rgba(212,175,55,0.3); }
+.ct-seat-chip--family   { background: rgba(244,114,182,0.12); color: #f472b6; border: 1px solid rgba(244,114,182,0.3); }
+.ct-seat-chip--total    { background: var(--bg-surface); color: var(--text-muted); border: 1px solid var(--border); }
+
 /* ── Confirmation modal overlay ──────────────────────────── */
 .ct-modal-overlay {
     position: fixed;
@@ -77,7 +102,6 @@
     padding: 20px;
 }
 
-/* Modal box */
 .ct-modal {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -123,9 +147,7 @@
     line-height: 1.4;
 }
 
-.ct-modal__question strong {
-    color: var(--accent-light);
-}
+.ct-modal__question strong { color: var(--accent-light); }
 
 .ct-modal__actions {
     display: flex;
@@ -134,10 +156,7 @@
     padding: 16px 24px 24px;
 }
 
-.ct-modal__actions .ac-btn {
-    width: 100%;
-    justify-content: center;
-}
+.ct-modal__actions .ac-btn { width: 100%; justify-content: center; }
 
 .ct-modal__cancel {
     background: none;
@@ -153,10 +172,7 @@
     width: 100%;
 }
 
-.ct-modal__cancel:hover {
-    border-color: var(--danger);
-    color: var(--danger);
-}
+.ct-modal__cancel:hover { border-color: var(--danger); color: var(--danger); }
 
 /* ── Service chip grid ───────────────────────────────────── */
 .ct-service-grid {
@@ -181,11 +197,7 @@
     user-select: none;
 }
 
-.ct-service-chip:hover {
-    border-color: var(--accent);
-    background: var(--accent-glow);
-}
-
+.ct-service-chip:hover,
 .ct-service-chip.is-checked {
     border-color: var(--accent);
     background: var(--accent-glow);
@@ -193,13 +205,7 @@
 
 .ct-service-chip input[type="checkbox"] { display: none; }
 
-.ct-service-chip__icon {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
-    border-radius: var(--radius-sm);
-}
-
+.ct-service-chip__icon { width: 36px; height: 36px; object-fit: contain; border-radius: var(--radius-sm); }
 .ct-service-chip__icon-fallback { font-size: 1.6rem; line-height: 1; }
 
 .ct-service-chip__name {
@@ -211,16 +217,404 @@
 }
 
 .ct-service-chip:hover .ct-service-chip__name,
-.ct-service-chip.is-checked .ct-service-chip__name {
+.ct-service-chip.is-checked .ct-service-chip__name { color: var(--accent-light); }
+
+.ct-no-services { font-size: 0.875rem; color: var(--text-muted); padding: 12px 0; }
+.ct-no-services a { color: var(--accent-light); text-decoration: none; }
+.ct-no-services a:hover { text-decoration: underline; }
+
+/* ============================================================
+   SEAT BUILDER
+   ============================================================ */
+
+/* Two-panel layout */
+.sb-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ── Screen indicator ────────────────────────────────────── */
+.sb-screen-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 28px;
+    gap: 6px;
+}
+
+.sb-screen {
+    width: 70%;
+    height: 10px;
+    background: linear-gradient(180deg, rgba(91,106,240,0.6) 0%, rgba(91,106,240,0.1) 100%);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow: 0 -4px 20px rgba(91,106,240,0.35);
+}
+
+.sb-screen-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* ── Preview panel ───────────────────────────────────────── */
+.sb-preview-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 20px;
+    min-height: 320px;
+    overflow-x: auto;
+}
+
+.sb-preview { display: flex; flex-direction: column; gap: 8px; }
+
+.sb-preview__empty {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 40px 0;
+}
+
+/* A single defined row */
+.sb-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 36px;
+}
+
+.sb-row__label {
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.sb-row__seats {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 3px;
+    flex: 1;
+}
+
+.sb-row__type-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.05em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.sb-badge--standard { background: rgba(74,222,128,0.12);  color: #4ade80; border: 1px solid rgba(74,222,128,0.25); }
+.sb-badge--couple   { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+.sb-badge--premium  { background: rgba(212,175,55,0.1);   color: #d4af37; border: 1px solid rgba(212,175,55,0.25); }
+.sb-badge--family   { background: rgba(244,114,182,0.12); color: #f472b6; border: 1px solid rgba(244,114,182,0.25); }
+
+/* Gap between couple pairs */
+.sb-couple-gap { display: inline-block; width: 6px; flex-shrink: 0; }
+
+/* ============================================================
+   SEAT ICONS — pure CSS top-down chair shape
+   ============================================================ */
+.sb-seat {
+    display: inline-block;
+    position: relative;
+    width: 16px;
+    height: 14px;
+    border-radius: 2px 2px 4px 4px;
+    flex-shrink: 0;
+}
+
+/* Seat back (raised top portion) */
+.sb-seat::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 1px; right: 1px;
+    height: 7px;
+    border-radius: 2px 2px 1px 1px;
+    background: inherit;
+    opacity: 0.65;
+}
+
+/* Armrests */
+.sb-seat::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -3px; right: -3px;
+    height: 4px;
+    border-radius: 2px;
+    background: inherit;
+    opacity: 0.45;
+}
+
+/* Large variant for Premium and Family */
+.sb-seat--lg {
+    width: 22px;
+    height: 18px;
+    border-radius: 3px 3px 5px 5px;
+}
+
+.sb-seat--lg::before {
+    top: -6px;
+    height: 9px;
+}
+
+.sb-seat--lg::after {
+    left: -4px; right: -4px;
+    height: 5px;
+}
+
+/* Type colours */
+.sb-seat--standard { background: #4ade80; }   /* green   */
+.sb-seat--couple   { background: #f87171; }   /* red     */
+.sb-seat--premium  {                           /* black/gold border */
+    background: #1a1a2e;
+    outline: 1.5px solid #d4af37;
+    outline-offset: -1px;
+}
+.sb-seat--premium::before { background: #1a1a2e; opacity: 1; outline: 1.5px solid #d4af37; }
+.sb-seat--family   { background: #f472b6; }   /* pink    */
+
+/* ── Builder panel (right side) ──────────────────────────── */
+.sb-builder-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sb-builder-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Next row label badge */
+.sb-next-label-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sb-next-label-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.sb-next-label-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.4);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--accent-light);
 }
 
-/* ── Empty services hint ─────────────────────────────────── */
-.ct-no-services {
-    font-size: 0.875rem;
+.sb-count-hint {
+    font-size: 0.72rem;
     color: var(--text-muted);
-    padding: 12px 0;
+    margin-top: 2px;
 }
 
-.ct-no-services a { color: var(--accent-light); text-decoration: none; }
-.ct-no-services a:hover { text-decoration: underline; }
+/* Seat type radio cards */
+.sb-type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.sb-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 8px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    user-select: none;
+}
+
+.sb-type-card input[type="radio"] { display: none; }
+
+.sb-type-card:hover,
+.sb-type-card.is-selected {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.sb-type-card__icon {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 28px;
+    padding-top: 8px;     /* room for seat back pseudo-element */
+}
+
+.sb-type-card__name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+}
+
+.sb-type-card.is-selected .sb-type-card__name { color: var(--accent-light); }
+
+/* Live row preview in builder */
+.sb-row-preview {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sb-row-preview__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.sb-row-preview__seats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 3px;
+    min-height: 22px;
+}
+
+/* Builder action buttons */
+.sb-builder-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.sb-builder-actions .ac-btn { flex: 1; justify-content: center; }
+
+.sb-undo-btn {
+    flex: 0 0 auto;
+    padding: 10px 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+    white-space: nowrap;
+}
+
+.sb-undo-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Error message */
+.sb-error {
+    font-size: 0.78rem;
+    color: var(--danger);
+    background: rgba(240,91,91,0.08);
+    border: 1px solid rgba(240,91,91,0.2);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+}
+
+/* Legend */
+.sb-legend {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.sb-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding-top: 6px; /* offset for seat back pseudo */
+}
+
+/* ── Finalize bar ─────────────────────────────────────────── */
+.sb-finalize-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.sb-finalize-summary {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-family: var(--font-heading);
+}
+
+.sb-clear-btn {
+    padding: 10px 18px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+    white-space: nowrap;
+}
+
+.sb-clear-btn:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .sb-layout { grid-template-columns: 1fr; }
+    .sb-builder-panel { order: -1; } /* builder form above preview on mobile */
+}
+
+@media (max-width: 600px) {
+    .sb-type-grid { grid-template-columns: 1fr 1fr; }
+    .sb-finalize-bar { flex-direction: column; align-items: flex-start; }
+}

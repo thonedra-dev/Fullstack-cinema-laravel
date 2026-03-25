@@ -4,12 +4,16 @@
     Feature: Create a new theatre inside an existing cinema.
     Controller: AdminTheatreController@create / @store
     Data injected by controller (logic-free blade):
-      $cinemas  – Collection of Cinema models {cinema_id, cinema_name, cinema_picture, ->city}
-      $services – Collection of Service models {service_id, service_name, service_icon}
+      $cinemas      – Collection of Cinema models {cinema_id, cinema_name, cinema_picture, ->city}
+      $services     – Collection of Service models {service_id, service_name, service_icon}
+      $seatsJsonOld – old('seats_json') passed through for validation-error restore
 --}}
 @extends('admin.admin_team')
 
 @section('page_title', 'Create Theatre')
+
+{{-- Hide the topbar title — inline heading below is sufficient --}}
+@section('hide_topbar_title') @endsection
 
 @section('head_extras')
     @vite(['resources/css/create_theatre.css', 'resources/js/create_theatre.js'])
@@ -18,13 +22,13 @@
 @section('content')
 
 {{-- ══════════════════════════════════════════════════════════
-     FORM VIEW  (default — visible on load)
+     VIEW 1 — MAIN FORM  (default visible)
 ══════════════════════════════════════════════════════════ --}}
 <div id="ct-form-view">
 
     <div class="ac-page-header">
         <h1 class="ac-page-header__title">Create a <span>Theatre</span></h1>
-        <p class="ac-page-header__sub">Add a new screen/hall and attach its services.</p>
+        <p class="ac-page-header__sub">Add a new screen/hall, attach services and define its seat layout.</p>
     </div>
 
     <div class="ac-card">
@@ -35,6 +39,14 @@
             novalidate
         >
             @csrf
+
+            {{-- Hidden: serialised seat rows — written by JS seat builder --}}
+            <input
+                type="hidden"
+                id="ct-seats-json"
+                name="seats_json"
+                value="{{ old('seats_json', '[]') }}"
+            >
 
             <div class="ac-form-grid">
 
@@ -57,11 +69,10 @@
                     @enderror
                 </div>
 
-                {{-- Cinema selector — button replaces dropdown --}}
+                {{-- Cinema selector --}}
                 <div class="ac-field ac-field--full">
                     <label>Cinema <span class="required">*</span></label>
 
-                    {{-- Hidden input carries the actual cinema_id for form submission --}}
                     <input
                         type="hidden"
                         id="ct-cinema-id-input"
@@ -69,22 +80,15 @@
                         value="{{ old('cinema_id') }}"
                     >
 
-                    {{-- Selected cinema display (hidden until a cinema is chosen) --}}
                     <div
                         id="ct-selected-cinema-display"
                         class="ct-selected-display {{ old('cinema_id') ? '' : 'vc-hidden' }}"
                     >
-                        <span class="ct-selected-display__name" id="ct-selected-cinema-name">
-                            {{-- Populated by JS on selection; on validation error, JS restores from old() --}}
-                        </span>
+                        <span class="ct-selected-display__name" id="ct-selected-cinema-name"></span>
                         <span class="ct-selected-display__hint">Selected cinema</span>
                     </div>
 
-                    <button
-                        type="button"
-                        id="ct-select-cinema-btn"
-                        class="ct-select-btn"
-                    >
+                    <button type="button" id="ct-select-cinema-btn" class="ct-select-btn">
                         🎬 Select Cinema
                     </button>
 
@@ -104,12 +108,8 @@
                         <span class="ac-file-label__text">
                             <strong>Click to upload</strong> icon
                         </span>
-                        <input
-                            type="file"
-                            id="theatre_icon"
-                            name="theatre_icon"
-                            accept="image/png,image/svg+xml,image/webp"
-                        >
+                        <input type="file" id="theatre_icon" name="theatre_icon"
+                               accept="image/png,image/svg+xml,image/webp">
                     </label>
                     <span id="theatre_icon_preview" class="ac-file-preview"></span>
                     @error('theatre_icon')
@@ -128,12 +128,8 @@
                         <span class="ac-file-label__text">
                             <strong>Click to upload</strong> poster
                         </span>
-                        <input
-                            type="file"
-                            id="theatre_poster"
-                            name="theatre_poster"
-                            accept="image/jpeg,image/png,image/webp"
-                        >
+                        <input type="file" id="theatre_poster" name="theatre_poster"
+                               accept="image/jpeg,image/png,image/webp">
                     </label>
                     <span id="theatre_poster_preview" class="ac-file-preview"></span>
                     @error('theatre_poster')
@@ -184,6 +180,22 @@
                     @endif
                 </div>
 
+                {{-- Seat Structure summary (shown after builder is used) --}}
+                <div class="ac-field ac-field--full">
+                    <label>Seat Structure <span class="optional">(optional — define rows and types)</span></label>
+
+                    @error('seats_json')
+                        <span class="ac-error">{{ $message }}</span>
+                    @enderror
+
+                    {{-- Summary strip — hidden until rows are defined --}}
+                    <div id="ct-seats-summary" class="ct-seats-summary vc-hidden"></div>
+
+                    <button type="button" id="ct-define-seats-btn" class="ct-select-btn">
+                        💺 Define Seat Structure
+                    </button>
+                </div>
+
             </div>{{-- /.ac-form-grid --}}
 
             <div class="ac-form-actions">
@@ -199,14 +211,12 @@
 
 
 {{-- ══════════════════════════════════════════════════════════
-     SELECTION VIEW  (hidden by default — shown on button click)
+     VIEW 2 — CINEMA SELECTION  (hidden by default)
 ══════════════════════════════════════════════════════════ --}}
 <div id="ct-selection-view" class="vc-hidden">
 
     <div class="vc-detail-header">
-        <button class="vc-back-btn" id="ct-selection-back" type="button">
-            ← Back to Form
-        </button>
+        <button class="vc-back-btn" id="ct-selection-back" type="button">← Back to Form</button>
         <span class="ct-selection-title">Choose a Cinema</span>
     </div>
 
@@ -230,14 +240,10 @@
                     role="button"
                     aria-label="Select {{ $cinema->cinema_name }}"
                 >
-                    {{-- Reuse exact same card structure as view_cinema --}}
                     <div class="vc-card__img-wrap">
                         @if ($cinema->cinema_picture)
-                            <img
-                                src="{{ asset('images/cinemas/' . $cinema->cinema_picture) }}"
-                                alt="{{ $cinema->cinema_name }}"
-                                class="vc-card__img"
-                            >
+                            <img src="{{ asset('images/cinemas/' . $cinema->cinema_picture) }}"
+                                 alt="{{ $cinema->cinema_name }}" class="vc-card__img">
                         @else
                             <div class="vc-card__img-placeholder">🎬</div>
                         @endif
@@ -249,7 +255,7 @@
                             <span class="vc-card__state">{{ $cinema->city?->city_state ?? '—' }}</span>
                         </div>
                     </div>
-                </div>{{-- /.vc-card --}}
+                </div>
             @endforeach
         </div>
     @endif
@@ -258,19 +264,167 @@
 
 
 {{-- ══════════════════════════════════════════════════════════
-     CONFIRMATION MODAL  (hidden by default)
+     VIEW 3 — SEAT BUILDER  (hidden by default)
 ══════════════════════════════════════════════════════════ --}}
-<div id="ct-confirm-modal" class="ct-modal-overlay vc-hidden" role="dialog" aria-modal="true" aria-labelledby="ct-modal-title">
+<div id="ct-seat-builder-view" class="vc-hidden">
+
+    <div class="vc-detail-header">
+        <button class="vc-back-btn" id="ct-seat-builder-back" type="button">← Back to Form</button>
+        <span class="ct-selection-title">Define Seat Structure</span>
+    </div>
+
+    <div class="sb-layout">
+
+        {{-- ── LEFT: visual preview ── --}}
+        <div class="sb-preview-panel">
+
+            {{-- Screen indicator --}}
+            <div class="sb-screen-wrap">
+                <div class="sb-screen"></div>
+                <span class="sb-screen-label">SCREEN</span>
+            </div>
+
+            {{-- Rows render here by JS --}}
+            <div id="sb-preview" class="sb-preview">
+                <p class="sb-preview__empty" id="sb-preview-empty">
+                    No rows defined yet. Add a row →
+                </p>
+            </div>
+
+        </div>{{-- /.sb-preview-panel --}}
+
+        {{-- ── RIGHT: row builder form ── --}}
+        <div class="sb-builder-panel">
+
+            <div class="sb-builder-card">
+
+                {{-- Next row label badge --}}
+                <div class="sb-next-label-wrap">
+                    <span class="sb-next-label-text">Next row:</span>
+                    <span class="sb-next-label-badge" id="sb-next-label">A</span>
+                </div>
+
+                {{-- Seat count --}}
+                <div class="ac-field">
+                    <label for="sb-seat-count">Number of Seats <span class="required">*</span></label>
+                    <input
+                        type="number"
+                        id="sb-seat-count"
+                        class="ac-input"
+                        min="1"
+                        max="40"
+                        placeholder="e.g. 12"
+                    >
+                    <span class="sb-count-hint" id="sb-count-hint"></span>
+                </div>
+
+                {{-- Seat type — styled radio cards --}}
+                <div class="ac-field">
+                    <label>Seat Type <span class="required">*</span></label>
+                    <div class="sb-type-grid">
+
+                        <label class="sb-type-card" data-type="Standard">
+                            <input type="radio" name="sb_seat_type" value="Standard">
+                            <div class="sb-type-card__icon">
+                                <span class="sb-seat sb-seat--standard"></span>
+                            </div>
+                            <span class="sb-type-card__name">Standard</span>
+                        </label>
+
+                        <label class="sb-type-card" data-type="Couple">
+                            <input type="radio" name="sb_seat_type" value="Couple">
+                            <div class="sb-type-card__icon">
+                                <span class="sb-seat sb-seat--couple"></span>
+                                <span class="sb-seat sb-seat--couple"></span>
+                            </div>
+                            <span class="sb-type-card__name">Couple</span>
+                        </label>
+
+                        <label class="sb-type-card" data-type="Premium">
+                            <input type="radio" name="sb_seat_type" value="Premium">
+                            <div class="sb-type-card__icon">
+                                <span class="sb-seat sb-seat--premium"></span>
+                            </div>
+                            <span class="sb-type-card__name">Premium</span>
+                        </label>
+
+                        <label class="sb-type-card" data-type="Family">
+                            <input type="radio" name="sb_seat_type" value="Family">
+                            <div class="sb-type-card__icon">
+                                <span class="sb-seat sb-seat--family"></span>
+                            </div>
+                            <span class="sb-type-card__name">Family</span>
+                        </label>
+
+                    </div>
+                </div>
+
+                {{-- Live mini-preview of the row being built --}}
+                <div class="sb-row-preview" id="sb-row-preview">
+                    <span class="sb-row-preview__label">Preview</span>
+                    <div class="sb-row-preview__seats" id="sb-row-preview-seats"></div>
+                </div>
+
+                {{-- Actions --}}
+                <div class="sb-builder-actions">
+                    <button type="button" id="sb-add-row-btn" class="ac-btn ac-btn--primary">
+                        ＋ Add Row
+                    </button>
+                    <button type="button" id="sb-undo-btn" class="sb-undo-btn">
+                        ↩ Undo Last
+                    </button>
+                </div>
+
+                {{-- Error message --}}
+                <p class="sb-error vc-hidden" id="sb-error"></p>
+
+            </div>{{-- /.sb-builder-card --}}
+
+            {{-- Seat type legend --}}
+            <div class="sb-legend">
+                <div class="sb-legend__item">
+                    <span class="sb-seat sb-seat--standard"></span> Standard
+                </div>
+                <div class="sb-legend__item">
+                    <span class="sb-seat sb-seat--couple"></span> Couple
+                </div>
+                <div class="sb-legend__item">
+                    <span class="sb-seat sb-seat--premium"></span> Premium
+                </div>
+                <div class="sb-legend__item">
+                    <span class="sb-seat sb-seat--family"></span> Family
+                </div>
+            </div>
+
+        </div>{{-- /.sb-builder-panel --}}
+
+    </div>{{-- /.sb-layout --}}
+
+    {{-- Finalize button --}}
+    <div class="sb-finalize-bar">
+        <div class="sb-finalize-summary" id="sb-finalize-summary"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button type="button" id="sb-clear-btn" class="sb-clear-btn">✕ Clear All</button>
+            <button type="button" id="sb-finalize-btn" class="ac-btn ac-btn--primary">
+                ✓ Finalize Seat Structure
+            </button>
+        </div>
+    </div>
+
+</div>{{-- /#ct-seat-builder-view --}}
+
+
+{{-- ══════════════════════════════════════════════════════════
+     CONFIRMATION MODAL
+══════════════════════════════════════════════════════════ --}}
+<div id="ct-confirm-modal" class="ct-modal-overlay vc-hidden"
+     role="dialog" aria-modal="true" aria-labelledby="ct-modal-title">
     <div class="ct-modal">
-
         <img id="ct-modal-img" class="ct-modal__img vc-hidden" alt="">
-
         <div id="ct-modal-img-placeholder" class="ct-modal__img-placeholder">🎬</div>
-
         <p class="ct-modal__question" id="ct-modal-title">
             Use <strong id="ct-modal-name"></strong>?
         </p>
-
         <div class="ct-modal__actions">
             <button type="button" id="ct-modal-confirm" class="ac-btn ac-btn--primary">
                 Yes, use this
@@ -279,16 +433,15 @@
                 No, go back
             </button>
         </div>
-
     </div>
 </div>
 
-{{-- Inline JSON: cinema names for restoring display on validation error --}}
+{{-- Inline JSON for JS restore on validation error --}}
 <script>
-    window.CT_CINEMAS = {!! json_encode(
-        $cinemas->map(fn($c) => ['id' => $c->cinema_id, 'name' => $c->cinema_name])
-                ->values()
+    window.CT_CINEMAS    = {!! json_encode(
+        $cinemas->map(fn($c) => ['id' => $c->cinema_id, 'name' => $c->cinema_name])->values()
     ) !!};
+    window.CT_SEATS_JSON = {!! json_encode(old('seats_json', '[]')) !!};
 </script>
 
 @endsection
