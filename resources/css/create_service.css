@@ -1,0 +1,13 @@
+/* ============================================================
+   create_service.css  —  Create Service feature overrides
+   All base styles live in admin_team.css.
+   Place at: resources/css/create_service.css
+   ============================================================ */
+
+/*
+   The Add Service form uses standard inputs and a file upload
+   widget — all covered by admin_team.css shared components.
+
+   No extra rules needed.  Add feature-specific overrides here
+   as the feature grows (e.g. live icon preview thumbnail).
+*/

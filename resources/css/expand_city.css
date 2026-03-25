@@ -1,0 +1,13 @@
+/* ============================================================
+   expand_city.css  —  Add City feature overrides
+   All base styles live in admin_team.css.
+   Place at: resources/css/expand_city.css
+   ============================================================ */
+
+/*
+   The Add City form uses a simple two-column grid with standard
+   inputs and a datalist — all covered by admin_team.css.
+
+   No extra rules needed.  Add feature-specific overrides here
+   if the design evolves (e.g. a state map picker widget).
+*/

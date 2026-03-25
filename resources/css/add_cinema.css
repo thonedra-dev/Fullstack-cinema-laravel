@@ -1,0 +1,19 @@
+/* ============================================================
+   add_cinema.css  —  Add Cinema feature overrides
+   All base styles live in admin_team.css.
+   Place at: resources/css/add_cinema.css
+   ============================================================ */
+
+/*
+   No additional overrides required for this feature.
+   The form grid, inputs, file upload, and button styles
+   are all provided by admin_team.css shared components.
+
+   Add feature-specific rules below only when needed.
+   Example: a custom two-column layout tweak for larger screens.
+*/
+
+@media (min-width: 1100px) {
+    /* Slightly wider grid gap on large screens for breathability */
+    .ac-form-grid { gap: 24px; }
+}

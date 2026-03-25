@@ -1,0 +1,226 @@
+/* ============================================================
+   create_theatre.css  —  Create Theatre feature styles
+   Place at: resources/css/create_theatre.css
+   Shared card styles live in admin_team.css.
+   ============================================================ */
+
+/* ── Selection mode title ────────────────────────────────── */
+.ct-selection-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* ── Select Cinema button ────────────────────────────────── */
+.ct-select-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    background: var(--bg-surface);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--accent-light);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    width: 100%;
+    justify-content: center;
+    margin-top: 4px;
+}
+
+.ct-select-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+/* ── Selected cinema display ─────────────────────────────── */
+.ct-selected-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.3);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+}
+
+.ct-selected-display__name {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent-light);
+}
+
+.ct-selected-display__hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ── Confirmation modal overlay ──────────────────────────── */
+.ct-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    padding: 20px;
+}
+
+/* Modal box */
+.ct-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    width: 100%;
+    max-width: 380px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: ct-modal-in 0.2s ease;
+}
+
+@keyframes ct-modal-in {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+.ct-modal__img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+}
+
+.ct-modal__img-placeholder {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--text-muted);
+}
+
+.ct-modal__question {
+    padding: 22px 24px 4px;
+    font-size: 1rem;
+    font-family: var(--font-heading);
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.ct-modal__question strong {
+    color: var(--accent-light);
+}
+
+.ct-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 24px 24px;
+}
+
+.ct-modal__actions .ac-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.ct-modal__cancel {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+    width: 100%;
+}
+
+.ct-modal__cancel:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* ── Service chip grid ───────────────────────────────────── */
+.ct-service-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.ct-service-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color var(--transition), background var(--transition);
+    text-align: center;
+    user-select: none;
+}
+
+.ct-service-chip:hover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.ct-service-chip.is-checked {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+}
+
+.ct-service-chip input[type="checkbox"] { display: none; }
+
+.ct-service-chip__icon {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+}
+
+.ct-service-chip__icon-fallback { font-size: 1.6rem; line-height: 1; }
+
+.ct-service-chip__name {
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+
+.ct-service-chip:hover .ct-service-chip__name,
+.ct-service-chip.is-checked .ct-service-chip__name {
+    color: var(--accent-light);
+}
+
+/* ── Empty services hint ─────────────────────────────────── */
+.ct-no-services {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    padding: 12px 0;
+}
+
+.ct-no-services a { color: var(--accent-light); text-decoration: none; }
+.ct-no-services a:hover { text-decoration: underline; }
