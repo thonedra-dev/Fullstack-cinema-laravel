@@ -5,12 +5,12 @@
     All feature Blades extend this via @extends('admin.admin_team').
 
     Slots:
-      @section('page_title')   — browser <title> suffix          (optional)
-      @section('head_extras')  — extra <link>/<script> in <head>  (optional)
-      @section('content')      — main feature body                (required)
-
-    No controller logic lives here; active-link highlighting
-    uses request()->routeIs() which is pure Blade/helper.
+      @section('page_title')        — browser <title> suffix           (optional)
+      @section('hide_topbar_title') — define this section to hide the  (optional)
+                                      topbar title bar (inline heading
+                                      acts as the page title instead)
+      @section('head_extras')       — extra <link>/<script> in <head>  (optional)
+      @section('content')           — main feature body                (required)
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -81,7 +81,10 @@
         <button class="at-topbar__toggle" id="at-sidebar-toggle" aria-label="Toggle sidebar">
             <span></span><span></span><span></span>
         </button>
-        <div class="at-topbar__title">@yield('page_title', 'Dashboard')</div>
+        {{-- Hide topbar title if feature page has its own prominent inline heading --}}
+        @unless(View::hasSection('hide_topbar_title'))
+            <div class="at-topbar__title">@yield('page_title', 'Dashboard')</div>
+        @endunless
     </header>
 
     {{-- Flash messages --}}
