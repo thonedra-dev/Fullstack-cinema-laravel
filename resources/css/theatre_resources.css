@@ -1,0 +1,319 @@
+/* ============================================================
+   edit_cinema_theatre_resources.css
+   Place at: resources/css/edit_cinema_theatre_resources.css
+   Imports shared seat icon styles from create_theatre.css
+   (sb-seat, sb-seat--*, sb-seat--lg, sb-couple-gap)
+   via admin_team.css design tokens (:root variables).
+   ============================================================ */
+
+/* ── Breadcrumb ─────────────────────────────────────────────── */
+.etr-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.etr-breadcrumb__item {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color var(--transition);
+}
+
+a.etr-breadcrumb__item:hover { color: var(--accent-light); }
+
+.etr-breadcrumb__item--cinema { color: var(--text-secondary); }
+
+.etr-breadcrumb__item--current {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+.etr-breadcrumb__sep {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* ── Page header with optional theatre thumb ─────────────────── */
+.etr-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.etr-header__thumb {
+    width: 96px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+/* ── Stats bar ──────────────────────────────────────────────── */
+.etr-stats {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.etr-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    min-width: 80px;
+    gap: 3px;
+}
+
+.etr-stat__value {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.etr-stat__label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+}
+
+/* Typed stat colour accents */
+.etr-stat--standard { border-color: rgba(74,222,128,0.25); }
+.etr-stat--standard .etr-stat__value { color: #4ade80; }
+
+.etr-stat--couple { border-color: rgba(248,113,113,0.25); }
+.etr-stat--couple .etr-stat__value { color: #f87171; }
+
+.etr-stat--premium { border-color: rgba(212,175,55,0.25); }
+.etr-stat--premium .etr-stat__value { color: #d4af37; }
+
+.etr-stat--family { border-color: rgba(244,114,182,0.25); }
+.etr-stat--family .etr-stat__value { color: #f472b6; }
+
+/* ── Layout wrapper (screen + rows) ────────────────────────── */
+.etr-layout-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px 24px;
+    overflow-x: auto;
+    margin-bottom: 24px;
+}
+
+/* ── Screen ──────────────────────────────────────────────────── */
+.etr-screen-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 36px;
+}
+
+.etr-screen {
+    width: 65%;
+    height: 10px;
+    background: linear-gradient(
+        180deg,
+        rgba(91,106,240,0.65) 0%,
+        rgba(91,106,240,0.08) 100%
+    );
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+    box-shadow: 0 -4px 24px rgba(91,106,240,0.3);
+}
+
+.etr-screen-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+/* ── Rows ────────────────────────────────────────────────────── */
+.etr-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.etr-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 32px;
+}
+
+.etr-row__label {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 18px;
+    text-align: center;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+
+
+.etr-row__seats {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+/* ── Couple pair gap (reused from create_theatre.css naming) ── */
+.sb-couple-gap {
+    display: inline-block;
+    width: 8px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   SEAT ICONS
+   Duplicated here so this page has no hard dependency on
+   create_theatre.css being loaded.
+   These must stay in sync with create_theatre.css sb-seat rules.
+   ============================================================ */
+.sb-seat {
+    display: inline-block;
+    position: relative;
+    width: 16px;
+    height: 14px;
+    border-radius: 2px 2px 4px 4px;
+    flex-shrink: 0;
+}
+
+/* Seat back */
+.sb-seat::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 1px; right: 1px;
+    height: 7px;
+    border-radius: 2px 2px 1px 1px;
+    background: inherit;
+    opacity: 0.65;
+}
+
+/* Armrests */
+.sb-seat::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -3px; right: -3px;
+    height: 4px;
+    border-radius: 2px;
+    background: inherit;
+    opacity: 0.45;
+}
+
+/* Large variant */
+.sb-seat--lg {
+    width: 22px;
+    height: 18px;
+    border-radius: 3px 3px 5px 5px;
+}
+
+.sb-seat--lg::before { top: -6px; height: 9px; }
+.sb-seat--lg::after  { left: -4px; right: -4px; height: 5px; }
+
+/* Type colours */
+.sb-seat--standard { background: #4ade80; }
+.sb-seat--couple   { background: #f87171; }
+.sb-seat--premium  {
+    background: #1a1a2e;
+    outline: 1.5px solid #d4af37;
+    outline-offset: -1px;
+}
+.sb-seat--premium::before { background: #1a1a2e; opacity: 1; }
+.sb-seat--family   { background: #f472b6; }
+
+/* ── Legend ─────────────────────────────────────────────────── */
+.etr-legend {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 28px;
+}
+
+.etr-legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding-top: 5px; /* offset for seat back pseudo */
+}
+
+/* ── Footer nav ─────────────────────────────────────────────── */
+.etr-footer-nav { margin-top: 8px; }
+
+/* ── view_cinema.css additions — theatre card footer ─────────
+   These extend the existing vc-theatre-card styles defined in
+   view_cinema.css to support the new link + footer label.
+   ─────────────────────────────────────────────────────────── */
+.vc-theatre-card {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+}
+
+.vc-theatre-card__footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 10px;
+    gap: 2px;
+}
+
+.vc-theatre-card__hint {
+    font-size: 0.65rem;
+    color: var(--accent-light);
+    font-weight: 600;
+    font-family: var(--font-heading);
+    letter-spacing: 0.03em;
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.vc-theatre-card:hover .vc-theatre-card__hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .etr-stats { gap: 8px; }
+    .etr-stat  { padding: 10px 14px; min-width: 68px; }
+    .etr-layout-wrap { padding: 20px 12px; }
+    .etr-screen { width: 80%; }
+    .etr-header { flex-direction: column; }
+    .etr-header__thumb { width: 72px; height: 48px; }
+    .etr-legend { gap: 14px; }
+}

@@ -32,9 +32,19 @@ class Theatre extends Model
     {
         return $this->belongsToMany(
             Service::class,
-            'theatre_services',   // pivot table name
-            'theatre_id',         // FK on pivot pointing to this model
-            'service_id'          // FK on pivot pointing to related model
+            'theatre_services',
+            'theatre_id',
+            'service_id'
         );
+    }
+
+    /**
+     * A theatre has many seats.
+     */
+    public function seats()
+    {
+        return $this->hasMany(Seat::class, 'theatre_id', 'theatre_id')
+                    ->orderBy('row_label')
+                    ->orderBy('seat_number');
     }
 }

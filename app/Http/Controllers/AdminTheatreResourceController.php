@@ -35,6 +35,6 @@ class AdminTheatreResourceController extends Controller
          */
         $seatsByRow = $theatre->seats->groupBy('row_label');
 
-        return view('admin.edit_cinema_theatre_resources', compact('theatre', 'seatsByRow'));
+        return view('admin.theatre_resources', compact('theatre', 'seatsByRow'));
     }
 }
