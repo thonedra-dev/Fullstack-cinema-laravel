@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminCinemaViewController;
 use App\Http\Controllers\AdminCityController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminTheatreController;
+use App\Http\Controllers\AdminTheatreResourceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,3 +44,8 @@ Route::get('/admin/theatre/create', [AdminTheatreController::class, 'create'])
 
 Route::post('/admin/theatre', [AdminTheatreController::class, 'store'])
     ->name('admin.theatre.store');
+
+// ── Theatre seat layout viewer ────────────────────────────────────────────
+Route::get('/admin/theatre/{id}/resources', [AdminTheatreResourceController::class, 'show'])
+    ->name('admin.theatre.resources')
+    ->where('id', '[0-9]+');
