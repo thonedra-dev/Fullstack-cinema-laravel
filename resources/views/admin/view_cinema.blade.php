@@ -5,7 +5,7 @@
     Controller: AdminCinemaViewController@index
     Data injected by controller (logic-free blade):
       $cinemas – Collection of Cinema models with eager-loaded ->city and ->theatres
-    NOTE: Controller must eager-load 'theatres': Cinema::with('city', 'theatres')
+    NOTE: Controller must eager-load: Cinema::with('city', 'theatres')
 --}}
 @extends('admin.admin_team')
 
@@ -57,7 +57,6 @@
                     role="button"
                     aria-label="View {{ $cinema->cinema_name }} details"
                 >
-                    {{-- Image --}}
                     <div class="vc-card__img-wrap">
                         @if ($cinema->cinema_picture)
                             <img
@@ -70,8 +69,6 @@
                         @endif
                         <span class="vc-meta-btn" aria-hidden="true">Meta Data</span>
                     </div>
-
-                    {{-- Body: name left / location right --}}
                     <div class="vc-card__body">
                         <span class="vc-card__name">{{ $cinema->cinema_name }}</span>
                         <div class="vc-card__location">
@@ -79,10 +76,9 @@
                             <span class="vc-card__state">{{ $cinema->city?->city_state ?? '—' }}</span>
                         </div>
                     </div>
-
-                </div>{{-- /.vc-card --}}
+                </div>
             @endforeach
-        </div>{{-- /.vc-card-grid --}}
+        </div>
     @endif
 
 </div>{{-- /#vc-grid-view --}}
@@ -99,7 +95,6 @@
         </button>
     </div>
 
-    {{-- One detail panel per cinema; JS shows the correct one --}}
     @foreach ($cinemas as $cinema)
     <div class="vc-detail vc-hidden" id="vc-detail-{{ $cinema->cinema_id }}">
 
@@ -152,7 +147,7 @@
             </div>{{-- /.vc-detail__info --}}
         </aside>
 
-        {{-- ── RIGHT PANEL — theatres + reserved section ── --}}
+        {{-- ── RIGHT PANEL — theatres ── --}}
         <div class="vc-detail__right">
 
             <div class="vc-detail__section-title">Theatres</div>
@@ -167,7 +162,16 @@
             @else
                 <div class="vc-theatre-grid">
                     @foreach ($theatres as $theatre)
-                        <div class="vc-theatre-card">
+                        {{--
+                            Each theatre card is a plain <a> link.
+                            Navigates to the seat layout viewer for this theatre.
+                            No JS needed — standard browser navigation.
+                        --}}
+                        <a
+                            href="{{ route('admin.theatre.resources', $theatre->theatre_id) }}"
+                            class="vc-theatre-card"
+                            aria-label="View seat layout for {{ $theatre->theatre_name }}"
+                        >
                             @if ($theatre->theatre_poster)
                                 <img
                                     src="{{ asset('images/theatres/' . $theatre->theatre_poster) }}"
@@ -183,8 +187,12 @@
                             @else
                                 <div class="vc-theatre-card__placeholder">🏟</div>
                             @endif
-                            <span class="vc-theatre-card__name">{{ $theatre->theatre_name }}</span>
-                        </div>
+
+                            <div class="vc-theatre-card__footer">
+                                <span class="vc-theatre-card__name">{{ $theatre->theatre_name }}</span>
+                                <span class="vc-theatre-card__hint">View seats →</span>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
             @endif
