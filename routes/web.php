@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminCinemaController;
 use App\Http\Controllers\AdminCinemaViewController;
 use App\Http\Controllers\AdminCityController;
+use App\Http\Controllers\AdminMovieController;
+use App\Http\Controllers\AdminMovieFormationController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminTheatreController;
 use App\Http\Controllers\AdminTheatreResourceController;
@@ -49,3 +51,15 @@ Route::post('/admin/theatre', [AdminTheatreController::class, 'store'])
 Route::get('/admin/theatre/{id}/resources', [AdminTheatreResourceController::class, 'show'])
     ->name('admin.theatre.resources')
     ->where('id', '[0-9]+');
+
+// ── Movies ────────────────────────────────────────────────────────────────
+Route::get('/admin/movie/create', [AdminMovieController::class, 'create'])
+    ->name('admin.movie.create');
+
+Route::post('/admin/movie', [AdminMovieController::class, 'store'])
+    ->name('admin.movie.store');
+
+// ── Movie formation (cinema context detail page) ──────────────────────────
+Route::get('/admin/movie/{movieId}/cinema/{cinemaId}', [AdminMovieFormationController::class, 'show'])
+    ->name('admin.movie.formation')
+    ->where(['movieId' => '[0-9]+', 'cinemaId' => '[0-9]+']);
