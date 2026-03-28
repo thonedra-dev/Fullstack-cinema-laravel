@@ -57,10 +57,22 @@
             <span class="at-nav__icon">🏟</span> Create Theatre
         </a>
 
-        <div class="at-nav__group-label">Services</div>
+       <div class="at-nav__group-label">Services</div>
         <a href="{{ route('admin.service.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.service.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">⚙</span> Add Service
+        </a>
+
+        <div class="at-nav__group-label">Movies</div>
+        <a href="{{ route('admin.movie.create') }}"
+           class="at-nav__link {{ request()->routeIs('admin.movie.create') ? 'is-active' : '' }}">
+            <span class="at-nav__icon">🎬</span> Create Movie
+        </a>
+
+        <div class="at-nav__group-label">Managers</div>
+        <a href="{{ route('admin.managers.index') }}"
+           class="at-nav__link {{ request()->routeIs('admin.managers.index') ? 'is-active' : '' }}">
+            <span class="at-nav__icon">👤</span> Managers
         </a>
 
     </nav>
