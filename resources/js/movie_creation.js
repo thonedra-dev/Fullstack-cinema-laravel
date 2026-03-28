@@ -3,25 +3,22 @@
  * Place at: resources/js/movie_creation.js
  *
  * Responsibilities:
- *   1. Form ↔ Cinema-selection view switching
- *   2. Cinema card click → quota modal (new or edit)
- *   3. Quota modal — field validation and confirm
- *   4. Remove assignment from modal
- *   5. Assignment summary: chips row + expandable detail cards
- *   6. Overlay state on cinema grid cards
- *   7. Serialize / restore selectedCinemas ↔ hidden cinemas_json
+ *   1. Genre chip toggle (visual is-selected class sync)
+ *   2. Poster file upload previews
+ *   3. Form ↔ Cinema-selection view switching
+ *   4. Cinema card click → quota modal (new or edit)
+ *   5. Quota modal validation and confirm
+ *   6. Remove assignment from modal
+ *   7. Assignment summary: chips + expandable detail cards
+ *   8. Assigned overlay on cinema grid cards
+ *   9. Serialize / restore selectedCinemas ↔ hidden cinemas_json
  */
 
 (function () {
     'use strict';
 
-    /* ================================================================
-       STATE
-       selectedCinemas: Array of {cinemaId, name, img, city, state,
-                                   startDate, endDate, slots}
-    ================================================================ */
     var selectedCinemas = [];
-    var pendingCinemaId = null;   // cinema being configured in modal
+    var pendingCinemaId = null;
 
     /* ================================================================
        HELPERS
@@ -46,26 +43,57 @@
 
     function formatDate(iso) {
         if (!iso) return '—';
-        var parts = iso.split('-');
-        return parts[2] + '/' + parts[1] + '/' + parts[0];   // DD/MM/YYYY
+        var p = iso.split('-');
+        return p[2] + '/' + p[1] + '/' + p[0];
     }
 
     /* ================================================================
-       1. VIEW SWITCHING
+       1. GENRE CHIP TOGGLE
+       Hidden checkboxes with styled <label> — JS keeps .is-selected
+       in sync so CSS can style the selected state correctly.
+    ================================================================ */
+    function initGenreChips() {
+        document.querySelectorAll('.mc-genre-btn').forEach(function (label) {
+            var cb = label.querySelector('input[type="checkbox"]');
+            if (!cb) return;
+
+            label.addEventListener('click', function () {
+                // Checkbox state flips after the click event fires on a label,
+                // so read it after a tick.
+                setTimeout(function () {
+                    label.classList.toggle('is-selected', cb.checked);
+                }, 0);
+            });
+        });
+    }
+
+    /* ================================================================
+       2. POSTER FILE UPLOAD PREVIEWS
+    ================================================================ */
+    function initFilePreview(inputId, previewId) {
+        var el = document.getElementById(inputId);
+        var pv = document.getElementById(previewId);
+        if (!el || !pv) return;
+        el.addEventListener('change', function () {
+            pv.textContent = (this.files && this.files.length > 0)
+                ? '📎 ' + this.files[0].name : '';
+        });
+    }
+
+    /* ================================================================
+       3. VIEW SWITCHING — CINEMA SELECTION
     ================================================================ */
     function initViewSwitching() {
-        var openBtn  = document.getElementById('mc-select-cinemas-btn');
-        var backBtn  = document.getElementById('mc-select-back');
-        var doneBtn  = document.getElementById('mc-done-selecting');
+        var openBtn = document.getElementById('mc-select-cinemas-btn');
+        var backBtn = document.getElementById('mc-select-back');
+        var doneBtn = document.getElementById('mc-done-selecting');
 
         if (openBtn) openBtn.addEventListener('click', function () {
             switchView('mc-cinema-select-view');
         });
-
         if (backBtn) backBtn.addEventListener('click', function () {
             switchView('mc-form-view');
         });
-
         if (doneBtn) doneBtn.addEventListener('click', function () {
             switchView('mc-form-view');
             renderSummary();
@@ -73,7 +101,7 @@
     }
 
     /* ================================================================
-       2. CINEMA CARD CLICK → OPEN MODAL
+       4. CINEMA CARD CLICK → OPEN MODAL
     ================================================================ */
     function initCinemaCards() {
         var grid = document.getElementById('mc-cinema-grid');
@@ -81,8 +109,7 @@
 
         grid.addEventListener('click', function (e) {
             var card = e.target.closest('.mc-cinema-card');
-            if (!card) return;
-            openModal(card);
+            if (card) openModal(card);
         });
 
         grid.addEventListener('keydown', function (e) {
@@ -95,7 +122,7 @@
     }
 
     /* ================================================================
-       3. QUOTA MODAL
+       5. QUOTA MODAL
     ================================================================ */
     function initModal() {
         var modal      = document.getElementById('mc-quota-modal');
@@ -109,45 +136,34 @@
         cancelBtn.addEventListener('click',  closeModal);
         removeBtn.addEventListener('click',  removeAssignment);
 
-        // Click backdrop to close
         modal.addEventListener('click', function (e) {
             if (e.target === modal) closeModal();
         });
 
-        // Escape key
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && !modal.classList.contains('vc-hidden')) closeModal();
         });
     }
 
     function openModal(card) {
-        var cinemaId = card.dataset.cinemaId;
-        pendingCinemaId = cinemaId;
+        pendingCinemaId = card.dataset.cinemaId;
 
-        // Populate strip
-        var name  = card.dataset.cinemaName;
-        var img   = card.dataset.cinemaImg;
-        var city  = card.dataset.cinemaCity;
-        var state = card.dataset.cinemaState;
-
-        document.getElementById('mc-modal-cinema-name').textContent = name;
-        document.getElementById('mc-modal-cinema-loc').textContent  = city + ', ' + state;
+        document.getElementById('mc-modal-cinema-name').textContent = card.dataset.cinemaName;
+        document.getElementById('mc-modal-cinema-loc').textContent  =
+            card.dataset.cinemaCity + ', ' + card.dataset.cinemaState;
 
         var imgEl = document.getElementById('mc-modal-img');
         var imgPh = document.getElementById('mc-modal-img-ph');
-        if (img) {
-            imgEl.src = img;
-            imgEl.alt = name;
-            show(imgEl);
-            hide(imgPh);
+        if (card.dataset.cinemaImg) {
+            imgEl.src = card.dataset.cinemaImg;
+            imgEl.alt = card.dataset.cinemaName;
+            show(imgEl); hide(imgPh);
         } else {
-            hide(imgEl);
-            show(imgPh);
+            hide(imgEl); show(imgPh);
         }
 
-        // Pre-fill if already assigned
-        var existing = findAssignment(cinemaId);
-        var removeBtn = document.getElementById('mc-quota-remove');
+        var existing   = findAssignment(pendingCinemaId);
+        var removeBtn  = document.getElementById('mc-quota-remove');
         var confirmBtn = document.getElementById('mc-quota-confirm');
 
         if (existing) {
@@ -164,7 +180,6 @@
             confirmBtn.textContent = '✓ Assign Cinema';
         }
 
-        // Clear errors
         ['mc-start-err', 'mc-end-err', 'mc-slots-err'].forEach(function (id) {
             hide(document.getElementById(id));
         });
@@ -178,28 +193,27 @@
         var slots     = parseInt(document.getElementById('mc-slots').value, 10);
         var valid     = true;
 
-        hide(document.getElementById('mc-start-err'));
-        hide(document.getElementById('mc-end-err'));
-        hide(document.getElementById('mc-slots-err'));
+        ['mc-start-err', 'mc-end-err', 'mc-slots-err'].forEach(function (id) {
+            hide(document.getElementById(id));
+        });
 
         if (!startDate) {
             show(document.getElementById('mc-start-err'));
             valid = false;
         }
         if (!endDate || (startDate && endDate <= startDate)) {
-            document.getElementById('mc-end-err').textContent =
-                !endDate ? 'Required.' : 'Must be after start date.';
-            show(document.getElementById('mc-end-err'));
+            var errEl = document.getElementById('mc-end-err');
+            errEl.textContent = !endDate ? 'Required.' : 'Must be after start date.';
+            show(errEl);
             valid = false;
         }
-        if (!slots || slots < 1) {
+        if (!slots || slots < 1 || slots > 20) {
             show(document.getElementById('mc-slots-err'));
             valid = false;
         }
         if (!valid) return;
 
-        // Upsert into selectedCinemas
-        var existing = findAssignment(pendingCinemaId);
+        var existing   = findAssignment(pendingCinemaId);
         var cinemaData = (window.MC_CINEMAS || []).find(function (c) {
             return String(c.id) === String(pendingCinemaId);
         }) || {};
@@ -243,27 +257,19 @@
     }
 
     /* ================================================================
-       4. OVERLAYS ON GRID CARDS
+       6 & 7. OVERLAYS + COUNT BADGE
     ================================================================ */
     function updateOverlays() {
-        var cards = document.querySelectorAll('.mc-cinema-card');
-        cards.forEach(function (card) {
-            var overlay = card.querySelector('.mc-assigned-overlay');
-            if (!overlay) return;
+        document.querySelectorAll('.mc-cinema-card').forEach(function (card) {
+            var overlay    = card.querySelector('.mc-assigned-overlay');
             var isAssigned = !!findAssignment(card.dataset.cinemaId);
-            if (isAssigned) {
-                show(overlay);
-                card.classList.add('mc-card--assigned');
-            } else {
-                hide(overlay);
-                card.classList.remove('mc-card--assigned');
+            if (overlay) {
+                isAssigned ? show(overlay) : hide(overlay);
             }
+            card.classList.toggle('mc-card--assigned', isAssigned);
         });
     }
 
-    /* ================================================================
-       5. COUNT BADGE IN SELECTION FOOTER
-    ================================================================ */
     function updateCountBadge() {
         var badge = document.getElementById('mc-count-badge');
         if (!badge) return;
@@ -272,16 +278,15 @@
     }
 
     /* ================================================================
-       6. SUMMARY IN MAIN FORM
-          Chips row (collapsed) + expandable detail cards
+       8. SUMMARY IN MAIN FORM
     ================================================================ */
     function renderSummary() {
-        var summary    = document.getElementById('mc-assigned-summary');
-        var noMsg      = document.getElementById('mc-no-cinemas');
-        var chipsRow   = document.getElementById('mc-chips-row');
-        var cardsWrap  = document.getElementById('mc-cards-expanded');
-        var toggleBtn  = document.getElementById('mc-toggle-expand');
-        var selectBtn  = document.getElementById('mc-select-cinemas-btn');
+        var summary   = document.getElementById('mc-assigned-summary');
+        var noMsg     = document.getElementById('mc-no-cinemas');
+        var chipsRow  = document.getElementById('mc-chips-row');
+        var cardsWrap = document.getElementById('mc-cards-expanded');
+        var toggleBtn = document.getElementById('mc-toggle-expand');
+        var selectBtn = document.getElementById('mc-select-cinemas-btn');
 
         if (selectedCinemas.length === 0) {
             hide(summary);
@@ -294,7 +299,6 @@
         hide(noMsg);
         if (selectBtn) selectBtn.textContent = '✎  Edit Assignments';
 
-        // Chips row
         chipsRow.innerHTML = '';
         selectedCinemas.forEach(function (c) {
             var chip = document.createElement('span');
@@ -303,7 +307,6 @@
             chipsRow.appendChild(chip);
         });
 
-        // Expanded detail cards
         cardsWrap.innerHTML = '';
         selectedCinemas.forEach(function (c) {
             var card = document.createElement('div');
@@ -335,23 +338,17 @@
             cardsWrap.appendChild(card);
         });
 
-        // Toggle button wiring
         if (toggleBtn) {
             toggleBtn.onclick = function () {
                 var isOpen = !cardsWrap.classList.contains('vc-hidden');
-                if (isOpen) {
-                    hide(cardsWrap);
-                    toggleBtn.textContent = '▾ Show details';
-                } else {
-                    show(cardsWrap);
-                    toggleBtn.textContent = '▴ Hide details';
-                }
+                isOpen ? hide(cardsWrap) : show(cardsWrap);
+                toggleBtn.textContent = isOpen ? '▾ Show details' : '▴ Hide details';
             };
         }
     }
 
     /* ================================================================
-       7. SERIALIZE / RESTORE
+       9. SERIALIZE / RESTORE
     ================================================================ */
     function syncHidden() {
         var input = document.getElementById('mc-cinemas-json');
@@ -374,6 +371,9 @@
        INIT
     ================================================================ */
     document.addEventListener('DOMContentLoaded', function () {
+        initGenreChips();
+        initFilePreview('landscape_poster', 'landscape_preview');
+        initFilePreview('portrait_poster',  'portrait_preview');
         initViewSwitching();
         initCinemaCards();
         initModal();

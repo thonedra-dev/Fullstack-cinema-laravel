@@ -1,0 +1,406 @@
+/* ============================================================
+   movie_creation.css
+   Place at: resources/css/movie_creation.css
+   Shared tokens live in admin_team.css (:root variables).
+   Shared card styles live in admin_team.css (vc-card-grid, etc.)
+   ============================================================ */
+
+/* ── Compact input override ─────────────────────────────── */
+.mc-input--compact {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+}
+
+/* ── Section wrapper ────────────────────────────────────── */
+.mc-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-card);
+}
+
+.mc-section__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mc-section__number {
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--accent-light);
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.25);
+    border-radius: var(--radius-sm);
+    padding: 3px 8px;
+    flex-shrink: 0;
+}
+
+.mc-section__title {
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* ── Movie details grid ─────────────────────────────────── */
+.mc-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.mc-field--full { grid-column: 1 / -1; }
+
+/* ── Cinema assignments section ─────────────────────────── */
+.mc-no-cinemas {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    padding: 12px 0 8px;
+}
+
+.mc-no-cinemas__icon { font-size: 1.2rem; }
+
+/* ── Assignment summary ─────────────────────────────────── */
+.mc-assigned-summary { margin-bottom: 12px; }
+
+.mc-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.mc-chip {
+    display: inline-block;
+    padding: 4px 14px;
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.3);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    color: var(--accent-light);
+    white-space: nowrap;
+}
+
+/* Toggle expand button */
+.mc-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: var(--font-heading);
+    cursor: pointer;
+    padding: 4px 0;
+    transition: color var(--transition);
+    letter-spacing: 0.02em;
+}
+
+.mc-toggle-btn:hover { color: var(--accent-light); }
+
+/* Expanded detail cards */
+.mc-cards-expanded {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+}
+
+.mc-assignment-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.mc-assignment-card__img-wrap { width: 100%; aspect-ratio: 16/9; overflow: hidden; }
+
+.mc-assignment-card__img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+}
+
+.mc-assignment-card__img-ph {
+    width: 100%; height: 100%;
+    background: var(--bg-card);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: var(--text-muted);
+}
+
+.mc-assignment-card__body { padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+
+.mc-assignment-card__name {
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.mc-assignment-card__loc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.mc-assignment-card__meta {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mc-assignment-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.mc-assignment-card__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.mc-assignment-card__val {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-align: right;
+}
+
+/* ── Supervisor auth grid ───────────────────────────────── */
+.mc-section--auth { border-color: rgba(91,106,240,0.2); }
+
+.mc-auth-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ── Selection view helpers ─────────────────────────────── */
+.mc-select-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+.mc-select-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.mc-count-badge {
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    color: var(--accent-light);
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+}
+
+/* Assigned card overlay */
+.mc-assigned-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(91,106,240,0.72);
+    backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.04em;
+    border-radius: inherit;
+}
+
+.mc-card--assigned .vc-card__img-wrap { position: relative; }
+
+/* ── Quota modal ────────────────────────────────────────── */
+.mc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+    padding: 20px;
+}
+
+.mc-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    animation: mc-modal-in 0.2s ease;
+}
+
+@keyframes mc-modal-in {
+    from { opacity: 0; transform: scale(0.94) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+/* Cinema identity strip at top of modal */
+.mc-modal__strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.mc-modal__img {
+    width: 100px;
+    height: 68px;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+}
+
+.mc-modal__img-ph {
+    width: 100px;
+    height: 68px;
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.mc-modal__cinema-info {
+    flex: 1;
+    padding: 12px 16px;
+    min-width: 0;
+}
+
+.mc-modal__label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.mc-modal__cinema-name {
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mc-modal__cinema-loc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.mc-modal__remove {
+    background: none;
+    border: none;
+    border-left: 1px solid var(--border);
+    color: var(--danger);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0 14px;
+    height: 100%;
+    cursor: pointer;
+    transition: background var(--transition);
+    white-space: nowrap;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+}
+
+.mc-modal__remove:hover { background: rgba(240,91,91,0.1); }
+
+.mc-modal__body { padding: 20px 22px 4px; }
+
+.mc-quota-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.mc-quota-full { grid-column: 1 / -1; }
+
+.mc-modal__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 22px 22px;
+}
+
+.mc-modal__actions .ac-btn { width: 100%; justify-content: center; }
+
+.mc-modal__cancel {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 10px;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+    width: 100%;
+}
+
+.mc-modal__cancel:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .mc-details-grid { grid-template-columns: 1fr; }
+    .mc-field--full  { grid-column: auto; }
+    .mc-auth-grid    { grid-template-columns: 1fr; }
+    .mc-quota-grid   { grid-template-columns: 1fr; }
+    .mc-quota-full   { grid-column: auto; }
+    .mc-modal        { max-width: 100%; }
+    .mc-select-hint  { display: none; }
+}
