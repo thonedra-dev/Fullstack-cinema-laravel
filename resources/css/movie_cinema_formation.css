@@ -1,0 +1,173 @@
+/* ============================================================
+   movie_cinema_formation.css
+   Place at: resources/css/movie_cinema_formation.css
+   ============================================================ */
+
+/* ── Breadcrumb ─────────────────────────────────────────── */
+.mcf-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 20px; flex-wrap: wrap;
+}
+
+.mcf-breadcrumb__item {
+    font-size: 0.78rem; color: var(--text-muted);
+    text-decoration: none; font-weight: 500;
+    transition: color var(--transition);
+}
+
+a.mcf-breadcrumb__item:hover { color: var(--accent-light); }
+
+.mcf-breadcrumb__item--current {
+    color: var(--text-primary); font-weight: 700;
+    font-family: var(--font-heading);
+}
+
+.mcf-breadcrumb__sep { color: var(--text-muted); font-size: 0.8rem; }
+
+/* ── Landscape hero ─────────────────────────────────────── */
+.mcf-hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 21 / 9;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 24px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+}
+
+.mcf-hero__img {
+    width: 100%; height: 100%;
+    object-fit: cover; display: block;
+}
+
+.mcf-hero__placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 2.5rem;
+}
+
+.mcf-hero__placeholder-text { font-size: 0.875rem; font-weight: 500; }
+
+/* Gradient overlay at bottom of hero */
+.mcf-hero__overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 24px 28px 22px;
+    background: linear-gradient(
+        to top,
+        rgba(0,0,0,0.82) 0%,
+        rgba(0,0,0,0.45) 60%,
+        transparent 100%
+    );
+}
+
+.mcf-hero__title {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+}
+
+.mcf-hero__cinema {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.65);
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* ── Info card ──────────────────────────────────────────── */
+.mcf-info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-card);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.mcf-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.mcf-info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mcf-info-block--full { grid-column: 1 / -1; }
+
+.mcf-info-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-muted);
+}
+
+.mcf-info-value {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.mcf-info-value--muted { color: var(--text-muted); font-size: 0.875rem; font-weight: 400; }
+
+/* Genre tags */
+.mcf-genres { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.mcf-genre-tag {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-heading);
+    letter-spacing: 0.03em;
+    background: var(--accent-glow);
+    color: var(--accent-light);
+    border: 1px solid rgba(91,106,240,0.25);
+}
+
+/* ── NO Proposal Yet placeholder ────────────────────────── */
+.mcf-proposal-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+}
+
+.mcf-proposal-placeholder__icon { font-size: 1.2rem; }
+
+.mcf-proposal-placeholder__text {
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .mcf-hero { aspect-ratio: 16 / 9; }
+    .mcf-hero__title { font-size: 1.3rem; }
+    .mcf-info-grid { grid-template-columns: 1fr; }
+    .mcf-info-block--full { grid-column: auto; }
+    .mcf-info-card { padding: 20px; }
+}
