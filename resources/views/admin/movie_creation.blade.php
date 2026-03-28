@@ -6,6 +6,7 @@
     Data injected (logic-free blade):
       $cinemas     – Cinema collection with eager-loaded ->city
       $supervisors – Supervisor collection {supervisor_id, supervisor_name}
+      $genres      – Genre collection {genre_id, genre_name}
 --}}
 @extends('admin.admin_team')
 
@@ -32,6 +33,7 @@
         id="mc-main-form"
         action="{{ route('admin.movie.store') }}"
         method="POST"
+        enctype="multipart/form-data"
         novalidate
     >
         @csrf
@@ -107,13 +109,92 @@
                     @error('production_name') <span class="ac-error">{{ $message }}</span> @enderror
                 </div>
 
-            </div>
+                {{-- Posters ──────────────────────────────── --}}
+                <div class="ac-field">
+                    <label>
+                        Landscape Poster
+                        <span class="optional">(optional · JPEG/PNG/WEBP · max 4 MB)</span>
+                    </label>
+                    <label class="ac-file-label" for="landscape_poster">
+                        <span class="ac-file-label__icon">🖼</span>
+                        <span class="ac-file-label__text">
+                            <strong>Click to upload</strong> landscape
+                        </span>
+                        <input
+                            type="file"
+                            id="landscape_poster"
+                            name="landscape_poster"
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+                    </label>
+                    <span id="landscape_preview" class="ac-file-preview"></span>
+                    @error('landscape_poster') <span class="ac-error">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="ac-field">
+                    <label>
+                        Portrait Poster
+                        <span class="optional">(optional · JPEG/PNG/WEBP · max 4 MB)</span>
+                    </label>
+                    <label class="ac-file-label" for="portrait_poster">
+                        <span class="ac-file-label__icon">🎞</span>
+                        <span class="ac-file-label__text">
+                            <strong>Click to upload</strong> portrait
+                        </span>
+                        <input
+                            type="file"
+                            id="portrait_poster"
+                            name="portrait_poster"
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+                    </label>
+                    <span id="portrait_preview" class="ac-file-preview"></span>
+                    @error('portrait_poster') <span class="ac-error">{{ $message }}</span> @enderror
+                </div>
+
+            </div>{{-- /.mc-details-grid --}}
         </div>
 
-        {{-- ── SECTION 2: Cinema Assignments ──────────────── --}}
+        {{-- ── SECTION 2: Genres ──────────────────────────── --}}
         <div class="mc-section">
             <div class="mc-section__header">
                 <span class="mc-section__number">02</span>
+                <span class="mc-section__title">Genres</span>
+            </div>
+
+            @error('genres')
+                <div class="at-alert at-alert--error" style="margin-bottom:12px;">
+                    <span class="at-alert__icon">✕</span> {{ $message }}
+                </div>
+            @enderror
+
+            @if ($genres->isEmpty())
+                <p class="mc-no-genres">No genres found in database.</p>
+            @else
+                <div class="mc-genre-grid">
+                    @foreach ($genres as $genre)
+                        <label
+                            class="mc-genre-btn {{ in_array($genre->genre_id, old('genres', [])) ? 'is-selected' : '' }}"
+                            for="genre_{{ $genre->genre_id }}"
+                        >
+                            <input
+                                type="checkbox"
+                                id="genre_{{ $genre->genre_id }}"
+                                name="genres[]"
+                                value="{{ $genre->genre_id }}"
+                                {{ in_array($genre->genre_id, old('genres', [])) ? 'checked' : '' }}
+                            >
+                            {{ $genre->genre_name }}
+                        </label>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
+        {{-- ── SECTION 3: Cinema Assignments ──────────────── --}}
+        <div class="mc-section">
+            <div class="mc-section__header">
+                <span class="mc-section__number">03</span>
                 <span class="mc-section__title">Cinema Assignments</span>
             </div>
 
@@ -123,12 +204,9 @@
                 </div>
             @enderror
 
-            {{-- Summary area: chips + expandable cards (JS populated) --}}
             <div id="mc-assigned-summary" class="mc-assigned-summary vc-hidden">
                 <div id="mc-chips-row" class="mc-chips-row"></div>
-                <button type="button" id="mc-toggle-expand" class="mc-toggle-btn">
-                    ▾ Show details
-                </button>
+                <button type="button" id="mc-toggle-expand" class="mc-toggle-btn">▾ Show details</button>
                 <div id="mc-cards-expanded" class="mc-cards-expanded vc-hidden"></div>
             </div>
 
@@ -142,10 +220,10 @@
             </button>
         </div>
 
-        {{-- ── SECTION 3: Supervisor Confirmation ─────────── --}}
+        {{-- ── SECTION 4: Supervisor Confirmation ─────────── --}}
         <div class="mc-section mc-section--auth">
             <div class="mc-section__header">
-                <span class="mc-section__number">03</span>
+                <span class="mc-section__number">04</span>
                 <span class="mc-section__title">Supervisor Confirmation</span>
             </div>
 
@@ -241,15 +319,11 @@
                 >
                     <div class="vc-card__img-wrap">
                         @if ($cinema->cinema_picture)
-                            <img
-                                src="{{ asset('images/cinemas/' . $cinema->cinema_picture) }}"
-                                alt="{{ $cinema->cinema_name }}"
-                                class="vc-card__img"
-                            >
+                            <img src="{{ asset('images/cinemas/' . $cinema->cinema_picture) }}"
+                                 alt="{{ $cinema->cinema_name }}" class="vc-card__img">
                         @else
                             <div class="vc-card__img-placeholder">🎬</div>
                         @endif
-                        {{-- Assigned overlay — JS toggles vc-hidden --}}
                         <div class="mc-assigned-overlay vc-hidden">✓ Assigned</div>
                     </div>
                     <div class="vc-card__body">
@@ -275,18 +349,12 @@
 
 
 {{-- ══════════════════════════════════════════════════════════
-     QUOTA MODAL — shown when a cinema card is clicked
+     QUOTA MODAL
 ══════════════════════════════════════════════════════════ --}}
-<div
-    id="mc-quota-modal"
-    class="mc-modal-overlay vc-hidden"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="mc-quota-label"
->
+<div id="mc-quota-modal" class="mc-modal-overlay vc-hidden"
+     role="dialog" aria-modal="true" aria-labelledby="mc-quota-label">
     <div class="mc-modal">
 
-        {{-- Cinema identity strip --}}
         <div class="mc-modal__strip">
             <img id="mc-modal-img" class="mc-modal__img vc-hidden" alt="">
             <div id="mc-modal-img-ph" class="mc-modal__img-ph">🎬</div>
@@ -295,7 +363,6 @@
                 <p class="mc-modal__cinema-name" id="mc-modal-cinema-name"></p>
                 <p class="mc-modal__cinema-loc"  id="mc-modal-cinema-loc"></p>
             </div>
-            {{-- Remove button — shown only when editing an already-assigned cinema --}}
             <button type="button" id="mc-quota-remove" class="mc-modal__remove vc-hidden">
                 ✕ Remove
             </button>
@@ -303,34 +370,25 @@
 
         <div class="mc-modal__body">
             <div class="mc-quota-grid">
-
                 <div class="ac-field">
                     <label for="mc-start-date">Start Date <span class="required">*</span></label>
                     <input type="date" id="mc-start-date" class="ac-input mc-input--compact">
                     <span class="ac-error vc-hidden" id="mc-start-err">Required.</span>
                 </div>
-
                 <div class="ac-field">
                     <label for="mc-end-date">Max End Date <span class="required">*</span></label>
                     <input type="date" id="mc-end-date" class="ac-input mc-input--compact">
                     <span class="ac-error vc-hidden" id="mc-end-err">Must be after start date.</span>
                 </div>
-
                 <div class="ac-field mc-quota-full">
                     <label for="mc-slots">
                         Showtime Slots <span class="required">*</span>
                         <span class="optional">(daily showtimes)</span>
                     </label>
-                    <input
-                        type="number"
-                        id="mc-slots"
-                        class="ac-input mc-input--compact"
-                        min="1"
-                        placeholder="e.g. 4"
-                    >
+                    <input type="number" id="mc-slots" class="ac-input mc-input--compact"
+                           min="1" max="20" placeholder="e.g. 4">
                     <span class="ac-error vc-hidden" id="mc-slots-err">Enter 1–20.</span>
                 </div>
-
             </div>
         </div>
 
@@ -338,16 +396,12 @@
             <button type="button" id="mc-quota-confirm" class="ac-btn ac-btn--primary">
                 ✓ Assign Cinema
             </button>
-            <button type="button" id="mc-quota-cancel" class="mc-modal__cancel">
-                Cancel
-            </button>
+            <button type="button" id="mc-quota-cancel" class="mc-modal__cancel">Cancel</button>
         </div>
-
     </div>
-</div>{{-- /#mc-quota-modal --}}
+</div>
 
 
-{{-- Inline JSON for JS --}}
 <script>
     window.MC_CINEMAS     = {!! json_encode(
         $cinemas->map(fn($c) => [
