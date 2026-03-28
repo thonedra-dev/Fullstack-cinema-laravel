@@ -15,7 +15,22 @@ class Movie extends Model
         'runtime',
         'language',
         'production_name',
+        'landscape_poster',   // added — user adds column manually
+        'portrait_poster',    // added — user adds column manually
     ];
+
+    /**
+     * A movie belongs to many genres via movie_genres pivot.
+     */
+    public function genres()
+    {
+        return $this->belongsToMany(
+            Genre::class,
+            'movie_genres',
+            'movie_id',
+            'genre_id'
+        );
+    }
 
     /**
      * A movie has many cinema quota assignments.
@@ -26,7 +41,7 @@ class Movie extends Model
     }
 
     /**
-     * A movie belongs to many cinemas (via cinema_movie_quotas).
+     * A movie belongs to many cinemas via cinema_movie_quotas.
      */
     public function cinemas()
     {

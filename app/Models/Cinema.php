@@ -34,4 +34,17 @@ class Cinema extends Model
     {
         return $this->hasMany(Theatre::class, 'cinema_id', 'cinema_id');
     }
+
+    /**
+     * A cinema has many assigned movies (via cinema_movie_quotas).
+     */
+    public function movies()
+    {
+        return $this->belongsToMany(
+            Movie::class,
+            'cinema_movie_quotas',
+            'cinema_id',
+            'movie_id'
+        )->withPivot('supervisor_id', 'showtime_slots', 'start_date', 'maximum_end_date');
+    }
 }
