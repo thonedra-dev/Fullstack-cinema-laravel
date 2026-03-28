@@ -1,0 +1,322 @@
+/* ============================================================
+   branch_manager.css
+   Place at: resources/css/branch_manager.css
+   Shared styles for all Branch Manager pages.
+   Completely independent from admin_team.css.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ── Design tokens ──────────────────────────────────────── */
+:root {
+    --bm-bg:           #0b0c10;
+    --bm-surface:      #13151c;
+    --bm-card:         #1a1d27;
+    --bm-border:       #252836;
+    --bm-accent:       #22c55e;         /* green — distinct from admin purple */
+    --bm-accent-dim:   rgba(34,197,94,0.15);
+    --bm-accent-glow:  rgba(34,197,94,0.08);
+    --bm-text:         #e2e8f0;
+    --bm-text-sub:     #8892a4;
+    --bm-text-muted:   #4b5568;
+    --bm-danger:       #f87171;
+    --bm-radius-sm:    6px;
+    --bm-radius-md:    12px;
+    --bm-radius-lg:    18px;
+    --bm-shadow:       0 4px 32px rgba(0,0,0,0.5);
+    --bm-font-ui:      'DM Sans', sans-serif;
+    --bm-font-head:    'Space Grotesk', sans-serif;
+    --bm-transition:   0.2s ease;
+}
+
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body.bm-body {
+    background: var(--bm-bg);
+    color: var(--bm-text);
+    font-family: var(--bm-font-ui);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+}
+
+/* ── Page wrapper ───────────────────────────────────────── */
+.bm-page { max-width: 1100px; margin: 0 auto; padding: 40px 24px 72px; }
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.bm-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 28px;
+    height: 56px;
+    background: var(--bm-surface);
+    border-bottom: 1px solid var(--bm-border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.bm-topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--bm-font-head);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--bm-text);
+}
+
+.bm-topbar__brand-icon { font-size: 1.2rem; }
+
+.bm-topbar__cinema {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--bm-accent);
+    background: var(--bm-accent-dim);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 20px;
+    padding: 3px 12px;
+    white-space: nowrap;
+}
+
+.bm-topbar__right { display: flex; align-items: center; gap: 12px; }
+
+.bm-logout-btn {
+    background: none;
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-sm);
+    color: var(--bm-text-sub);
+    font-family: var(--bm-font-head);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: border-color var(--bm-transition), color var(--bm-transition);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.bm-logout-btn:hover { border-color: var(--bm-danger); color: var(--bm-danger); }
+
+/* ── Card ───────────────────────────────────────────────── */
+.bm-card {
+    background: var(--bm-card);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-lg);
+    box-shadow: var(--bm-shadow);
+}
+
+/* ── Page header ────────────────────────────────────────── */
+.bm-page-header { margin-bottom: 28px; }
+
+.bm-page-header__title {
+    font-family: var(--bm-font-head);
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--bm-text);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+.bm-page-header__title span { color: var(--bm-accent); }
+
+.bm-page-header__sub {
+    font-size: 0.875rem;
+    color: var(--bm-text-sub);
+    margin-top: 5px;
+}
+
+/* ── Field ──────────────────────────────────────────────── */
+.bm-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+
+.bm-field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bm-text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.bm-field label .required { color: var(--bm-accent); margin-left: 2px; }
+
+.bm-input {
+    background: var(--bm-surface);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-sm);
+    color: var(--bm-text);
+    font-family: var(--bm-font-ui);
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    transition: border-color var(--bm-transition), box-shadow var(--bm-transition);
+    width: 100%;
+    outline: none;
+}
+
+.bm-input:focus {
+    border-color: var(--bm-accent);
+    box-shadow: 0 0 0 3px var(--bm-accent-glow);
+}
+
+.bm-input::placeholder { color: var(--bm-text-muted); }
+
+.bm-error { font-size: 0.78rem; color: var(--bm-danger); margin-top: 3px; }
+
+/* ── Button ─────────────────────────────────────────────── */
+.bm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 28px;
+    border-radius: var(--bm-radius-sm);
+    font-family: var(--bm-font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all var(--bm-transition);
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    width: 100%;
+}
+
+.bm-btn--primary {
+    background: var(--bm-accent);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.25);
+}
+
+.bm-btn--primary:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 28px rgba(34,197,94,0.35);
+}
+
+.bm-btn--ghost {
+    background: transparent;
+    border: 1px solid var(--bm-border);
+    color: var(--bm-text-sub);
+}
+
+.bm-btn--ghost:hover { border-color: var(--bm-accent); color: var(--bm-accent); }
+
+/* ── Section title ──────────────────────────────────────── */
+.bm-section-title {
+    font-family: var(--bm-font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--bm-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--bm-border);
+    margin-bottom: 16px;
+}
+
+.bm-section-title::before {
+    content: '';
+    display: inline-block;
+    width: 4px; height: 18px;
+    background: var(--bm-accent);
+    border-radius: 2px;
+}
+
+/* ── Badge ──────────────────────────────────────────────── */
+.bm-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    font-family: var(--bm-font-head);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--bm-accent-dim);
+    color: var(--bm-accent);
+    border: 1px solid rgba(34,197,94,0.2);
+}
+
+/* ── Flash alert ────────────────────────────────────────── */
+.bm-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-radius: var(--bm-radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+.bm-alert--error {
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.3);
+    color: var(--bm-danger);
+}
+
+/* ── Mini card (theatre / movie) ────────────────────────── */
+.bm-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.bm-mini-card {
+    background: var(--bm-surface);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-md);
+    overflow: hidden;
+    transition: border-color var(--bm-transition);
+}
+
+.bm-mini-card:hover { border-color: var(--bm-accent); }
+
+.bm-mini-card__img-wrap { width: 100%; aspect-ratio: 16/9; overflow: hidden; background: var(--bm-card); }
+.bm-mini-card__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bm-mini-card__ph {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; color: var(--bm-text-muted);
+}
+
+.bm-mini-card__body { padding: 10px 12px; }
+.bm-mini-card__name {
+    font-family: var(--bm-font-head); font-size: 0.78rem;
+    font-weight: 700; color: var(--bm-text); line-height: 1.3;
+    -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.bm-mini-card__sub { font-size: 0.68rem; color: var(--bm-text-muted); margin-top: 4px; }
+
+/* Portrait variant for movies */
+.bm-mini-card--portrait .bm-mini-card__img-wrap { aspect-ratio: 2/3; }
+
+/* ── Info row (label + value) ───────────────────────────── */
+.bm-info-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 14px; }
+.bm-info-label {
+    font-size: 0.67rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--bm-text-muted);
+}
+.bm-info-value { font-size: 0.9rem; color: var(--bm-text); }
+
+/* ── Back link ──────────────────────────────────────────── */
+.bm-back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; font-weight: 600;
+    color: var(--bm-text-sub); text-decoration: none;
+    margin-bottom: 20px;
+    transition: color var(--bm-transition);
+}
+.bm-back-link:hover { color: var(--bm-accent); }
+
+/* ── Empty state ────────────────────────────────────────── */
+.bm-empty { padding: 40px 20px; text-align: center; color: var(--bm-text-muted); }
+.bm-empty__icon { font-size: 2rem; margin-bottom: 10px; }
+.bm-empty__text { font-size: 0.875rem; }
