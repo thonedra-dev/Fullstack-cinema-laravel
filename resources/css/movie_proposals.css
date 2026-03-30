@@ -1,0 +1,19 @@
+/* ============================================================
+   movie_proposals.css
+   Place at: resources/css/movie_proposals.css
+   Shared between movie_proposals.blade.php and movie_proposal_detail.blade.php
+   ============================================================ */
+
+/* ── Group label ────────────────────────────────────────── */
+.mp-group-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+}
