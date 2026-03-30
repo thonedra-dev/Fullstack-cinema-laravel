@@ -75,6 +75,14 @@
             <span class="at-nav__icon">👤</span> Managers
         </a>
 
+        <div class="at-nav__group-label">Proposals</div>
+        <a href="{{ route('admin.proposals.index') }}"
+           class="at-nav__link {{ request()->routeIs('admin.proposals.*') ? 'is-active' : '' }}">
+            <span class="at-nav__icon">📩</span> Movie Proposals
+        </a>
+
+    </nav>
+
     </nav>
 
     <div class="at-sidebar__footer">
