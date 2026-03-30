@@ -47,4 +47,9 @@ class Theatre extends Model
                     ->orderBy('row_label')
                     ->orderBy('seat_number');
     }
+
+    public function showtimes()
+    {
+        return $this->hasMany(Showtime::class, 'theatre_id', 'theatre_id');
+    }
 }
