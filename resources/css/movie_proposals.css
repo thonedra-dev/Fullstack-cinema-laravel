@@ -17,3 +17,236 @@
     color: var(--text-muted);
     margin-bottom: 12px;
 }
+
+.mp-group-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%; flex-shrink: 0;
+}
+
+.mp-group-dot--pending  { background: #f59e0b; }
+.mp-group-dot--approved { background: #22c55e; }
+.mp-group-dot--rejected { background: #f87171; }
+
+/* ── Proposal list ──────────────────────────────────────── */
+.mp-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* ── Proposal card (abstract notification) ──────────────── */
+.mp-card {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    text-decoration: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+}
+
+.mp-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 24px rgba(91,106,240,0.12);
+}
+
+/* Left status bar */
+.mp-card__status-bar {
+    width: 4px;
+    align-self: stretch;
+    flex-shrink: 0;
+}
+
+.mp-card__status-bar--pending  { background: #f59e0b; }
+.mp-card__status-bar--approved { background: #22c55e; }
+.mp-card__status-bar--rejected { background: #f87171; }
+
+/* Poster thumb */
+.mp-card__poster-wrap {
+    width: 64px; height: 86px;
+    flex-shrink: 0; overflow: hidden;
+    background: var(--bg-surface);
+}
+
+.mp-card__poster { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.mp-card__poster-ph {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; color: var(--text-muted);
+}
+
+/* Body */
+.mp-card__body {
+    flex: 1; padding: 14px 16px; min-width: 0;
+}
+
+.mp-card__headline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.mp-card__headline strong { color: var(--text-primary); }
+
+.mp-card__meta {
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+.mp-meta-pill {
+    font-size: 0.68rem; font-weight: 500;
+    color: var(--text-muted);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 2px 9px;
+    white-space: nowrap;
+}
+
+/* Badge + arrow */
+.mp-card__badge-wrap {
+    padding: 14px 18px;
+    display: flex; flex-direction: column;
+    align-items: flex-end; gap: 8px;
+    flex-shrink: 0;
+}
+
+.mp-status-badge {
+    font-size: 0.68rem; font-weight: 700;
+    font-family: var(--font-heading); letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 20px;
+    white-space: nowrap;
+}
+
+.mp-status-badge--pending  { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.mp-status-badge--approved { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+.mp-status-badge--rejected { background: rgba(248,113,113,0.12);color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+
+.mp-card__arrow {
+    font-size: 0.9rem; color: var(--accent);
+    opacity: 0; transform: translateX(-3px);
+    transition: opacity var(--transition), transform var(--transition);
+}
+
+.mp-card:hover .mp-card__arrow { opacity: 1; transform: translateX(0); }
+
+/* ============================================================
+   DETAIL PAGE
+   ============================================================ */
+
+/* Status banner */
+.mpd-status-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 20px; border-radius: var(--radius-md);
+    font-size: 0.875rem; font-weight: 500;
+    margin-bottom: 24px; border: 1px solid;
+}
+
+.mpd-status-banner--pending {
+    background: rgba(245,158,11,0.08);
+    border-color: rgba(245,158,11,0.3);
+    color: #f59e0b;
+}
+
+.mpd-status-banner--approved {
+    background: rgba(34,197,94,0.08);
+    border-color: rgba(34,197,94,0.3);
+    color: #22c55e;
+}
+
+.mpd-status-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+/* Two-column detail layout */
+.mpd-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.mpd-info-card { margin-bottom: 0; }
+
+.mpd-left, .mpd-right {
+    display: flex; flex-direction: column; gap: 20px;
+}
+
+/* Info rows inside cards */
+.mpd-info-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
+.mpd-info-row:last-child { margin-bottom: 0; }
+
+.mpd-info-label {
+    font-size: 0.67rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: var(--text-muted);
+}
+
+.mpd-info-value { font-size: 0.875rem; color: var(--text-secondary); }
+
+/* Schedule time display */
+.mpd-schedule-time {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 4px;
+}
+
+.mpd-time-block { display: flex; flex-direction: column; gap: 3px; }
+
+.mpd-time-val {
+    font-family: 'Courier New', monospace;
+    font-size: 1.4rem; font-weight: 700;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+}
+
+.mpd-time-arrow {
+    font-size: 1.2rem; color: var(--text-muted); flex-shrink: 0;
+    margin-top: 18px; /* align with digit */
+}
+
+/* Date chips grid */
+.mpd-dates-grid {
+    display: flex; flex-wrap: wrap; gap: 6px;
+}
+
+.mpd-date-chip {
+    display: inline-block;
+    padding: 4px 12px;
+    background: var(--accent-glow);
+    color: var(--accent-light);
+    border: 1px solid rgba(91,106,240,0.25);
+    border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600;
+    font-family: var(--font-heading);
+    white-space: nowrap;
+}
+
+/* Quota reminder card */
+.mpd-quota-reminder {
+    border-color: rgba(91,106,240,0.2);
+}
+
+/* Approve card */
+.mpd-approve-card {
+    border-color: rgba(34,197,94,0.2);
+    background: rgba(34,197,94,0.03);
+}
+
+.mpd-approve-btn {
+    width: 100%;
+    justify-content: center;
+    background: #22c55e;
+    box-shadow: 0 4px 20px rgba(34,197,94,0.25);
+}
+
+.mpd-approve-btn:hover {
+    background: #16a34a;
+    box-shadow: 0 6px 28px rgba(34,197,94,0.35);
+}
+
+/* Responsive */
+@media (max-width: 860px) {
+    .mpd-layout { grid-template-columns: 1fr; }
+    .mp-card__poster-wrap { width: 52px; height: 70px; }
+}
