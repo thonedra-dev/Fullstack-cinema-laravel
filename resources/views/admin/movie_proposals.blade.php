@@ -1,10 +1,11 @@
 {{--
     resources/views/admin/movie_proposals.blade.php
     ────────────────────────────────────────────────
-    Feature: Abstract list of all showtime proposals from branch managers.
+    Feature: List of all showtime proposals from branch managers.
     Controller: AdminMovieProposalController@index
     Data:
-      $proposals – ShowtimeProposal collection with ->manager, ->cinema, ->theatre, ->movie
+      $proposals – ShowtimeProposalStatus collection
+                   decorated with: first_id, slot_count, start_time, theatre
 --}}
 @extends('admin.admin_team')
 
@@ -25,17 +26,21 @@
 </div>
 
 @if ($proposals->isEmpty())
+
     <div class="ac-empty" style="padding:80px 20px;">
         <div class="ac-empty__icon">📩</div>
         <p class="ac-empty__text" style="font-size:1rem;">No proposals yet.</p>
-        <p class="ac-empty__text" style="margin-top:6px;">Branch managers will submit proposals after configuring showtimes.</p>
+        <p class="ac-empty__text" style="margin-top:6px;">
+            Branch managers will submit proposals after configuring showtimes.
+        </p>
     </div>
+
 @else
 
-    {{-- Pending proposals first, then processed --}}
     @php
         $pending  = $proposals->where('status', 'pending');
         $approved = $proposals->where('status', 'approved');
+        $rejected = $proposals->where('status', 'rejected');
     @endphp
 
     @if ($pending->isNotEmpty())
@@ -57,6 +62,18 @@
         </div>
         <div class="mp-list">
             @foreach ($approved as $p)
+                @include('admin.partials.proposal_card', ['p' => $p])
+            @endforeach
+        </div>
+    @endif
+
+    @if ($rejected->isNotEmpty())
+        <div class="mp-group-label" style="margin-top:32px;">
+            <span class="mp-group-dot mp-group-dot--rejected"></span>
+            Rejected ({{ $rejected->count() }})
+        </div>
+        <div class="mp-list">
+            @foreach ($rejected as $p)
                 @include('admin.partials.proposal_card', ['p' => $p])
             @endforeach
         </div>

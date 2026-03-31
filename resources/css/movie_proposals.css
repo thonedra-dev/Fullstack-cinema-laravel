@@ -1,10 +1,9 @@
 /* ============================================================
-   movie_proposals.css
-   Place at: resources/css/movie_proposals.css
-   Shared between movie_proposals.blade.php and movie_proposal_detail.blade.php
+   resources/css/movie_proposals.css
+   Shared: movie_proposals.blade.php + movie_proposal_detail.blade.php
    ============================================================ */
 
-/* ── Group label ────────────────────────────────────────── */
+/* ── Group label ─────────────────────────────────────────── */
 .mp-group-label {
     display: flex;
     align-items: center;
@@ -20,17 +19,18 @@
 
 .mp-group-dot {
     width: 8px; height: 8px;
-    border-radius: 50%; flex-shrink: 0;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
 .mp-group-dot--pending  { background: #f59e0b; }
 .mp-group-dot--approved { background: #22c55e; }
 .mp-group-dot--rejected { background: #f87171; }
 
-/* ── Proposal list ──────────────────────────────────────── */
+/* ── Proposal list ───────────────────────────────────────── */
 .mp-list { display: flex; flex-direction: column; gap: 10px; }
 
-/* ── Proposal card (abstract notification) ──────────────── */
+/* ── Proposal card ───────────────────────────────────────── */
 .mp-card {
     display: flex;
     align-items: center;
@@ -49,7 +49,6 @@
     box-shadow: 0 4px 24px rgba(91,106,240,0.12);
 }
 
-/* Left status bar */
 .mp-card__status-bar {
     width: 4px;
     align-self: stretch;
@@ -60,7 +59,6 @@
 .mp-card__status-bar--approved { background: #22c55e; }
 .mp-card__status-bar--rejected { background: #f87171; }
 
-/* Poster thumb */
 .mp-card__poster-wrap {
     width: 64px; height: 86px;
     flex-shrink: 0; overflow: hidden;
@@ -75,7 +73,6 @@
     font-size: 1.5rem; color: var(--text-muted);
 }
 
-/* Body */
 .mp-card__body {
     flex: 1; padding: 14px 16px; min-width: 0;
 }
@@ -89,9 +86,7 @@
 
 .mp-card__headline strong { color: var(--text-primary); }
 
-.mp-card__meta {
-    display: flex; flex-wrap: wrap; gap: 6px;
-}
+.mp-card__meta { display: flex; flex-wrap: wrap; gap: 6px; }
 
 .mp-meta-pill {
     font-size: 0.68rem; font-weight: 500;
@@ -102,7 +97,6 @@
     white-space: nowrap;
 }
 
-/* Badge + arrow */
 .mp-card__badge-wrap {
     padding: 14px 18px;
     display: flex; flex-direction: column;
@@ -117,9 +111,9 @@
     white-space: nowrap;
 }
 
-.mp-status-badge--pending  { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
-.mp-status-badge--approved { background: rgba(34,197,94,0.12);  color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
-.mp-status-badge--rejected { background: rgba(248,113,113,0.12);color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
+.mp-status-badge--pending  { background: rgba(245,158,11,0.12);  color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+.mp-status-badge--approved { background: rgba(34,197,94,0.12);   color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+.mp-status-badge--rejected { background: rgba(248,113,113,0.12); color: #f87171; border: 1px solid rgba(248,113,113,0.25); }
 
 .mp-card__arrow {
     font-size: 0.9rem; color: var(--accent);
@@ -133,7 +127,7 @@
    DETAIL PAGE
    ============================================================ */
 
-/* Status banner */
+/* ── Status banner ───────────────────────────────────────── */
 .mpd-status-banner {
     display: flex; align-items: center; gap: 12px;
     padding: 13px 20px; border-radius: var(--radius-md);
@@ -153,9 +147,15 @@
     color: #22c55e;
 }
 
+.mpd-status-banner--rejected {
+    background: rgba(248,113,113,0.08);
+    border-color: rgba(248,113,113,0.3);
+    color: #f87171;
+}
+
 .mpd-status-icon { font-size: 1.1rem; flex-shrink: 0; }
 
-/* Two-column detail layout */
+/* ── Two-column layout ───────────────────────────────────── */
 .mpd-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -163,13 +163,13 @@
     align-items: start;
 }
 
-.mpd-info-card { margin-bottom: 0; }
-
 .mpd-left, .mpd-right {
     display: flex; flex-direction: column; gap: 20px;
 }
 
-/* Info rows inside cards */
+.mpd-info-card { margin-bottom: 0; }
+
+/* ── Info rows ───────────────────────────────────────────── */
 .mpd-info-row { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
 .mpd-info-row:last-child { margin-bottom: 0; }
 
@@ -180,62 +180,242 @@
 
 .mpd-info-value { font-size: 0.875rem; color: var(--text-secondary); }
 
-/* Schedule time display */
-.mpd-schedule-time {
-    display: flex; align-items: center; gap: 16px;
+/* ── Cinema banner ───────────────────────────────────────── */
+.mpd-cinema-banner {
+    width: 100%; aspect-ratio: 16/7; object-fit: cover;
+    border-radius: var(--radius-sm); margin-bottom: 16px;
+}
+
+/* ── Movie card helpers ──────────────────────────────────── */
+.mpd-movie-flex { display: flex; gap: 14px; align-items: flex-start; }
+
+.mpd-movie-poster {
+    width: 70px; aspect-ratio: 2/3; object-fit: cover;
+    border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0;
+}
+
+.mpd-movie-title { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+
+.mpd-genre-wrap { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+
+/* ── Email ───────────────────────────────────────────────── */
+.mpd-email { font-family: monospace; font-size: 0.82rem; }
+
+/* ── Theatre tabs ────────────────────────────────────────── */
+.mpd-theatre-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mpd-theatre-tab {
+    font-family: var(--font-heading); font-size: 0.75rem; font-weight: 700;
+    padding: 5px 14px; border-radius: 20px; cursor: pointer;
+    background: var(--bg-surface); border: 1px solid var(--border);
+    color: var(--text-muted);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.mpd-theatre-tab:hover {
+    border-color: var(--accent); color: var(--accent-light);
+}
+
+.mpd-theatre-tab--active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent-light);
+}
+
+/* ── Theatre info row (inside card) ─────────────────────── */
+.mpd-theatre-info {
+    display: flex; gap: 14px; align-items: center; margin-bottom: 16px;
+}
+
+.mpd-theatre-thumb {
+    width: 90px; aspect-ratio: 16/9; flex-shrink: 0;
+    border-radius: var(--radius-sm); overflow: hidden;
+    border: 1px solid var(--border); background: var(--bg-surface);
+}
+
+.mpd-theatre-img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+.mpd-theatre-ph {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; color: var(--text-muted);
+}
+
+.mpd-theatre-meta {
+    display: flex; flex-direction: column; gap: 2px;
+}
+
+.mpd-theatre-name {
+    font-family: var(--font-heading); font-size: 0.95rem;
+    font-weight: 700; color: var(--text-primary);
+}
+
+/* ── Card divider ────────────────────────────────────────── */
+.mpd-card-divider {
+    height: 1px; background: var(--border);
+    margin: 4px 0 18px;
+}
+
+/* ── Schedule header ─────────────────────────────────────── */
+.mpd-schedule-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 14px;
+}
+
+.mpd-maximize-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-muted);
+    font-size: 0.72rem; font-weight: 600;
+    padding: 4px 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.mpd-maximize-btn:hover { border-color: var(--accent); color: var(--accent-light); }
+
+/* ── Schedule visual: clock + calendar ──────────────────── */
+.mpd-schedule-visual {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: start;
     margin-bottom: 4px;
 }
 
-.mpd-time-block { display: flex; flex-direction: column; gap: 3px; }
+/* Clock widget */
+.mpd-clock-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 
-.mpd-time-val {
+.mpd-clock {
+    display: inline-flex; align-items: center;
+    background: #111318;
+    border: 1px solid #2a2d3a;
+    border-radius: 10px;
+    padding: 10px 16px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.mpd-clock__digit {
     font-family: 'Courier New', monospace;
-    font-size: 1.4rem; font-weight: 700;
-    color: var(--text-primary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 6px 14px;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-}
-
-.mpd-time-arrow {
-    font-size: 1.2rem; color: var(--text-muted); flex-shrink: 0;
-    margin-top: 18px; /* align with digit */
-}
-
-/* Date chips grid */
-.mpd-dates-grid {
-    display: flex; flex-wrap: wrap; gap: 6px;
-}
-
-.mpd-date-chip {
-    display: inline-block;
+    font-size: 1.8rem; font-weight: 700;
+    color: #e8eaf6;
+    background: #1a1d27;
+    border: 1px solid #2a2d3a;
+    border-radius: 6px;
     padding: 4px 12px;
-    background: var(--accent-glow);
-    color: var(--accent-light);
-    border: 1px solid rgba(91,106,240,0.25);
-    border-radius: 20px;
-    font-size: 0.75rem; font-weight: 600;
-    font-family: var(--font-heading);
-    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    transition: color 0.2s;
 }
 
-/* Quota reminder card */
-.mpd-quota-reminder {
-    border-color: rgba(91,106,240,0.2);
+.mpd-clock__digit--ampm {
+    min-width: 48px; font-size: 1.3rem; color: var(--accent-light);
 }
 
-/* Approve card */
+.mpd-clock__sep {
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--text-muted); padding: 0 4px; line-height: 1;
+}
+
+.mpd-clock-end { font-size: 0.75rem; color: var(--text-muted); text-align: center; }
+.mpd-clock-end span { color: var(--accent-light); font-weight: 600; }
+
+/* Mini calendar */
+.mpd-cal-wrap { flex: 1; }
+
+.mpd-cal-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 10px;
+}
+
+.mpd-cal-month-label {
+    font-family: var(--font-heading); font-size: 0.82rem;
+    font-weight: 700; color: var(--text-primary);
+}
+
+.mpd-cal-nav {
+    background: none; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-sub);
+    font-size: 0.9rem; padding: 1px 8px; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s; line-height: 1.4;
+}
+
+.mpd-cal-nav:hover { border-color: var(--accent); color: var(--accent-light); }
+
+.mpd-cal-weekdays {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    gap: 2px; margin-bottom: 4px;
+}
+
+.mpd-cal-weekdays span {
+    font-size: 0.6rem; font-weight: 700; text-align: center;
+    color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.04em; padding: 3px 0;
+}
+
+.mpd-cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+
+.mpd-cal-day {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem; font-weight: 500;
+    border-radius: 50%; cursor: default;
+    color: var(--text-muted);
+    border: 2px solid transparent;
+    user-select: none;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.mpd-cal-day--has-slot {
+    color: #fff;
+    background: rgba(245,130,30,0.15);
+    border-color: #f5821e;
+    cursor: pointer;
+}
+
+.mpd-cal-day--has-slot:hover,
+.mpd-cal-day--active {
+    background: #f5821e; color: #000; font-weight: 700;
+}
+
+.mpd-cal-day--empty { cursor: default; }
+
+/* ── Quota card ──────────────────────────────────────────── */
+.mpd-quota-reminder { border-color: rgba(91,106,240,0.2); }
+
+.mpd-quota-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+
+/* ── Decision card ───────────────────────────────────────── */
 .mpd-approve-card {
     border-color: rgba(34,197,94,0.2);
     background: rgba(34,197,94,0.03);
 }
 
+.mpd-decision-text {
+    font-size: 0.875rem; color: var(--text-secondary);
+    margin-bottom: 20px; line-height: 1.6;
+}
+
+.mpd-decision-actions {
+    display: flex; flex-direction: column; gap: 10px;
+}
+
 .mpd-approve-btn {
-    width: 100%;
-    justify-content: center;
+    width: 100%; justify-content: center;
     background: #22c55e;
     box-shadow: 0 4px 20px rgba(34,197,94,0.25);
 }
@@ -245,8 +425,143 @@
     box-shadow: 0 6px 28px rgba(34,197,94,0.35);
 }
 
-/* Responsive */
+.mpd-reject-trigger-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px 24px;
+    border-radius: var(--radius-sm); font-family: var(--font-heading);
+    font-size: 0.875rem; font-weight: 700; cursor: pointer;
+    background: rgba(240,91,91,0.1); border: 1px solid rgba(240,91,91,0.35);
+    color: var(--danger); width: 100%;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.mpd-reject-trigger-btn:hover { background: rgba(240,91,91,0.2); }
+
+/* ── Full-list popup ─────────────────────────────────────── */
+.mpd-popup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 600; padding: 20px;
+}
+
+.mpd-popup {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    width: 100%; max-width: 560px;
+    max-height: 80vh; overflow-y: auto; padding: 28px;
+    animation: mpd-popup-in 0.2s ease;
+}
+
+@keyframes mpd-popup-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);   }
+}
+
+.mpd-popup-title {
+    font-family: var(--font-heading); font-size: 0.95rem;
+    font-weight: 700; color: var(--text-primary);
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+}
+
+.mpd-popup-close {
+    background: none; border: none;
+    color: var(--text-muted); font-size: 1rem;
+    cursor: pointer; padding: 2px 6px;
+    transition: color 0.2s;
+}
+
+.mpd-popup-close:hover { color: var(--danger); }
+
+.mpd-slots-list { display: flex; flex-direction: column; gap: 8px; }
+
+.mpd-slot-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; background: var(--bg-surface);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    flex-wrap: wrap;
+}
+
+.mpd-slot-date {
+    font-family: var(--font-heading); font-size: 0.82rem;
+    font-weight: 700; color: var(--text-primary);
+    flex: 1; min-width: 140px;
+}
+
+.mpd-slot-time {
+    font-family: monospace; font-size: 0.82rem;
+    color: var(--accent-light); font-weight: 600; white-space: nowrap;
+}
+
+/* ── Reject modal ────────────────────────────────────────── */
+.mpd-reject-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 600; padding: 20px;
+}
+
+.mpd-reject-modal {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    width: 100%; max-width: 440px; padding: 28px;
+    animation: mpd-popup-in 0.2s ease;
+}
+
+.mpd-reject-modal__title {
+    font-family: var(--font-heading); font-size: 1rem;
+    font-weight: 700; color: var(--text-primary); margin-bottom: 16px;
+}
+
+.mpd-reject-modal__sub {
+    font-size: 0.82rem; color: var(--text-secondary);
+    margin-bottom: 14px; line-height: 1.5;
+}
+
+.mpd-reject-textarea {
+    width: 100%; background: var(--bg-surface);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    color: var(--text-primary); font-family: var(--font-ui);
+    font-size: 0.875rem; padding: 10px 14px;
+    resize: vertical; min-height: 100px; outline: none;
+    transition: border-color 0.2s; box-sizing: border-box;
+}
+
+.mpd-reject-textarea:focus { border-color: var(--danger); }
+
+.mpd-reject-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 10px 24px; border-radius: var(--radius-sm);
+    font-family: var(--font-heading); font-size: 0.875rem;
+    font-weight: 700; cursor: pointer; border: none;
+    background: var(--danger); color: #fff;
+    transition: background 0.2s; width: 100%; margin-top: 14px;
+}
+
+.mpd-reject-btn:hover { background: #d94f4f; }
+
+.mpd-reject-cancel-btn {
+    display: block; width: 100%; margin-top: 8px;
+    background: none; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); color: var(--text-muted);
+    font-family: var(--font-heading); font-size: 0.82rem;
+    font-weight: 600; padding: 8px; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.mpd-reject-cancel-btn:hover { border-color: var(--accent); color: var(--text-secondary); }
+
+/* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 860px) {
     .mpd-layout { grid-template-columns: 1fr; }
     .mp-card__poster-wrap { width: 52px; height: 70px; }
+}
+
+@media (max-width: 700px) {
+    .mpd-schedule-visual { grid-template-columns: 1fr; }
 }

@@ -6,6 +6,7 @@ use App\Models\Cinema;
 use App\Models\Movie;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposal;
+use App\Models\ShowtimeProposalStatus; // <-- Added missing model
 use App\Models\Theatre;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -134,7 +135,7 @@ class BranchManagerShowtimeController extends Controller
     }
 
     /* ─────────────────────────────────────────────────────────────
-       STORE — insert ONE row per selected date into showtime_proposals
+       STORE — insert Parent Grand Plan AND ONE row per selected date
        POST /manager/showtimes
     ───────────────────────────────────────────────────────────── */
     public function store(Request $request)
@@ -210,7 +211,30 @@ class BranchManagerShowtimeController extends Controller
                     '. Please choose different dates or times.');
         }
 
-        // ── Insert one proposal row per date ──────────────────
+        // ── 1. Create or Find Parent Grand Plan (Status) ──────
+        // If a branch manager submits multiple theatres for the same movie, 
+        // they get grouped under the same pending grand plan.
+        $statusRecord = ShowtimeProposalStatus::firstOrCreate(
+            [
+                'manager_id' => $managerId,
+                'cinema_id'  => $cinemaId,
+                'movie_id'   => $validated['movie_id'],
+            ],
+            [
+                'status'     => 'pending',
+                'admin_note' => null,
+            ]
+        );
+
+        // If a previously rejected plan is being resubmitted, reset it to pending
+        if ($statusRecord->status === 'rejected') {
+            $statusRecord->update([
+                'status'     => 'pending',
+                'admin_note' => null,
+            ]);
+        }
+
+        // ── 2. Insert one proposal row per date (Children) ────
         foreach ($inserts as $slot) {
             ShowtimeProposal::create([
                 'manager_id'     => $managerId,
@@ -219,8 +243,6 @@ class BranchManagerShowtimeController extends Controller
                 'movie_id'       => $validated['movie_id'],
                 'start_datetime' => $slot['start_datetime'],
                 'end_datetime'   => $slot['end_datetime'],
-                'status'         => 'pending',
-                'admin_note'     => null,
             ]);
         }
 

@@ -26,8 +26,6 @@ class ShowtimeProposal extends Model
         'movie_id',
         'start_datetime',   // full timestamp e.g. 2026-04-08 14:00:00
         'end_datetime',     // full timestamp e.g. 2026-04-08 16:28:00
-        'status',           // 'pending' | 'approved' | 'rejected'
-        'admin_note',
     ];
 
     protected $casts = [

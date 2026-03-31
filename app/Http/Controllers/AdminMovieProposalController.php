@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\City;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposal;
-use Carbon\Carbon;
+use App\Models\ShowtimeProposalStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,35 +17,34 @@ class AdminMovieProposalController extends Controller
     ───────────────────────────────────────────────────────────── */
     public function index()
     {
-        $rows = ShowtimeProposal::with(['manager', 'cinema', 'theatre', 'movie'])
+        // 1. Fetch the "Grand Plan" parent records
+        $proposals = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie'])
             ->orderByRaw("CASE status WHEN 'pending' THEN 0 ELSE 1 END")
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $groups = $rows->groupBy(function ($row) {
-            return $row->manager_id . '-' .
-                   $row->theatre_id . '-' .
-                   $row->movie_id   . '-' .
-                   $row->created_at->format('Y-m-d');
-        });
+        // 2. Attach aggregate data so the Blade view stays exactly the same
+        foreach ($proposals as $p) {
+            $p->first_id = $p->id; // Map ID for the route in proposal_card.blade.php
+            
+            // Fetch child proposals for this grand plan
+            $children = ShowtimeProposal::with('theatre')
+                ->where('manager_id', $p->manager_id)
+                ->where('cinema_id', $p->cinema_id)
+                ->where('movie_id', $p->movie_id)
+                ->get();
 
-        $proposals = $groups->map(function ($rows) {
-            $first = $rows->first();
-            // Group status: pending if ANY row is still pending
-            $status = $rows->contains('status', 'pending') ? 'pending' :
-                      ($rows->contains('status', 'approved') ? 'approved' : 'rejected');
-            return (object) [
-                'first_id'   => $first->id,
-                'manager'    => $first->manager,
-                'cinema'     => $first->cinema,
-                'theatre'    => $first->theatre,
-                'movie'      => $first->movie,
-                'slot_count' => $rows->count(),
-                'status'     => $status,
-                'created_at' => $first->created_at,
-                'start_time' => $first->start_datetime,
-            ];
-        })->values();
+            $p->slot_count = $children->count();
+            $p->start_time = $children->pluck('start_datetime')->min();
+
+            // Determine theatre display (Single vs Multiple)
+            $uniqueTheatres = $children->unique('theatre_id');
+            if ($uniqueTheatres->count() > 1) {
+                $p->theatre = (object) ['theatre_name' => $uniqueTheatres->count() . ' Theatres'];
+            } else {
+                $p->theatre = $uniqueTheatres->first()?->theatre;
+            }
+        }
 
         return view('admin.movie_proposals', compact('proposals'));
     }
@@ -56,13 +55,13 @@ class AdminMovieProposalController extends Controller
     ───────────────────────────────────────────────────────────── */
     public function show(int $id)
     {
-        $first = ShowtimeProposal::with(['manager', 'cinema', 'theatre', 'movie.genres'])
-            ->findOrFail($id);
+        // $first now represents the Parent Status record
+        $first = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie.genres'])->findOrFail($id);
 
-        $groupRows = ShowtimeProposal::where('manager_id', $first->manager_id)
-            ->where('theatre_id', $first->theatre_id)
+        $groupRows = ShowtimeProposal::with('theatre')
+            ->where('manager_id', $first->manager_id)
+            ->where('cinema_id',  $first->cinema_id)
             ->where('movie_id',   $first->movie_id)
-            ->whereDate('created_at', $first->created_at->toDateString())
             ->orderBy('start_datetime')
             ->get();
 
@@ -84,19 +83,17 @@ class AdminMovieProposalController extends Controller
     ───────────────────────────────────────────────────────────── */
     public function approve(int $id)
     {
-        $first = ShowtimeProposal::findOrFail($id);
+        $statusRecord = ShowtimeProposalStatus::findOrFail($id);
 
-        $groupRows = ShowtimeProposal::where('manager_id', $first->manager_id)
-            ->where('theatre_id', $first->theatre_id)
-            ->where('movie_id',   $first->movie_id)
-            ->whereDate('created_at', $first->created_at->toDateString())
-            ->where('status', 'pending')
-            ->get();
-
-        if ($groupRows->isEmpty()) {
+        if ($statusRecord->status !== 'pending') {
             return redirect()->route('admin.proposals.index')
                 ->with('error', 'This proposal has already been processed.');
         }
+
+        $groupRows = ShowtimeProposal::where('manager_id', $statusRecord->manager_id)
+            ->where('cinema_id',  $statusRecord->cinema_id)
+            ->where('movie_id',   $statusRecord->movie_id)
+            ->get();
 
         $conflicts = [];
         $approved  = [];
@@ -121,6 +118,7 @@ class AdminMovieProposalController extends Controller
                 ->with('error', 'Conflicts on: ' . implode(', ', $conflicts) . '.');
         }
 
+        // Insert actual showtimes
         foreach ($approved as $row) {
             Showtime::create([
                 'theatre_id' => $row->theatre_id,
@@ -128,16 +126,18 @@ class AdminMovieProposalController extends Controller
                 'start_time' => $row->start_datetime,
                 'end_time'   => $row->end_datetime,
             ]);
-            $row->update(['status' => 'approved']);
         }
+
+        // Mark the parent Grand Plan as approved
+        $statusRecord->update(['status' => 'approved']);
 
         return redirect()->route('admin.proposals.index')
             ->with('success', count($approved) . ' showtime(s) approved for "' .
-                $first->movie?->movie_name . '".');
+                $statusRecord->movie?->movie_name . '".');
     }
 
     /* ─────────────────────────────────────────────────────────────
-       REJECT — mark all group rows rejected, store admin_note
+       REJECT
        POST /admin/proposals/{id}/reject
     ───────────────────────────────────────────────────────────── */
     public function reject(Request $request, int $id)
@@ -146,17 +146,12 @@ class AdminMovieProposalController extends Controller
             'admin_note' => 'required|string|min:5|max:1000',
         ]);
 
-        $first = ShowtimeProposal::findOrFail($id);
+        $statusRecord = ShowtimeProposalStatus::findOrFail($id);
 
-        ShowtimeProposal::where('manager_id', $first->manager_id)
-            ->where('theatre_id', $first->theatre_id)
-            ->where('movie_id',   $first->movie_id)
-            ->whereDate('created_at', $first->created_at->toDateString())
-            ->where('status', 'pending')
-            ->update([
-                'status'     => 'rejected',
-                'admin_note' => $request->admin_note,
-            ]);
+        $statusRecord->update([
+            'status'     => 'rejected',
+            'admin_note' => $request->admin_note,
+        ]);
 
         return redirect()->route('admin.proposals.index')
             ->with('success', 'Proposal rejected with note sent to branch manager.');
