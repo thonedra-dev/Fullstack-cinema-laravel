@@ -1,6 +1,5 @@
 /* ============================================================
-   setup_timetable.css
-   Place at: resources/css/setup_timetable.css
+   resources/css/setup_timetable.css
    ============================================================ */
 
 /* ── Hero (movie-first mode) ────────────────────────────── */
@@ -67,14 +66,12 @@
     padding-bottom: 10px; border-bottom: 1px solid var(--bm-border);
 }
 
-/* Theatre list rows */
 .smt-theatre-list, .smt-movie-picker { display: flex; flex-direction: column; gap: 4px; }
 
 .smt-theatre-row, .smt-movie-pick-row {
     display: flex; align-items: center; gap: 10px;
     padding: 10px 12px; border-radius: var(--bm-radius-sm);
-    cursor: pointer;
-    border: 1px solid transparent;
+    cursor: pointer; border: 1px solid transparent;
     transition: background var(--bm-transition), border-color var(--bm-transition);
 }
 
@@ -102,21 +99,17 @@
 .smt-empty-hint { font-size: 0.78rem; color: var(--bm-text-muted); }
 
 /* ── Main area ───────────────────────────────────────────── */
-.smt-main {
-    display: flex; flex-direction: column; gap: 20px;
-}
+.smt-main { display: flex; flex-direction: column; gap: 20px; }
 
 .smt-preselected-theatre-banner {
     background: var(--bm-accent-glow);
     border: 1px solid rgba(34,197,94,0.25);
     border-radius: var(--bm-radius-md);
     padding: 12px 18px;
-    font-size: 0.875rem;
-    color: var(--bm-accent);
-    font-weight: 600;
+    font-size: 0.875rem; color: var(--bm-accent); font-weight: 600;
 }
 
-/* ── Seat layout section ────────────────────────────────── */
+/* ── Seat section ───────────────────────────────────────── */
 .smt-seat-section {
     background: var(--bm-card);
     border: 1px solid var(--bm-border);
@@ -156,10 +149,7 @@
     text-align: center; padding: 32px 0;
 }
 
-/* Seat row (shared CSS with sb- prefix from admin) */
-.smt-row {
-    display: flex; align-items: center; gap: 8px; min-height: 30px;
-}
+.smt-row { display: flex; align-items: center; gap: 8px; min-height: 30px; }
 
 .smt-row__label {
     font-family: var(--bm-font-head); font-size: 0.72rem;
@@ -169,7 +159,7 @@
 
 .smt-row__seats { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 3px; }
 
-/* Seat icon styles (green-tinted for BM system) */
+/* Seat icons */
 .sb-seat {
     display: inline-block; position: relative;
     width: 14px; height: 12px;
@@ -201,7 +191,6 @@
 
 .sb-couple-gap { display: inline-block; width: 6px; flex-shrink: 0; }
 
-/* Seat legend */
 .smt-seat-legend {
     display: flex; gap: 16px; flex-wrap: wrap;
     margin-top: 16px; padding-top: 14px;
@@ -210,8 +199,7 @@
 
 .smt-legend-item {
     display: flex; align-items: center; gap: 6px;
-    font-size: 0.72rem; color: var(--bm-text-sub);
-    padding-top: 5px;
+    font-size: 0.72rem; color: var(--bm-text-sub); padding-top: 5px;
 }
 
 /* ── Section label ──────────────────────────────────────── */
@@ -222,9 +210,12 @@
     display: flex; align-items: center; gap: 6px;
 }
 
-.smt-section-hint { font-weight: 400; text-transform: none; font-size: 0.7rem; color: var(--bm-text-muted); }
+.smt-section-hint {
+    font-weight: 400; text-transform: none;
+    font-size: 0.7rem; color: var(--bm-text-muted);
+}
 
-/* ── Time / clock section ───────────────────────────────── */
+/* ── Clock section ──────────────────────────────────────── */
 .smt-time-section {
     background: var(--bm-card);
     border: 1px solid var(--bm-border);
@@ -232,66 +223,43 @@
     padding: 24px;
 }
 
-/* Alarm clock widget */
 .smt-clock {
-    display: inline-flex;
-    align-items: center;
-    gap: 0;
-    background: #111318;
-    border: 1px solid #2a2d3a;
-    border-radius: 10px;
-    padding: 10px 16px;
+    display: inline-flex; align-items: center;
+    background: #111318; border: 1px solid #2a2d3a;
+    border-radius: 10px; padding: 10px 16px;
     box-shadow: inset 0 2px 8px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
     margin-bottom: 14px;
 }
 
-.smt-clock__col {
-    display: flex; flex-direction: column;
-    align-items: center; gap: 4px;
-}
+.smt-clock__col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 
 .smt-clock__arrow {
     background: none; border: none;
     color: var(--bm-text-muted); font-size: 0.65rem;
-    cursor: pointer; padding: 2px 6px;
-    line-height: 1;
-    transition: color var(--bm-transition);
-    user-select: none;
+    cursor: pointer; padding: 2px 6px; line-height: 1;
+    transition: color var(--bm-transition); user-select: none;
 }
 
 .smt-clock__arrow:hover { color: var(--bm-accent); }
 
 .smt-clock__digit {
     font-family: 'Courier New', monospace;
-    font-size: 1.8rem; font-weight: 700;
-    color: #e8eaf6;
-    background: #1a1d27;
-    border: 1px solid #2a2d3a;
-    border-radius: 6px;
-    padding: 4px 12px;
-    min-width: 64px;
-    text-align: center;
-    letter-spacing: 0.04em;
-    line-height: 1;
+    font-size: 1.8rem; font-weight: 700; color: #e8eaf6;
+    background: #1a1d27; border: 1px solid #2a2d3a;
+    border-radius: 6px; padding: 4px 12px;
+    min-width: 64px; text-align: center;
+    letter-spacing: 0.04em; line-height: 1;
 }
 
-.smt-clock__digit--ampm {
-    min-width: 52px;
-    font-size: 1.4rem;
-    color: var(--bm-accent);
-}
+.smt-clock__digit--ampm { min-width: 52px; font-size: 1.4rem; color: var(--bm-accent); }
 
 .smt-clock__sep {
     font-size: 1.6rem; font-weight: 700;
     color: var(--bm-text-muted); padding: 0 4px;
-    margin-bottom: 14px; /* align with digit --*/
-    line-height: 1;
+    margin-bottom: 14px; line-height: 1;
 }
 
-.smt-end-time-preview {
-    font-size: 0.78rem; color: var(--bm-text-muted); margin-top: 4px;
-}
-
+.smt-end-time-preview { font-size: 0.78rem; color: var(--bm-text-muted); margin-top: 4px; }
 .smt-end-time-preview span { color: var(--bm-accent); font-weight: 600; }
 
 /* ── Date calendar ──────────────────────────────────────── */
@@ -306,8 +274,7 @@
     background: var(--bm-surface);
     border: 1px solid var(--bm-border);
     border-radius: var(--bm-radius-md);
-    padding: 16px;
-    max-width: 320px;
+    padding: 16px; max-width: 320px;
 }
 
 .smt-cal-header {
@@ -337,13 +304,11 @@
 
 .smt-cal-weekdays span {
     font-size: 0.65rem; font-weight: 700; text-align: center;
-    color: var(--bm-text-muted); text-transform: uppercase; letter-spacing: 0.05em;
-    padding: 4px 0;
+    color: var(--bm-text-muted); text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 4px 0;
 }
 
-.smt-cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
-}
+.smt-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
 
 .smt-cal-day {
     aspect-ratio: 1;
@@ -352,16 +317,15 @@
     border-radius: 6px; cursor: pointer;
     color: var(--bm-text-sub);
     transition: background var(--bm-transition), color var(--bm-transition);
-    border: 1px solid transparent;
-    user-select: none;
+    border: 1px solid transparent; user-select: none;
 }
 
-.smt-cal-day:hover:not(.smt-cal-day--empty):not(.smt-cal-day--past) {
+.smt-cal-day:hover:not(.smt-cal-day--empty):not(.smt-cal-day--past):not(.smt-cal-day--staged) {
     background: var(--bm-accent-dim); color: var(--bm-accent);
 }
 
-.smt-cal-day--empty { cursor: default; }
-.smt-cal-day--past { opacity: 0.3; cursor: not-allowed; }
+.smt-cal-day--empty   { cursor: default; }
+.smt-cal-day--past    { opacity: 0.3; cursor: not-allowed; }
 
 .smt-cal-day--selected {
     background: var(--bm-accent) !important;
@@ -369,9 +333,23 @@
     border-color: transparent;
 }
 
-/* Selected dates preview chips */
+/* Already staged in the schedule (different shade so user knows) */
+.smt-cal-day--staged {
+    background: rgba(34,197,94,0.12) !important;
+    color: var(--bm-accent) !important;
+    border-color: rgba(34,197,94,0.3) !important;
+    cursor: not-allowed;
+    font-weight: 600;
+}
+
+.smt-cal-day--staged::after {
+    content: none; /* override sb-seat::after leak */
+}
+
+/* Selected date chips in editing area */
 .smt-dates-preview {
-    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; min-height: 28px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-top: 12px; min-height: 28px;
 }
 
 .smt-date-chip {
@@ -379,20 +357,38 @@
     background: var(--bm-accent-glow); color: var(--bm-accent);
     border: 1px solid rgba(34,197,94,0.25);
     border-radius: 20px; padding: 3px 10px;
-    font-size: 0.72rem; font-weight: 600;
-    font-family: var(--bm-font-head);
+    font-size: 0.72rem; font-weight: 600; font-family: var(--bm-font-head);
 }
 
 .smt-date-chip__remove {
-    cursor: pointer; font-size: 0.7rem;
-    color: var(--bm-text-muted);
-    transition: color var(--bm-transition);
-    line-height: 1;
+    cursor: pointer; font-size: 0.7rem; color: var(--bm-text-muted);
+    transition: color var(--bm-transition); line-height: 1;
 }
 
 .smt-date-chip__remove:hover { color: var(--bm-danger); }
 
-/* ── Conflict area ──────────────────────────────────────── */
+/* ── "Add to Schedule" button ───────────────────────────── */
+.smt-add-slot-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; padding: 13px 24px; width: 100%;
+    border-radius: var(--bm-radius-md);
+    font-family: var(--bm-font-head); font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.02em;
+    background: transparent;
+    border: 2px dashed var(--bm-accent);
+    color: var(--bm-accent);
+    transition: background var(--bm-transition), border-style 0.15s, transform 0.1s;
+}
+
+.smt-add-slot-btn:hover {
+    background: var(--bm-accent-glow);
+    border-style: solid;
+    transform: translateY(-1px);
+}
+
+.smt-add-slot-btn:active { transform: translateY(0); }
+
+/* ── Conflict / validation area ─────────────────────────── */
 .smt-conflict-area {
     background: rgba(248,113,113,0.08);
     border: 1px solid rgba(248,113,113,0.3);
@@ -402,14 +398,161 @@
 
 .smt-conflict-title {
     font-family: var(--bm-font-head); font-size: 0.82rem;
-    font-weight: 700; color: var(--bm-danger);
-    margin-bottom: 10px;
+    font-weight: 700; color: var(--bm-danger); margin-bottom: 10px;
 }
 
 .smt-conflict-list { display: flex; flex-direction: column; gap: 6px; }
 
-.smt-conflict-item {
-    font-size: 0.78rem; color: var(--bm-danger); line-height: 1.4;
+.smt-conflict-item { font-size: 0.78rem; color: var(--bm-danger); line-height: 1.4; }
+
+/* ══════════════════════════════════════════════════════════
+   SCHEDULE PREVIEW SECTION
+══════════════════════════════════════════════════════════ */
+.smt-preview-section {
+    background: var(--bm-card);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-lg);
+    padding: 24px;
+    margin-top: 8px;
+}
+
+.smt-preview-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--bm-border);
+}
+
+.smt-preview-header__left {
+    display: flex; align-items: center; gap: 12px;
+}
+
+.smt-preview-title {
+    font-family: var(--bm-font-head); font-size: 0.85rem;
+    font-weight: 700; color: var(--bm-text-sub);
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+
+.smt-preview-counter {
+    font-size: 0.72rem; font-weight: 600;
+    color: var(--bm-accent);
+    background: var(--bm-accent-glow);
+    border: 1px solid rgba(34,197,94,0.2);
+    border-radius: 20px; padding: 2px 10px;
+}
+
+.smt-clear-all-btn {
+    background: none;
+    border: 1px solid rgba(248,113,113,0.35);
+    border-radius: var(--bm-radius-sm);
+    color: var(--bm-danger);
+    font-family: var(--bm-font-head); font-size: 0.72rem; font-weight: 700;
+    padding: 4px 12px; cursor: pointer;
+    transition: background var(--bm-transition);
+}
+
+.smt-clear-all-btn:hover { background: rgba(248,113,113,0.1); }
+
+.smt-preview-empty {
+    font-size: 0.82rem; color: var(--bm-text-muted);
+    text-align: center; padding: 28px 0; line-height: 1.6;
+}
+
+/* Theatre block in preview */
+.smt-preview-theatre {
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-md);
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.smt-preview-theatre:last-child { margin-bottom: 0; }
+
+.smt-preview-theatre-header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--bm-surface);
+    border-bottom: 1px solid var(--bm-border);
+}
+
+.smt-preview-theatre-name {
+    font-family: var(--bm-font-head); font-size: 0.88rem;
+    font-weight: 700; color: var(--bm-text);
+}
+
+/* Time slot group in preview */
+.smt-preview-time-group {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--bm-border);
+}
+
+.smt-preview-time-group:last-child { border-bottom: none; }
+
+.smt-preview-time-header {
+    display: flex; align-items: center;
+    justify-content: space-between; margin-bottom: 8px;
+}
+
+.smt-preview-time-label {
+    font-family: 'Courier New', monospace;
+    font-size: 0.82rem; font-weight: 700;
+    color: var(--bm-accent); letter-spacing: 0.02em;
+}
+
+.smt-preview-dates { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.smt-preview-date-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--bm-accent-glow); color: var(--bm-accent);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 20px; padding: 2px 9px;
+    font-size: 0.7rem; font-weight: 600; font-family: var(--bm-font-head);
+    white-space: nowrap;
+}
+
+/* Remove buttons in preview */
+.smt-preview-remove-btn {
+    background: none; cursor: pointer;
+    border-radius: var(--bm-radius-sm);
+    font-family: var(--bm-font-head); font-weight: 700;
+    transition: background var(--bm-transition), color var(--bm-transition),
+                border-color var(--bm-transition);
+}
+
+.smt-preview-remove-btn--theatre {
+    font-size: 0.68rem; padding: 3px 10px;
+    border: 1px solid rgba(248,113,113,0.3); color: var(--bm-danger);
+}
+
+.smt-preview-remove-btn--theatre:hover { background: rgba(248,113,113,0.1); }
+
+.smt-preview-remove-btn--slot {
+    font-size: 0.7rem; padding: 2px 8px;
+    border: 1px solid var(--bm-border); color: var(--bm-text-muted);
+}
+
+.smt-preview-remove-btn--slot:hover {
+    border-color: var(--bm-danger); color: var(--bm-danger);
+}
+
+/* ── Submit row ─────────────────────────────────────────── */
+.smt-submit-row {
+    display: flex; justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.smt-submit-btn {
+    min-width: 220px; justify-content: center;
+    opacity: 1; transition: opacity var(--bm-transition);
+}
+
+.smt-submit-btn:disabled {
+    opacity: 0.4; cursor: not-allowed; pointer-events: none;
+}
+
+.smt-submit-error {
+    margin-bottom: 12px;
 }
 
 /* ── Hidden utility ──────────────────────────────────────── */
