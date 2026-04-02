@@ -197,6 +197,31 @@
     color: #f87171;
 }
 
+.um-rejection-note {
+    margin-top: 10px;
+    background: rgba(248,113,113,0.08);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: var(--bm-radius-sm);
+    padding: 10px 14px;
+}
+.um-rejection-note__label {
+    font-family: var(--bm-font-head); font-size: 0.65rem;
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.07em; color: #f87171; display: block; margin-bottom: 4px;
+}
+.um-rejection-note__text {
+    font-size: 0.82rem; color: var(--bm-text-secondary); line-height: 1.5; margin: 0;
+}
+.um-rearrange-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px; width: 100%; padding: 11px 20px;
+    background: transparent; border: 2px solid var(--bm-accent);
+    border-radius: var(--bm-radius-sm); color: var(--bm-accent);
+    font-family: var(--bm-font-head); font-size: 0.875rem; font-weight: 700;
+    cursor: pointer; transition: background var(--bm-transition);
+}
+.um-rearrange-btn:hover { background: var(--bm-accent-glow); }
+
 /* Responsive */
 @media (max-width: 600px) {
     .um-card__landscape { aspect-ratio: 16/6; }
