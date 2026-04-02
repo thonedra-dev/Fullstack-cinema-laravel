@@ -286,12 +286,66 @@
     ══════════════════════════════════════════════════════════ --}}
     @include('branch_manager.partials._schedule_preview')
 
-    {{-- ── Session error (server-side conflict after submit) ── --}}
-    @if (session('bm_error'))
-        <div class="bm-alert bm-alert--error smt-submit-error">
-            <span>✕</span> {{ session('bm_error') }}
+   {{-- ══════════════════════════════════════════════════════════
+     SERVER-SIDE CONFLICT POPUP
+     Rendered only when store() flashes bm_conflicts.
+     JS (initConflictModal) auto-opens it on DOMContentLoaded.
+══════════════════════════════════════════════════════════ --}}
+@if (session('bm_conflicts'))
+<div class="smt-cflct-overlay" id="smt-cflct-overlay"
+     style="display:none;" data-auto-open="1">
+    <div class="smt-cflct-modal">
+
+        <div class="smt-cflct-modal__header">
+            <span class="smt-cflct-modal__title">⚠ Schedule Conflicts Detected</span>
+            <button type="button" class="smt-cflct-close smt-cflct-modal__x">✕</button>
         </div>
-    @endif
+
+        <p class="smt-cflct-modal__sub">
+            The slots below clash with already-approved showtimes in the same theatre.
+            Please adjust your dates or times and resubmit.
+        </p>
+
+        <div class="smt-cflct-list">
+            @foreach (session('bm_conflicts') as $c)
+            <div class="smt-cflct-card">
+                <div class="smt-cflct-card__poster">
+                    @if (!empty($c['movie_poster']))
+                        <img src="{{ asset('images/movies/' . $c['movie_poster']) }}"
+                             alt="{{ $c['movie_name'] }}">
+                    @else
+                        <div class="smt-cflct-card__poster-ph">🎬</div>
+                    @endif
+                </div>
+                <div class="smt-cflct-card__body">
+                    <p class="smt-cflct-card__movie">{{ $c['movie_name'] }}</p>
+                    <p class="smt-cflct-card__theatre">🏟 {{ $c['theatre_name'] }}</p>
+                    <div class="smt-cflct-card__rows">
+                        <div class="smt-cflct-row smt-cflct-row--yours">
+                            <span class="smt-cflct-row__label">Your proposed</span>
+                            <span class="smt-cflct-row__val">
+                                {{ $c['proposed_date'] }} · {{ $c['proposed_time'] }}
+                            </span>
+                        </div>
+                        <div class="smt-cflct-row smt-cflct-row--existing">
+                            <span class="smt-cflct-row__label">Clashes with</span>
+                            <span class="smt-cflct-row__val">
+                                {{ $c['conflict_start'] }} → {{ $c['conflict_end'] }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+
+        <button type="button" class="smt-cflct-close smt-cflct-modal__dismiss">
+            Got it — I'll fix my schedule
+        </button>
+
+    </div>
+</div>
+@endif
 
     {{-- ── Final submit row ────────────────────────────────── --}}
     <div class="smt-submit-row">

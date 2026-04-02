@@ -126,13 +126,22 @@
                         </div>
                     @endif
 
-                    {{-- Setup button — ENTRY POINT A to setup timetable --}}
-                    <a
-                        href="{{ route('manager.setup.movie', $movie->movie_id) }}"
-                        class="um-setup-btn"
-                    >
-                        🗓 Setup This Movie
-                    </a>
+                    {{-- Setup button — state-aware --}}
+@if ($movie->proposal_status === 'pending')
+    <div class="um-proposal-badge um-proposal-badge--pending">
+        🕐 Pending Admin Approval
+    </div>
+@elseif ($movie->proposal_status === 'rejected')
+    <div class="um-proposal-badge um-proposal-badge--rejected">
+        ✕ Proposal Rejected — Contact Admin
+    </div>
+@else
+    
+       <a href="{{ route('manager.setup.movie', $movie->movie_id) }}"
+        class="um-setup-btn">
+        🗓 Setup This Movie
+    </a>
+@endif
 
                 </div>{{-- /.um-card__body --}}
             </div>{{-- /.um-card --}}
