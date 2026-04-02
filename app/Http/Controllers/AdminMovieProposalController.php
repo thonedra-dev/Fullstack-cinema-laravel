@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\City;
+use App\Models\Movie;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposal;
 use App\Models\ShowtimeProposalStatus;
@@ -17,27 +18,23 @@ class AdminMovieProposalController extends Controller
     ───────────────────────────────────────────────────────────── */
     public function index()
     {
-        // 1. Fetch the "Grand Plan" parent records
         $proposals = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie'])
             ->orderByRaw("CASE status WHEN 'pending' THEN 0 ELSE 1 END")
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // 2. Attach aggregate data so the Blade view stays exactly the same
         foreach ($proposals as $p) {
-            $p->first_id = $p->id; // Map ID for the route in proposal_card.blade.php
-            
-            // Fetch child proposals for this grand plan
+            $p->first_id = $p->id;
+
             $children = ShowtimeProposal::with('theatre')
                 ->where('manager_id', $p->manager_id)
-                ->where('cinema_id', $p->cinema_id)
-                ->where('movie_id', $p->movie_id)
+                ->where('cinema_id',  $p->cinema_id)
+                ->where('movie_id',   $p->movie_id)
                 ->get();
 
             $p->slot_count = $children->count();
             $p->start_time = $children->pluck('start_datetime')->min();
 
-            // Determine theatre display (Single vs Multiple)
             $uniqueTheatres = $children->unique('theatre_id');
             if ($uniqueTheatres->count() > 1) {
                 $p->theatre = (object) ['theatre_name' => $uniqueTheatres->count() . ' Theatres'];
@@ -55,7 +52,6 @@ class AdminMovieProposalController extends Controller
     ───────────────────────────────────────────────────────────── */
     public function show(int $id)
     {
-        // $first now represents the Parent Status record
         $first = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie.genres'])->findOrFail($id);
 
         $groupRows = ShowtimeProposal::with('theatre')
@@ -118,7 +114,6 @@ class AdminMovieProposalController extends Controller
                 ->with('error', 'Conflicts on: ' . implode(', ', $conflicts) . '.');
         }
 
-        // Insert actual showtimes
         foreach ($approved as $row) {
             Showtime::create([
                 'theatre_id' => $row->theatre_id,
@@ -128,7 +123,6 @@ class AdminMovieProposalController extends Controller
             ]);
         }
 
-        // Mark the parent Grand Plan as approved
         $statusRecord->update(['status' => 'approved']);
 
         return redirect()->route('admin.proposals.index')
@@ -139,6 +133,15 @@ class AdminMovieProposalController extends Controller
     /* ─────────────────────────────────────────────────────────────
        REJECT
        POST /admin/proposals/{id}/reject
+
+       Also inserts a record into manager_notifications so the branch
+       manager sees the rejection note in their notification centre.
+
+       Notification fields:
+         manager_id   – the manager who submitted the proposal (recipient)
+         noti_picture – portrait_poster of the movie
+         noti_message – "'{movie}' proposal rejected by {supervisor}: {admin_note}"
+         tag          – 'Movie Rejection By Admin'
     ───────────────────────────────────────────────────────────── */
     public function reject(Request $request, int $id)
     {
@@ -148,12 +151,43 @@ class AdminMovieProposalController extends Controller
 
         $statusRecord = ShowtimeProposalStatus::findOrFail($id);
 
+        // ── 1. Update proposal status ─────────────────────────
         $statusRecord->update([
             'status'     => 'rejected',
             'admin_note' => $request->admin_note,
         ]);
 
+        // ── 2. Build notification fields ──────────────────────
+
+        // Movie — for portrait_poster and name
+        $movie = Movie::find($statusRecord->movie_id);
+
+        // Supervisor name — via cinema_movie_quotas → supervisors
+        $supervisorRow = DB::table('cinema_movie_quotas')
+            ->leftJoin('supervisors', 'cinema_movie_quotas.supervisor_id', '=', 'supervisors.supervisor_id')
+            ->where('cinema_movie_quotas.movie_id',  $statusRecord->movie_id)
+            ->where('cinema_movie_quotas.cinema_id', $statusRecord->cinema_id)
+            ->select('supervisors.supervisor_name')
+            ->first();
+
+        $supervisorName = $supervisorRow?->supervisor_name ?? 'Admin';
+        $movieName      = $movie?->movie_name ?? 'Movie';
+
+        // Compose message:  "{movie}" proposal rejected by {supervisor}: {admin_note}
+        $notiMessage = '"' . $movieName . '" proposal rejected by ' .
+                       $supervisorName . ': ' . $request->admin_note;
+
+        // ── 3. Insert notification record ─────────────────────
+        DB::table('manager_notifications')->insert([
+            'manager_id'   => $statusRecord->manager_id,
+            'noti_picture' => $movie?->portrait_poster,
+            'noti_message' => $notiMessage,
+            'tag'          => 'Movie Rejection By Admin',
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
         return redirect()->route('admin.proposals.index')
-            ->with('success', 'Proposal rejected with note sent to branch manager.');
+            ->with('success', 'Proposal rejected. Note sent to branch manager.');
     }
 }
