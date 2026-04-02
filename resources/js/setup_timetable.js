@@ -9,35 +9,31 @@
  *   3. Pick one or more dates (calendar)
  *   4. Click "Add to Schedule"
  *      → two-level conflict check:
- *          a. Against approved DB showtimes (same theatre)
- *          b. Against already-staged slots in current session (same theatre)
+ *          a. Against approved DB showtimes (same theatre, same date)
+ *          b. Against already-staged slots  (same theatre, same date)
  *      → if clean: stage the slot group into the preview panel
- *   5. Repeat with same or different theatre / time / dates
- *   6. "Submit Proposal" POSTs schedule_json to the controller
+ *   5. Repeat — same theatre/different time OR different theatre entirely.
+ *      A date that is already staged CAN be clicked again for a different time.
+ *   6. "Submit Proposal" POSTs schedule_json to the controller.
  *
- * STATE MODEL:
- *   schedule = [
- *     {
- *       theatreId   : number,
- *       theatreName : string,
- *       slotGroups  : [
- *         {
- *           hour       : number,   // 1-12
- *           minute     : number,   // 0-55
- *           ampm       : 'AM'|'PM',
- *           timeKey    : string,   // "02:00 PM" — deduplication key
- *           endDisplay : string,   // "04:08 PM" — pre-computed for preview
- *           dates      : string[]  // sorted ISO dates
- *         }
- *       ]
- *     }
- *   ]
+ * CALENDAR VISUAL STATES:
+ *   .smt-cal-day--past     → before today, NOT clickable
+ *   .smt-cal-day--staged   → green tint (has committed slot for active theatre)
+ *                            STILL CLICKABLE — user can add more times on same date
+ *   .smt-cal-day--selected → bright green fill (currently ticked in staging area)
+ *
+ * CONFLICT RULES (checked before committing each "Add to Schedule"):
+ *   Rule A — DB:     new [start,end) must NOT overlap any existing approved Showtime
+ *                    in the same theatre on the same calendar date.
+ *   Rule B — Staged: new [start,end) must NOT overlap any already-staged slot
+ *                    in the same theatre on the same calendar date.
+ *   Duplicate:       exact same date + exact same timeKey already staged → blocked.
  */
 (function () {
     'use strict';
 
     /* ================================================================
-       BOOT
+       BOOT — read inline data from the config element
     ================================================================ */
     var configEl = document.getElementById('smt-seat-data-json');
     if (!configEl) return;
@@ -49,11 +45,11 @@
     var preMovieId        = configEl.dataset.preselectedMovieId    || '';
     var preRuntime        = parseInt(configEl.dataset.preselectedRuntime || '0', 10);
 
-    /* ── Working state ────────────────────────────────────── */
-    var selectedTheatreId   = preTheatreId ? parseInt(preTheatreId, 10) : null;
-    var selectedMovieId     = preMovieId   ? parseInt(preMovieId,   10) : null;
-    var selectedRuntime     = preRuntime   || 0;
-    var selectedDates       = [];   // dates staged in the current editing session (not yet committed)
+    /* ── Working state ─────────────────────────────────────── */
+    var selectedTheatreId = preTheatreId ? parseInt(preTheatreId, 10) : null;
+    var selectedMovieId   = preMovieId   ? parseInt(preMovieId,   10) : null;
+    var selectedRuntime   = preRuntime   || 0;
+    var selectedDates     = [];   // dates currently in the staging area (not yet committed)
 
     var clockHour   = 7;
     var clockMinute = 0;
@@ -71,56 +67,47 @@
     /* ================================================================
        HELPERS
     ================================================================ */
-    function pad(n) { return String(n).padStart(2, '0'); }
+    function pad(n)  { return String(n).padStart(2, '0'); }
+    function show(e) { if (e) e.classList.remove('vc-hidden'); }
+    function hide(e) { if (e) e.classList.add('vc-hidden'); }
 
-    function show(el) { if (el) el.classList.remove('vc-hidden'); }
-    function hide(el) { if (el) el.classList.add('vc-hidden'); }
-
-    function makeTimeKey(h, m, ap) { return pad(h) + ':' + pad(m) + ' ' + ap; }
+    function makeTimeKey(h, m, ap) {
+        return pad(h) + ':' + pad(m) + ' ' + ap;
+    }
 
     /**
-     * Convert a date ISO + 12-hour clock → { startMs, endMs } in milliseconds.
+     * Convert a date ISO string + 12-h clock values → { startMs, endMs } in ms.
+     * runtime is in minutes.
      */
     function toSlotMs(dateIso, hour, minute, ampm, runtime) {
-        var h24 = hour % 12;
+        var h24     = hour % 12;
         if (ampm === 'PM') h24 += 12;
         var startMs = new Date(dateIso + 'T' + pad(h24) + ':' + pad(minute) + ':00').getTime();
         return { startMs: startMs, endMs: startMs + runtime * 60000 };
     }
 
-    /**
-     * Compute and format the end time string.
-     */
     function computeEndDisplay(hour, minute, ampm, runtime) {
-        var h24     = hour % 12;
+        var h24    = hour % 12;
         if (ampm === 'PM') h24 += 12;
-        var endMin  = h24 * 60 + minute + runtime;
-        var endH24  = Math.floor(endMin / 60) % 24;
-        var endM    = endMin % 60;
-        var endAp   = endH24 >= 12 ? 'PM' : 'AM';
-        var dispH   = endH24 % 12 || 12;
-        return pad(dispH) + ':' + pad(endM) + ' ' + endAp;
+        var endMin = h24 * 60 + minute + runtime;
+        var endH24 = Math.floor(endMin / 60) % 24;
+        var endM   = endMin % 60;
+        var endAp  = endH24 >= 12 ? 'PM' : 'AM';
+        return pad(endH24 % 12 || 12) + ':' + pad(endM) + ' ' + endAp;
     }
 
     function findTheatreData(id) {
         return allTheatres.find(function (t) { return t.id === id; });
     }
 
-    /** Collect all staged dates (all theatres, all slot groups) for a given theatre. */
-    function stagedDatesForTheatre(theatreId) {
-        var result = [];
-        var entry  = schedule.find(function (s) { return s.theatreId === theatreId; });
-        if (!entry) return result;
-        entry.slotGroups.forEach(function (sg) {
-            sg.dates.forEach(function (d) { result.push({ date: d, sg: sg }); });
-        });
-        return result;
-    }
-
     /* ================================================================
        CONFLICT DETECTION
-       Returns an array of human-readable conflict strings.
+       Returns an array of human-readable error strings.
        Empty array = no conflicts.
+
+       For each proposed date:
+         Rule A — check against existingShowtimes (DB approved, same theatre, same date)
+         Rule B — check against already-staged slots (same theatre, same date)
     ================================================================ */
     function detectConflicts(theatreId, hour, minute, ampm, dates, runtime) {
         var msgs = [];
@@ -128,49 +115,55 @@
         dates.forEach(function (iso) {
             var t = toSlotMs(iso, hour, minute, ampm, runtime);
 
-            // ── Level 1: approved showtimes in DB ─────────────
+            /* ── Rule A: DB approved showtimes ───────────────── */
             existingShowtimes.forEach(function (st) {
+                // Only care about rows for the same theatre
                 if (st.theatre_id !== theatreId) return;
-                var exS = new Date(st.start).getTime();
-                var exE = new Date(st.end).getTime();
-                if (t.startMs < exE && t.endMs > exS) {
+
+                // st.start is a full ISO timestamp — extract the date portion
+                var exDate = st.start.substring(0, 10);   // 'YYYY-MM-DD'
+                if (exDate !== iso) return;                // different date, skip
+
+                var exStart = new Date(st.start).getTime();
+                var exEnd   = new Date(st.end).getTime();
+
+                // Overlap: new_start < ex_end  AND  new_end > ex_start
+                if (t.startMs < exEnd && t.endMs > exStart) {
                     msgs.push(
                         iso + ' at ' + makeTimeKey(hour, minute, ampm) +
-                        ' clashes with an existing approved showtime.'
+                        ' overlaps an approved showtime in this theatre.'
                     );
                 }
             });
 
-            // ── Level 2: already-staged slots (same theatre) ──
+            /* ── Rule B: already-staged slots ────────────────── */
             var entry = schedule.find(function (s) { return s.theatreId === theatreId; });
-            if (entry) {
-                entry.slotGroups.forEach(function (sg) {
-                    // Skip the slot group that has the exact same timeKey
-                    // (adding more dates to it is handled by merge — still conflict-check
-                    //  the new date against OTHER slot groups only)
-                    var isCurrentTimeKey = (sg.timeKey === makeTimeKey(hour, minute, ampm));
-                    sg.dates.forEach(function (existingDate) {
-                        if (isCurrentTimeKey && existingDate === iso) {
-                            // Duplicate date in same time slot — flag as duplicate
-                            msgs.push(
-                                iso + ' is already staged at ' + sg.timeKey + '.'
-                            );
-                            return;
-                        }
-                        // Cross-slot overlap check
-                        if (!isCurrentTimeKey) {
-                            var ex = toSlotMs(existingDate, sg.hour, sg.minute, sg.ampm, runtime);
-                            if (t.startMs < ex.endMs && t.endMs > ex.startMs) {
-                                msgs.push(
-                                    iso + ' at ' + makeTimeKey(hour, minute, ampm) +
-                                    ' overlaps with staged slot on ' +
-                                    existingDate + ' at ' + sg.timeKey + '.'
-                                );
-                            }
-                        }
-                    });
-                });
-            }
+            if (!entry) return;   // no staged slots for this theatre yet
+
+            var currentTimeKey = makeTimeKey(hour, minute, ampm);
+
+            entry.slotGroups.forEach(function (sg) {
+                // Only compare against staged slots that include this exact date
+                if (sg.dates.indexOf(iso) === -1) return;
+
+                // Exact duplicate: same date + same time already staged
+                if (sg.timeKey === currentTimeKey) {
+                    msgs.push(
+                        iso + ' is already staged at ' + sg.timeKey + '.'
+                    );
+                    return;
+                }
+
+                // Different time on the same date — check window overlap
+                var ex = toSlotMs(iso, sg.hour, sg.minute, sg.ampm, runtime);
+                if (t.startMs < ex.endMs && t.endMs > ex.startMs) {
+                    msgs.push(
+                        iso + ' at ' + makeTimeKey(hour, minute, ampm) +
+                        ' overlaps staged slot at ' + sg.timeKey +
+                        ' → ' + sg.endDisplay + '.'
+                    );
+                }
+            });
         });
 
         return msgs;
@@ -180,7 +173,7 @@
        SCHEDULE MUTATIONS
     ================================================================ */
     function addToSchedule() {
-        // ── Guards ────────────────────────────────────────────
+        /* ── Guards ──────────────────────────────────────────── */
         if (!selectedTheatreId) {
             showError(['Please select a theatre first.']); return;
         }
@@ -191,7 +184,7 @@
             showError(['Please select at least one date on the calendar.']); return;
         }
 
-        // ── Conflict check ────────────────────────────────────
+        /* ── Conflict check ──────────────────────────────────── */
         var conflicts = detectConflicts(
             selectedTheatreId, clockHour, clockMinute, clockAmPm,
             selectedDates, selectedRuntime
@@ -205,14 +198,14 @@
         var timeKey     = makeTimeKey(clockHour, clockMinute, clockAmPm);
         var endDisplay  = computeEndDisplay(clockHour, clockMinute, clockAmPm, selectedRuntime);
 
-        // ── Find or create theatre entry ──────────────────────
+        /* ── Find or create theatre entry ────────────────────── */
         var entry = schedule.find(function (s) { return s.theatreId === selectedTheatreId; });
         if (!entry) {
             entry = { theatreId: selectedTheatreId, theatreName: theatreName, slotGroups: [] };
             schedule.push(entry);
         }
 
-        // ── Find or create slot group ─────────────────────────
+        /* ── Find or create slot group ───────────────────────── */
         var sg = entry.slotGroups.find(function (g) { return g.timeKey === timeKey; });
         if (!sg) {
             sg = {
@@ -222,23 +215,22 @@
             entry.slotGroups.push(sg);
         }
 
-        // ── Merge dates (skip duplicates) ─────────────────────
+        /* ── Merge dates (skip exact duplicates) ─────────────── */
         selectedDates.forEach(function (iso) {
             if (sg.dates.indexOf(iso) === -1) sg.dates.push(iso);
         });
         sg.dates.sort();
 
-        // ── Clear staging area ────────────────────────────────
+        /* ── Clear staging area ──────────────────────────────── */
         selectedDates = [];
         renderCalendar();
         renderDateChips();
 
-        // ── Sync + re-render ──────────────────────────────────
+        /* ── Sync + re-render ────────────────────────────────── */
         renderPreview();
         syncScheduleJson();
         updateSubmitBtn();
 
-        // Scroll to preview
         var previewEl = document.getElementById('smt-preview-section');
         if (previewEl) previewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
@@ -248,9 +240,8 @@
         if (!entry) return;
         var sg = entry.slotGroups.find(function (g) { return g.timeKey === timeKey; });
         if (!sg) return;
-
         sg.dates = sg.dates.filter(function (d) { return d !== iso; });
-        pruneEmpty(entry, timeKey);
+        pruneEmpty(entry);
         afterMutate();
     }
 
@@ -258,9 +249,7 @@
         var entry = schedule.find(function (s) { return s.theatreId === theatreId; });
         if (!entry) return;
         entry.slotGroups = entry.slotGroups.filter(function (g) { return g.timeKey !== timeKey; });
-        if (entry.slotGroups.length === 0) {
-            schedule = schedule.filter(function (s) { return s.theatreId !== theatreId; });
-        }
+        pruneEmpty(entry);
         afterMutate();
     }
 
@@ -274,7 +263,7 @@
         afterMutate();
     }
 
-    function pruneEmpty(entry, timeKey) {
+    function pruneEmpty(entry) {
         entry.slotGroups = entry.slotGroups.filter(function (g) { return g.dates.length > 0; });
         if (entry.slotGroups.length === 0) {
             schedule = schedule.filter(function (s) { return s.theatreId !== entry.theatreId; });
@@ -283,13 +272,13 @@
 
     function afterMutate() {
         renderPreview();
-        renderCalendar(); // refresh staged-day highlights
+        renderCalendar();   // refresh staged-day tint
         syncScheduleJson();
         updateSubmitBtn();
     }
 
     /* ================================================================
-       PREVIEW RENDERER (fully dynamic)
+       PREVIEW RENDERER
     ================================================================ */
     function renderPreview() {
         var body    = document.getElementById('smt-preview-body');
@@ -298,7 +287,6 @@
         var cntSpan = document.getElementById('smt-preview-count');
         if (!body) return;
 
-        // Count total slots
         var total = 0;
         schedule.forEach(function (e) {
             e.slotGroups.forEach(function (sg) { total += sg.dates.length; });
@@ -315,61 +303,54 @@
         show(counter);
         if (cntSpan) cntSpan.textContent = total;
 
-        // Re-render body
         body.innerHTML = '';
 
         schedule.forEach(function (entry) {
-
-            // ── Theatre block ──────────────────────────────────
-            var tBlock = document.createElement('div');
+            var tBlock  = document.createElement('div');
             tBlock.className = 'smt-preview-theatre';
 
             var tHeader = document.createElement('div');
             tHeader.className = 'smt-preview-theatre-header';
 
-            var tName = document.createElement('span');
+            var tName  = document.createElement('span');
             tName.className   = 'smt-preview-theatre-name';
             tName.textContent = '🏟 ' + entry.theatreName;
 
-            var tRemoveBtn = document.createElement('button');
-            tRemoveBtn.type      = 'button';
-            tRemoveBtn.className = 'smt-preview-remove-btn smt-preview-remove-btn--theatre';
-            tRemoveBtn.textContent = '✕ Remove Theatre';
-            tRemoveBtn.addEventListener('click', (function (tid) {
+            var tRm = document.createElement('button');
+            tRm.type      = 'button';
+            tRm.className = 'smt-preview-remove-btn smt-preview-remove-btn--theatre';
+            tRm.textContent = '✕ Remove Theatre';
+            tRm.addEventListener('click', (function (tid) {
                 return function () { removeTheatre(tid); };
             })(entry.theatreId));
 
             tHeader.appendChild(tName);
-            tHeader.appendChild(tRemoveBtn);
+            tHeader.appendChild(tRm);
             tBlock.appendChild(tHeader);
 
-            // ── Slot groups ────────────────────────────────────
             entry.slotGroups.forEach(function (sg) {
-
                 var sgEl = document.createElement('div');
                 sgEl.className = 'smt-preview-time-group';
 
                 var sgHeader = document.createElement('div');
                 sgHeader.className = 'smt-preview-time-header';
 
-                var timeLabel = document.createElement('span');
-                timeLabel.className   = 'smt-preview-time-label';
-                timeLabel.textContent = '🕐 ' + sg.timeKey + ' → ' + sg.endDisplay;
+                var tLabel = document.createElement('span');
+                tLabel.className   = 'smt-preview-time-label';
+                tLabel.textContent = '🕐 ' + sg.timeKey + ' → ' + sg.endDisplay;
 
-                var sgRemoveBtn = document.createElement('button');
-                sgRemoveBtn.type      = 'button';
-                sgRemoveBtn.className = 'smt-preview-remove-btn smt-preview-remove-btn--slot';
-                sgRemoveBtn.textContent = '✕ Remove time';
-                sgRemoveBtn.title = 'Remove all dates for this time slot';
-                sgRemoveBtn.addEventListener('click', (function (tid, tk) {
+                var sgRm = document.createElement('button');
+                sgRm.type      = 'button';
+                sgRm.className = 'smt-preview-remove-btn smt-preview-remove-btn--slot';
+                sgRm.textContent = '✕ Remove time';
+                sgRm.addEventListener('click', (function (tid, tk) {
                     return function () { removeSlotGroup(tid, tk); };
                 })(entry.theatreId, sg.timeKey));
 
-                sgHeader.appendChild(timeLabel);
-                sgHeader.appendChild(sgRemoveBtn);
+                sgHeader.appendChild(tLabel);
+                sgHeader.appendChild(sgRm);
                 sgEl.appendChild(sgHeader);
 
-                // Date chips
                 var datesWrap = document.createElement('div');
                 datesWrap.className = 'smt-preview-dates';
 
@@ -407,12 +388,10 @@
     function updateSubmitBtn() {
         var btn = document.getElementById('smt-submit-btn');
         if (!btn) return;
-
         var total = 0;
         schedule.forEach(function (e) {
             e.slotGroups.forEach(function (sg) { total += sg.dates.length; });
         });
-
         btn.disabled = total === 0;
         btn.textContent = total > 0
             ? '🗓 Submit Proposal (' + total + ' slot' + (total !== 1 ? 's' : '') + ')'
@@ -428,7 +407,7 @@
     }
 
     /* ================================================================
-       ERROR / CONFLICT UI
+       ERROR / CONFLICT UI  (inline area, shown below "Add" button)
     ================================================================ */
     function showError(msgs) {
         var area = document.getElementById('smt-conflict-area');
@@ -464,7 +443,7 @@
 
                 renderSeats(selectedTheatreId);
                 clearError();
-                // Clear pending dates when switching theatre
+                // Clear pending staging when switching theatre
                 selectedDates = [];
                 renderCalendar();
                 renderDateChips();
@@ -496,7 +475,6 @@
             });
         });
 
-        // Theatre-first: preselected theatre is shown in banner, render seats now
         if (mode === 'theatre' && selectedTheatreId) {
             renderSeats(selectedTheatreId);
         }
@@ -509,7 +487,6 @@
         var theatre = findTheatreData(theatreId);
         var preview = document.getElementById('smt-seat-preview');
         if (!preview) return;
-
         preview.innerHTML = '';
 
         if (!theatre || !theatre.seats || theatre.seats.length === 0) {
@@ -529,9 +506,9 @@
             seatsEl.className = 'smt-row__seats';
 
             rowData.seats.forEach(function (seat, i) {
-                var type  = seat.seat_type;
-                var isLg  = (type === 'Premium' || type === 'Family');
-                var s     = document.createElement('span');
+                var type = seat.seat_type;
+                var isLg = (type === 'Premium' || type === 'Family');
+                var s    = document.createElement('span');
                 s.className = 'sb-seat sb-seat--' + type.toLowerCase() + (isLg ? ' sb-seat--lg' : '');
                 seatsEl.appendChild(s);
 
@@ -590,7 +567,6 @@
                 } else if (target === 'ampm') {
                     clockAmPm = clockAmPm === 'AM' ? 'PM' : 'AM';
                 }
-
                 updateClockDisplay();
             });
         });
@@ -598,14 +574,24 @@
 
     /* ================================================================
        CALENDAR
+
+       KEY FIX:
+         Dates are blocked from clicking ONLY when isPast === true.
+         .smt-cal-day--staged is a VISUAL hint only — the date stays
+         clickable so the user can add a second (non-overlapping) showtime
+         to the same date.
     ================================================================ */
+
+    /** All dates that have at least one committed slot for the currently active theatre. */
     function getStagedDatesForActiveTheatre() {
         if (!selectedTheatreId) return [];
         var result = [];
         var entry  = schedule.find(function (s) { return s.theatreId === selectedTheatreId; });
         if (!entry) return result;
         entry.slotGroups.forEach(function (sg) {
-            sg.dates.forEach(function (d) { result.push(d); });
+            sg.dates.forEach(function (d) {
+                if (result.indexOf(d) === -1) result.push(d);
+            });
         });
         return result;
     }
@@ -618,7 +604,7 @@
         var year  = calDate.getFullYear();
         var month = calDate.getMonth();
         label.textContent = MONTHS[month] + ' ' + year;
-        grid.innerHTML = '';
+        grid.innerHTML    = '';
 
         var first = new Date(year, month, 1).getDay();
         var days  = new Date(year, month + 1, 0).getDate();
@@ -636,18 +622,19 @@
             var thisDate = new Date(year, month, d);
             var iso      = year + '-' + pad(month + 1) + '-' + pad(d);
             var isPast   = thisDate < today;
-            var isSel    = selectedDates.indexOf(iso)  !== -1;
-            var isStaged = stagedDates.indexOf(iso)    !== -1;
+            var isSel    = selectedDates.indexOf(iso) !== -1;
+            var isStaged = !isSel && stagedDates.indexOf(iso) !== -1;
 
             var dayEl = document.createElement('div');
             dayEl.className = 'smt-cal-day' +
-                (isPast   ? ' smt-cal-day--past'     : '') +
-                (isSel    ? ' smt-cal-day--selected' : '') +
-                (isStaged ? ' smt-cal-day--staged'   : '');
+                (isPast    ? ' smt-cal-day--past'     : '') +
+                (isSel     ? ' smt-cal-day--selected' : '') +
+                (isStaged  ? ' smt-cal-day--staged'   : '');
             dayEl.textContent = d;
             dayEl.dataset.iso = iso;
 
-            if (!isPast && !isStaged) {
+            // ── IMPORTANT: only block past dates, NOT staged ones ──
+            if (!isPast) {
                 dayEl.addEventListener('click', (function (isoVal) {
                     return function () { toggleDate(isoVal); };
                 })(iso));
@@ -678,7 +665,7 @@
             var txt = document.createElement('span');
             txt.textContent = iso;
 
-            var rm  = document.createElement('span');
+            var rm = document.createElement('span');
             rm.className   = 'smt-date-chip__remove';
             rm.textContent = '✕';
             rm.addEventListener('click', (function (isoVal) {
@@ -726,6 +713,29 @@
     }
 
     /* ================================================================
+       SERVER-SIDE CONFLICT MODAL
+       Auto-opens when the blade renders it with data-auto-open="1"
+    ================================================================ */
+    function initConflictModal() {
+        var overlay = document.getElementById('smt-cflct-overlay');
+        if (!overlay) return;
+
+        if (overlay.dataset.autoOpen === '1') {
+            overlay.style.display = 'flex';
+        }
+
+        function closeModal() { overlay.style.display = 'none'; }
+
+        document.querySelectorAll('.smt-cflct-close').forEach(function (btn) {
+            btn.addEventListener('click', closeModal);
+        });
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeModal();
+        });
+    }
+
+    /* ================================================================
        FORM SUBMIT
     ================================================================ */
     function initFormSubmit() {
@@ -737,7 +747,6 @@
                 showError(['Please add at least one slot before submitting.']);
                 return;
             }
-            // Ensure JSON is written right before submit
             syncScheduleJson();
         });
     }
@@ -755,6 +764,7 @@
         initAddSlotBtn();
         initClearAllBtn();
         initFormSubmit();
+        initConflictModal();
         renderPreview();
         updateSubmitBtn();
     });
