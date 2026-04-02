@@ -228,35 +228,36 @@ class BranchManagerShowtimeController extends Controller
                     $endDatetime   = $startDatetime->copy()->addMinutes($movie->runtime);
 
                     // Server-side overlap check against approved showtimes
-                    $conflict = Showtime::where('theatre_id', $theatreId)
-                        ->where(function ($q) use ($startDatetime, $endDatetime) {
-                            $q->where('start_time', '<', $endDatetime)
-                              ->where('end_time',   '>', $startDatetime);
-                        })
-                        ->first();
+                   $conflict = Showtime::with('movie')
+                   ->where('theatre_id', $theatreId)
+                   ->where(function ($q) use ($startDatetime, $endDatetime) {
+                   $q->where('start_time', '<', $endDatetime)
+                   ->where('end_time',   '>', $startDatetime);
+                       }) ->first();
 
-                    if ($conflict) {
-                        $allConflicts[] = sprintf(
-                            '%s at %02d:%02d %s (Theatre: %s) conflicts with an approved showtime.',
-                            $date, $hour, $minute, $ampm, $theatre->theatre_name
-                        );
-                    } else {
-                        $allInserts[] = [
-                            'theatreId'      => $theatreId,
-                            'start_datetime' => $startDatetime,
-                            'end_datetime'   => $endDatetime,
-                        ];
-                    }
+if ($conflict) {
+    $allConflicts[] = [
+        'theatre_name'   => $theatre->theatre_name,
+        'proposed_date'  => $date,
+        'proposed_time'  => sprintf('%02d:%02d %s', $hour, $minute, $ampm),
+        'conflict_start' => $conflict->start_time->format('d M Y, h:i A'),
+        'conflict_end'   => $conflict->end_time->format('h:i A'),
+        'movie_name'     => $conflict->movie?->movie_name  ?? 'Unknown Movie',
+        'movie_poster'   => $conflict->movie?->portrait_poster ?? null,
+    ];
+} else {
+    $allInserts[] = [
+        'theatreId'      => $theatreId,
+        'start_datetime' => $startDatetime,
+        'end_datetime'   => $endDatetime,
+    ];
+}
                 }
             }
         }
+if (!empty($allConflicts)) { return back()->with('bm_conflicts', $allConflicts);}
 
-        if (!empty($allConflicts)) {
-            return back()
-                ->with('bm_error',
-                    'Server-side conflicts detected — please review and resubmit: ' .
-                    implode('; ', $allConflicts));
-        }
+
 
         // ── 1. Create / find Parent Grand Plan (Status record) ─
         // Multiple submissions (different theatres/times) for the same movie
