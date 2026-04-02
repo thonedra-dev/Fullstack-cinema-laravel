@@ -137,26 +137,6 @@ class BranchManagerShowtimeController extends Controller
     /* ─────────────────────────────────────────────────────────────
        STORE — parse schedule_json, validate, conflict-check, insert
        POST /manager/showtimes
-
-       Expected POST fields:
-         movie_id      : integer
-         schedule_json : JSON string matching the JS schedule state model:
-           [
-             {
-               "theatreId"   : number,
-               "theatreName" : string,
-               "slotGroups"  : [
-                 {
-                   "hour"      : number,   // 1-12
-                   "minute"    : number,
-                   "ampm"      : "AM"|"PM",
-                   "timeKey"   : string,
-                   "endDisplay": string,
-                   "dates"     : ["YYYY-MM-DD", ...]
-                 }
-               ]
-             }
-           ]
     ───────────────────────────────────────────────────────────── */
     public function store(Request $request)
     {
@@ -165,16 +145,14 @@ class BranchManagerShowtimeController extends Controller
         $cinemaId  = (int) session('bm_cinema_id');
         $managerId = (int) session('bm_manager_id');
 
-        // ── Basic validation ──────────────────────────────────
         $request->validate([
             'movie_id'      => 'required|integer|exists:movies,movie_id',
             'schedule_json' => 'required|string',
         ]);
 
-        $movieId  = (int) $request->input('movie_id');
-        $movie    = Movie::findOrFail($movieId);
+        $movieId = (int) $request->input('movie_id');
+        $movie   = Movie::findOrFail($movieId);
 
-        // Movie must be assigned to this cinema
         $quota = DB::table('cinema_movie_quotas')
             ->where('movie_id', $movieId)
             ->where('cinema_id', $cinemaId)
@@ -184,14 +162,12 @@ class BranchManagerShowtimeController extends Controller
             return back()->with('bm_error', 'This movie is not assigned to your cinema.');
         }
 
-        // ── Parse schedule JSON ───────────────────────────────
         $schedule = json_decode($request->input('schedule_json'), true);
 
         if (!is_array($schedule) || empty($schedule)) {
             return back()->with('bm_error', 'No schedule data received. Please add at least one slot.');
         }
 
-        // ── Conflict check + build inserts ────────────────────
         $allConflicts = [];
         $allInserts   = [];
 
@@ -199,90 +175,84 @@ class BranchManagerShowtimeController extends Controller
             $theatreId = (int) ($theatreEntry['theatreId'] ?? 0);
             $theatre   = Theatre::find($theatreId);
 
-            // Security: theatre must belong to this manager's cinema
             if (!$theatre || (int) $theatre->cinema_id !== $cinemaId) {
                 return back()->with('bm_error', 'Invalid theatre in submitted schedule.');
             }
 
-            $slotGroups = $theatreEntry['slotGroups'] ?? [];
-
-            foreach ($slotGroups as $sg) {
+            foreach ($theatreEntry['slotGroups'] ?? [] as $sg) {
                 $hour   = (int) ($sg['hour']   ?? 0);
                 $minute = (int) ($sg['minute'] ?? 0);
                 $ampm   = in_array($sg['ampm'] ?? '', ['AM', 'PM']) ? $sg['ampm'] : 'AM';
                 $dates  = is_array($sg['dates'] ?? null) ? $sg['dates'] : [];
 
-                // Convert 12-hour to 24-hour
                 $h24     = $hour % 12;
                 if ($ampm === 'PM') $h24 += 12;
                 $timeStr = sprintf('%02d:%02d:00', $h24, $minute);
 
                 foreach ($dates as $date) {
-                    // Validate date format
                     if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                        $allConflicts[] = 'Invalid date format: ' . $date;
+                        $allConflicts[] = [
+                            'theatre_name'   => $theatre->theatre_name,
+                            'proposed_date'  => $date,
+                            'proposed_time'  => sprintf('%02d:%02d %s', $hour, $minute, $ampm),
+                            'conflict_start' => '—',
+                            'conflict_end'   => '—',
+                            'movie_name'     => 'Invalid date format',
+                            'movie_poster'   => null,
+                        ];
                         continue;
                     }
 
                     $startDatetime = Carbon::createFromFormat('Y-m-d H:i:s', $date . ' ' . $timeStr);
                     $endDatetime   = $startDatetime->copy()->addMinutes($movie->runtime);
 
-                    // Server-side overlap check against approved showtimes
-                   $conflict = Showtime::with('movie')
-                   ->where('theatre_id', $theatreId)
-                   ->where(function ($q) use ($startDatetime, $endDatetime) {
-                   $q->where('start_time', '<', $endDatetime)
-                   ->where('end_time',   '>', $startDatetime);
-                       }) ->first();
+                    $conflict = Showtime::with('movie')
+                        ->where('theatre_id', $theatreId)
+                        ->where(function ($q) use ($startDatetime, $endDatetime) {
+                            $q->where('start_time', '<', $endDatetime)
+                              ->where('end_time',   '>', $startDatetime);
+                        })
+                        ->first();
 
-if ($conflict) {
-    $allConflicts[] = [
-        'theatre_name'   => $theatre->theatre_name,
-        'proposed_date'  => $date,
-        'proposed_time'  => sprintf('%02d:%02d %s', $hour, $minute, $ampm),
-        'conflict_start' => $conflict->start_time->format('d M Y, h:i A'),
-        'conflict_end'   => $conflict->end_time->format('h:i A'),
-        'movie_name'     => $conflict->movie?->movie_name  ?? 'Unknown Movie',
-        'movie_poster'   => $conflict->movie?->portrait_poster ?? null,
-    ];
-} else {
-    $allInserts[] = [
-        'theatreId'      => $theatreId,
-        'start_datetime' => $startDatetime,
-        'end_datetime'   => $endDatetime,
-    ];
-}
+                    if ($conflict) {
+                        $allConflicts[] = [
+                            'theatre_name'   => $theatre->theatre_name,
+                            'proposed_date'  => $date,
+                            'proposed_time'  => sprintf('%02d:%02d %s', $hour, $minute, $ampm),
+                            'conflict_start' => $conflict->start_time->format('d M Y, h:i A'),
+                            'conflict_end'   => $conflict->end_time->format('h:i A'),
+                            'movie_name'     => $conflict->movie?->movie_name  ?? 'Unknown Movie',
+                            'movie_poster'   => $conflict->movie?->portrait_poster ?? null,
+                        ];
+                    } else {
+                        $allInserts[] = [
+                            'theatreId'      => $theatreId,
+                            'start_datetime' => $startDatetime,
+                            'end_datetime'   => $endDatetime,
+                        ];
+                    }
                 }
             }
         }
-if (!empty($allConflicts)) { return back()->with('bm_conflicts', $allConflicts);}
 
+        if (!empty($allConflicts)) {
+            return back()->with('bm_conflicts', $allConflicts);
+        }
 
-
-        // ── 1. Create / find Parent Grand Plan (Status record) ─
-        // Multiple submissions (different theatres/times) for the same movie
-        // are grouped under one pending status record per manager+cinema+movie.
+        // Create / find Parent Status record
         $statusRecord = ShowtimeProposalStatus::firstOrCreate(
             [
                 'manager_id' => $managerId,
                 'cinema_id'  => $cinemaId,
                 'movie_id'   => $movieId,
             ],
-            [
-                'status'     => 'pending',
-                'admin_note' => null,
-            ]
+            ['status' => 'pending', 'admin_note' => null]
         );
 
-        // If a previously rejected plan is resubmitted, reset to pending
         if ($statusRecord->status === 'rejected') {
-            $statusRecord->update([
-                'status'     => 'pending',
-                'admin_note' => null,
-            ]);
+            $statusRecord->update(['status' => 'pending', 'admin_note' => null]);
         }
 
-        // ── 2. Insert one ShowtimeProposal row per date/slot ──
         foreach ($allInserts as $slot) {
             ShowtimeProposal::create([
                 'manager_id'     => $managerId,
@@ -298,5 +268,51 @@ if (!empty($allConflicts)) { return back()->with('bm_conflicts', $allConflicts);
             ->with('bm_success',
                 count($allInserts) . ' showtime slot(s) for "' .
                 $movie->movie_name . '" submitted for admin approval.');
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       REARRANGE — wipe a rejected proposal and return to fresh setup
+       POST /manager/proposals/{movieId}/rearrange
+
+       Deletes:
+         • All ShowtimeProposal rows  for this movie_id + cinema_id
+         • The ShowtimeProposalStatus for this movie_id + cinema_id + manager_id
+       Then redirects to the movie-first setup entry so the manager
+       can submit a completely fresh schedule.
+    ───────────────────────────────────────────────────────────── */
+    public function rearrange(int $movieId)
+    {
+        if ($r = $this->guard()) return $r;
+
+        $cinemaId  = (int) session('bm_cinema_id');
+        $managerId = (int) session('bm_manager_id');
+
+        // Fetch the status record — only allow rearrange when rejected
+        $statusRecord = ShowtimeProposalStatus::where('movie_id',   $movieId)
+            ->where('cinema_id',  $cinemaId)
+            ->where('manager_id', $managerId)
+            ->first();
+
+        if (!$statusRecord) {
+            return redirect()->route('manager.upcoming')
+                ->with('bm_error', 'No proposal found for this movie.');
+        }
+
+        if ($statusRecord->status !== 'rejected') {
+            return redirect()->route('manager.upcoming')
+                ->with('bm_error', 'Only rejected proposals can be rearranged.');
+        }
+
+        // Delete all child ShowtimeProposal rows for this movie + cinema
+        ShowtimeProposal::where('movie_id',  $movieId)
+            ->where('cinema_id', $cinemaId)
+            ->delete();
+
+        // Delete the parent ShowtimeProposalStatus record
+        $statusRecord->delete();
+
+        // Redirect to a fresh movie setup page
+        return redirect()->route('manager.setup.movie', $movieId)
+            ->with('bm_success', 'Previous proposal cleared. You can now build a fresh schedule.');
     }
 }
