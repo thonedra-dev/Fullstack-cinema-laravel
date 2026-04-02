@@ -565,3 +565,131 @@
     .smt-sidebar { position: static; }
     .smt-hero-img-wrap { aspect-ratio: 16/7; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   CONFLICT POPUP MODAL
+══════════════════════════════════════════════════════════ */
+.smt-cflct-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 800; padding: 20px;
+}
+
+.smt-cflct-modal {
+    background: var(--bm-card);
+    border: 1px solid rgba(248,113,113,0.3);
+    border-radius: var(--bm-radius-lg);
+    box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+    width: 100%; max-width: 540px;
+    max-height: 80vh; overflow-y: auto;
+    padding: 28px;
+    animation: smt-modal-in 0.22s ease;
+}
+
+@keyframes smt-modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to   { opacity: 1; transform: scale(1)    translateY(0);    }
+}
+
+.smt-cflct-modal__header {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.smt-cflct-modal__title {
+    font-family: var(--bm-font-head); font-size: 1rem;
+    font-weight: 700; color: var(--bm-danger);
+}
+
+.smt-cflct-modal__x {
+    background: none; border: none;
+    color: var(--bm-text-muted); font-size: 1rem;
+    cursor: pointer; padding: 2px 6px;
+    transition: color var(--bm-transition);
+}
+
+.smt-cflct-modal__x:hover { color: var(--bm-danger); }
+
+.smt-cflct-modal__sub {
+    font-size: 0.82rem; color: var(--bm-text-muted);
+    line-height: 1.5; margin-bottom: 18px;
+    padding-bottom: 16px; border-bottom: 1px solid var(--bm-border);
+}
+
+/* Conflict card list */
+.smt-cflct-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+
+.smt-cflct-card {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: var(--bm-surface);
+    border: 1px solid rgba(248,113,113,0.2);
+    border-radius: var(--bm-radius-md);
+    padding: 14px;
+}
+
+.smt-cflct-card__poster {
+    width: 52px; aspect-ratio: 2/3; flex-shrink: 0;
+    border-radius: var(--bm-radius-sm); overflow: hidden;
+    border: 1px solid var(--bm-border);
+    background: var(--bm-card);
+}
+
+.smt-cflct-card__poster img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+.smt-cflct-card__poster-ph {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+}
+
+.smt-cflct-card__body { flex: 1; min-width: 0; }
+
+.smt-cflct-card__movie {
+    font-family: var(--bm-font-head); font-size: 0.9rem;
+    font-weight: 700; color: var(--bm-text); margin-bottom: 2px;
+}
+
+.smt-cflct-card__theatre {
+    font-size: 0.75rem; color: var(--bm-text-muted);
+    margin-bottom: 10px;
+}
+
+.smt-cflct-card__rows { display: flex; flex-direction: column; gap: 5px; }
+
+.smt-cflct-row {
+    display: flex; align-items: baseline; gap: 8px;
+    font-size: 0.78rem; padding: 5px 10px;
+    border-radius: var(--bm-radius-sm);
+}
+
+.smt-cflct-row--yours    { background: rgba(91,106,240,0.08); }
+.smt-cflct-row--existing { background: rgba(248,113,113,0.1); }
+
+.smt-cflct-row__label {
+    font-family: var(--bm-font-head); font-size: 0.65rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--bm-text-muted); white-space: nowrap; flex-shrink: 0;
+}
+
+.smt-cflct-row--yours    .smt-cflct-row__label { color: #818cf8; }
+.smt-cflct-row--existing .smt-cflct-row__label { color: var(--bm-danger); }
+
+.smt-cflct-row__val {
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem; color: var(--bm-text); font-weight: 600;
+}
+
+/* Dismiss button */
+.smt-cflct-modal__dismiss {
+    width: 100%; padding: 11px 24px;
+    background: var(--bm-danger); color: #fff; border: none;
+    border-radius: var(--bm-radius-sm);
+    font-family: var(--bm-font-head); font-size: 0.875rem; font-weight: 700;
+    cursor: pointer; transition: background var(--bm-transition);
+}
+
+.smt-cflct-modal__dismiss:hover { background: #d94f4f; }
