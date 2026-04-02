@@ -6,13 +6,12 @@ use App\Models\Cinema;
 use App\Models\Movie;
 use App\Models\Showtime;
 use App\Models\Theatre;
+use Carbon\Carbon;
 
 class AdminMovieFormationController extends Controller
 {
     /**
-     * Show the movie detail in context of a cinema.
-     * Now fetches theatres that have approved showtimes for this movie.
-     *
+     * Show the TGV-style movie detail in context of a cinema for Admin.
      * GET /admin/movie/{movieId}/cinema/{cinemaId}
      */
     public function show(int $movieId, int $cinemaId)
@@ -20,33 +19,57 @@ class AdminMovieFormationController extends Controller
         $movie  = Movie::with('genres')->findOrFail($movieId);
         $cinema = Cinema::with('city')->findOrFail($cinemaId);
 
-        // Theatres belonging to this cinema that have showtimes for this movie
-        $theatres = Theatre::where('cinema_id', $cinemaId)
-            ->whereHas('showtimes', function ($q) use ($movieId) {
-                $q->where('movie_id', $movieId);
-            })
+        // Theatre map for this specific cinema, keyed by theatre_id
+        $theatreMap = Theatre::where('cinema_id', $cinemaId)
+            ->get()
+            ->keyBy('theatre_id');
+
+        $theatreIds = $theatreMap->keys()->toArray();
+
+        // All approved showtimes for this movie in this specific cinema
+        $allShowtimes = Showtime::whereIn('theatre_id', $theatreIds)
+            ->where('movie_id', $movieId)
+            ->orderBy('start_time')
             ->get();
 
-        // For each theatre, eager-load only its showtimes for this movie,
-        // ordered chronologically
-        $theatresWithShowtimes = $theatres->map(function ($theatre) use ($movieId) {
-            $showtimes = Showtime::where('theatre_id', $theatre->theatre_id)
-                ->where('movie_id', $movieId)
-                ->orderBy('start_time')
-                ->get();
+        $hasApprovedShowtimes = $allShowtimes->isNotEmpty();
 
-            $theatre->setRelation('movieShowtimes', $showtimes);
-            return $theatre;
-        });
+        // Build date-grouped structure exactly like the Branch Manager version for the JS engine
+        $dateGroups = $allShowtimes
+            ->groupBy(fn($st) => $st->start_time->format('Y-m-d'))
+            ->map(function ($dayShowtimes, $dateStr) use ($theatreMap) {
+                $dt = Carbon::parse($dateStr);
 
-        // If no theatres have showtimes yet, this means not yet approved
-        $hasApprovedShowtimes = $theatresWithShowtimes->isNotEmpty();
+                return [
+                    'date'        => $dateStr,
+                    'label_day'   => $dt->isToday() ? 'Today' : $dt->format('D'),
+                    'label_num'   => $dt->format('j'),
+                    'label_month' => $dt->format('M'),
+                    'theatres'    => $dayShowtimes
+                        ->groupBy('theatre_id')
+                        ->map(function ($tShowtimes, $tId) use ($theatreMap) {
+                            $theatre = $theatreMap->get((int) $tId);
+                            return [
+                                'name'  => $theatre?->theatre_name ?? ('Theatre ' . $tId),
+                                'times' => $tShowtimes
+                                    ->sortBy('start_time')
+                                    ->map(fn($s) => $s->start_time->format('h:i A'))
+                                    ->values()
+                                    ->all(),
+                            ];
+                        })
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->values()
+            ->all();
 
         return view('admin.movie_cinema_formation', compact(
             'movie',
             'cinema',
-            'theatresWithShowtimes',
-            'hasApprovedShowtimes'
+            'hasApprovedShowtimes',
+            'dateGroups'
         ));
     }
 }
