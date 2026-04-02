@@ -50,14 +50,14 @@
     </a>
 
     {{-- 4: Notifications (static) --}}
-    <div class="bm-portal-card bm-portal-card--static">
-        <div class="bm-portal-card__icon">🔔</div>
-        <div class="bm-portal-card__body">
-            <p class="bm-portal-card__title">Notifications</p>
-            <p class="bm-portal-card__desc">System notifications and announcements.</p>
-        </div>
-        <span class="bm-portal-card__coming">Coming Soon</span>
+    <a href="{{ route('manager.notifications') }}" class="bm-portal-card">
+    <div class="bm-portal-card__icon">🔔</div>
+    <div class="bm-portal-card__body">
+        <p class="bm-portal-card__title">Notifications</p>
+        <p class="bm-portal-card__desc">View rejection notes and admin messages.</p>
     </div>
+    <span class="bm-portal-card__arrow">→</span>
+</a>
 
     {{-- 5: Employees (static) --}}
     <div class="bm-portal-card bm-portal-card--static">

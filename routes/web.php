@@ -17,6 +17,7 @@ use App\Http\Controllers\BranchManagerMovieFormationController;
 use App\Http\Controllers\BranchManagerResourceController;
 use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
+use App\Http\Controllers\BranchManagerNotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -84,3 +85,9 @@ Route::post('/manager/showtimes', [BranchManagerShowtimeController::class, 'stor
 // Movie formation page (BM version)
 Route::get('/manager/movie/{movieId}', [BranchManagerMovieFormationController::class, 'show'])
     ->name('manager.movie.formation')->where('movieId', '[0-9]+');
+
+Route::post('/proposals/{movieId}/rearrange', [BranchManagerShowtimeController::class, 'rearrange'])
+     ->name('manager.proposals.rearrange');
+
+Route::get('/manager/notifications', [BranchManagerNotificationController::class, 'index'])
+     ->name('manager.notifications');
