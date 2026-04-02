@@ -1,0 +1,208 @@
+/* ============================================================
+   resources/css/bm_movie_formation.css
+   TGV-style movie formation page for branch manager.
+   ============================================================ */
+
+/* ── Back link adjustment ────────────────────────────────── */
+.bmf-back {
+    display: inline-flex;
+    margin-bottom: 16px;
+}
+
+/* ── Full-width hero ─────────────────────────────────────── */
+.bmf-hero {
+    position: relative;
+    width: 100%;
+    /* Full-bleed: cancel out bm-page's horizontal padding */
+    margin-left: calc(-1 * var(--bm-page-px, 24px));
+    margin-right: calc(-1 * var(--bm-page-px, 24px));
+    width: calc(100% + 2 * var(--bm-page-px, 24px));
+    aspect-ratio: 21 / 8;
+    overflow: hidden;
+    background: var(--bm-surface);
+    margin-bottom: 0;
+}
+
+.bmf-hero__img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+.bmf-hero__ph {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem; color: var(--bm-text-muted);
+    background: var(--bm-surface);
+}
+
+.bmf-hero__overlay {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 28px var(--bm-page-px, 24px) 22px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+}
+
+.bmf-hero__title {
+    font-family: var(--bm-font-head);
+    font-size: clamp(1.4rem, 4vw, 2.4rem);
+    font-weight: 700; color: #fff;
+    letter-spacing: -0.03em; line-height: 1.1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    margin-bottom: 8px;
+}
+
+.bmf-hero__meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.9rem; color: rgba(255,255,255,0.75);
+    font-weight: 500; flex-wrap: wrap;
+}
+
+.bmf-hero__sep { color: rgba(255,255,255,0.35); }
+
+/* ── No showtimes placeholder ────────────────────────────── */
+.bmf-no-showtimes {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 32px; padding: 24px;
+    border: 1px dashed var(--bm-border);
+    border-radius: var(--bm-radius-md);
+    color: var(--bm-text-muted);
+}
+
+.bmf-no-showtimes__icon { font-size: 1.2rem; flex-shrink: 0; }
+
+.bmf-no-showtimes__text {
+    font-family: var(--bm-font-head); font-size: 0.82rem;
+    font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ── Date strip ──────────────────────────────────────────── */
+.bmf-date-strip-wrap {
+    margin-top: 28px;
+    overflow-x: auto;
+    /* hide scrollbar but keep functionality */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+}
+
+.bmf-date-strip-wrap::-webkit-scrollbar { display: none; }
+
+.bmf-date-strip {
+    display: flex; gap: 6px; align-items: flex-end;
+    min-width: max-content;
+    padding-bottom: 2px;
+}
+
+.bmf-date-btn {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px; padding: 10px 16px;
+    background: none;
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-sm);
+    cursor: pointer; min-width: 68px;
+    transition: background var(--bm-transition), border-color var(--bm-transition),
+                color var(--bm-transition), transform 0.12s;
+}
+
+.bmf-date-btn:hover:not(.bmf-date-btn--active) {
+    background: var(--bm-surface);
+    border-color: var(--bm-accent);
+}
+
+.bmf-date-btn--active {
+    background: var(--bm-accent);
+    border-color: var(--bm-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(34,197,94,0.25);
+}
+
+.bmf-date-btn__day {
+    font-family: var(--bm-font-head); font-size: 0.62rem;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--bm-text-muted);
+    transition: color var(--bm-transition);
+}
+
+.bmf-date-btn--active .bmf-date-btn__day { color: rgba(0,0,0,0.7); }
+
+.bmf-date-btn__num {
+    font-family: var(--bm-font-head); font-size: 1.4rem;
+    font-weight: 800; color: var(--bm-text); line-height: 1;
+    transition: color var(--bm-transition);
+}
+
+.bmf-date-btn--active .bmf-date-btn__num { color: #000; }
+
+.bmf-date-btn__month {
+    font-size: 0.68rem; font-weight: 600; font-family: var(--bm-font-head);
+    color: var(--bm-text-muted); text-transform: uppercase;
+    letter-spacing: 0.06em;
+    transition: color var(--bm-transition);
+}
+
+.bmf-date-btn--active .bmf-date-btn__month { color: rgba(0,0,0,0.65); }
+
+/* ── Showtime section (no card background) ───────────────── */
+.bmf-showtime-section {
+    margin-top: 28px;
+    padding-bottom: 40px;
+}
+
+/* Theatre block */
+.bmf-theatre-block {
+    margin-bottom: 28px;
+}
+
+.bmf-theatre-block:last-child { margin-bottom: 0; }
+
+.bmf-theatre-name {
+    font-family: var(--bm-font-head);
+    font-size: 1rem; font-weight: 800;
+    color: var(--bm-accent);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.bmf-theatre-name::after {
+    content: '';
+    display: block; flex: 1; height: 1px;
+    background: var(--bm-border); margin-left: 8px;
+}
+
+/* Time pills */
+.bmf-time-pills {
+    display: flex; flex-wrap: wrap; gap: 10px;
+}
+
+.bmf-time-pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 12px 22px;
+    background: var(--bm-surface);
+    border: 1px solid var(--bm-border);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem; font-weight: 700;
+    color: var(--bm-accent);
+    cursor: pointer; white-space: nowrap;
+    transition: background var(--bm-transition), border-color var(--bm-transition),
+                transform 0.12s, box-shadow 0.12s;
+}
+
+.bmf-time-pill:hover {
+    background: var(--bm-card);
+    border-color: var(--bm-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(34,197,94,0.15);
+}
+
+/* ── Hidden utility ──────────────────────────────────────── */
+.bmf-hidden { display: none !important; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+    .bmf-hero { aspect-ratio: 16/9; }
+    .bmf-hero__title { font-size: 1.2rem; }
+    .bmf-date-btn { min-width: 58px; padding: 8px 12px; }
+    .bmf-date-btn__num { font-size: 1.2rem; }
+    .bmf-time-pill { padding: 10px 16px; font-size: 0.85rem; }
+}
