@@ -109,6 +109,27 @@
                     @error('production_name') <span class="ac-error">{{ $message }}</span> @enderror
                 </div>
 
+                {{-- ── Trailer YouTube URL (nullable) ──────── --}}
+                <div class="ac-field mc-field--full">
+                    <label for="trailer_url">
+                        Trailer YouTube URL
+                        <span class="optional">(optional · YouTube embed or watch link)</span>
+                    </label>
+                    <input
+                        type="url"
+                        id="trailer_url"
+                        name="trailer_url"
+                        class="ac-input mc-input--compact @error('trailer_url') is-invalid @enderror"
+                        placeholder="e.g. https://www.youtube.com/watch?v=XXXXXX"
+                        value="{{ old('trailer_url') }}"
+                    >
+                    <span style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;display:block;">
+                        Accepts both <code>youtube.com/watch?v=</code> and <code>youtu.be/</code> links.
+                        Leave blank if no trailer is available yet.
+                    </span>
+                    @error('trailer_url') <span class="ac-error">{{ $message }}</span> @enderror
+                </div>
+
                 {{-- Posters ──────────────────────────────── --}}
                 <div class="ac-field">
                     <label>

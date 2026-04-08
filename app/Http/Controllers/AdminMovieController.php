@@ -8,13 +8,13 @@ use App\Models\Genre;
 use App\Models\Movie;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AdminMovieController extends Controller
 {
     /**
      * Show the Movie Creation form.
-     *
      * GET /admin/movie/create
      */
     public function create()
@@ -27,7 +27,8 @@ class AdminMovieController extends Controller
     }
 
     /**
-     * Handle movie creation, genre assignment, and cinema quota assignments.
+     * Handle movie creation, genre assignment, cinema quota assignments,
+     * and optional trailer URL insertion.
      *
      * POST /admin/movie
      */
@@ -41,6 +42,7 @@ class AdminMovieController extends Controller
             'production_name'     => 'required|string|max:255',
             'landscape_poster'    => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
             'portrait_poster'     => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'trailer_url'         => 'nullable|url|max:500',
             'genres'              => 'nullable|array',
             'genres.*'            => 'integer|exists:genres,genre_id',
             'supervisor_id'       => 'required|integer|exists:supervisors,supervisor_id',
@@ -143,6 +145,18 @@ class AdminMovieController extends Controller
                 'showtime_slots'   => $assignment['showtime_slots'],
                 'start_date'       => $assignment['start_date'],
                 'maximum_end_date' => $assignment['maximum_end_date'],
+            ]);
+        }
+
+        // ── 8. Insert Trailer row (if URL provided) ────────────
+        $trailerUrl = trim($validated['trailer_url'] ?? '');
+        if ($trailerUrl !== '') {
+            DB::table('trailers')->insert([
+                'movie_id'    => $movie->movie_id,
+                'youtube_url' => $trailerUrl,
+                'type'        => 'main',          // default type; nullable per schema
+                'created_at'  => now(),
+                'updated_at'  => now(),
             ]);
         }
 
