@@ -1,0 +1,404 @@
+/* ============================================================
+   resources/css/user_login.css
+   Cyberpunk cinema night — login page
+   ============================================================ */
+
+/* ── Google Fonts are loaded in the blade <head> ─────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    /* Core cyberpunk palette */
+    --ul-bg:          #080810;
+    --ul-surface:     #0e0e1a;
+    --ul-card:        #13131f;
+
+    --ul-purple:      #a855f7;
+    --ul-violet:      #7c3aed;
+    --ul-pink:        #ec4899;
+    --ul-cyan:        #22d3ee;
+    --ul-gold:        #f59e0b;
+
+    /* Gradient vars used repeatedly */
+    --ul-grad:        linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    --ul-grad-soft:   linear-gradient(135deg, rgba(168,85,247,0.15) 0%, rgba(236,72,153,0.15) 100%);
+
+    --ul-text:        #f0eeff;
+    --ul-text-sub:    rgba(240,238,255,0.55);
+    --ul-text-muted:  rgba(240,238,255,0.30);
+
+    --ul-border:      rgba(168,85,247,0.18);
+    --ul-border-hover:rgba(168,85,247,0.45);
+
+    --ul-radius:      24px;
+    --ul-radius-sm:   12px;
+    --ul-transition:  0.22s ease;
+
+    /* Snake dimensions — read by JS */
+    --ul-snake-w:     460px;
+}
+
+/* ── Body: full-height split layout ─────────────────────── */
+.ul-body {
+    min-height: 100vh;
+    display: flex;
+    background: var(--ul-bg);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    overflow: hidden;
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEFT PANEL
+══════════════════════════════════════════════════════════ */
+.ul-left {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 48px 56px;
+    overflow: hidden;
+    min-width: 0;
+}
+
+/* Full-panel canvas for generative art */
+#ul-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+}
+
+/* Wordmark */
+.ul-left__wordmark {
+    position: absolute;
+    top: 40px; left: 52px;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    background: var(--ul-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
+    z-index: 2;
+}
+
+/* Big headline */
+.ul-left__headline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    z-index: 2;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.ul-left__headline-line {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 800;
+    color: var(--ul-text);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+}
+
+.ul-left__headline-line--accent {
+    background: var(--ul-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-style: italic;
+}
+
+/* Sub text */
+.ul-left__sub {
+    font-size: 0.875rem;
+    color: var(--ul-text-sub);
+    line-height: 1.7;
+    z-index: 2;
+    position: relative;
+}
+
+/* Film strip */
+.ul-filmstrip {
+    position: absolute;
+    top: 0; right: -10px;
+    height: 100%;
+    width: 64px;
+    overflow: hidden;
+    opacity: 0.18;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ul-filmstrip__track {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    animation: ul-filmscroll 18s linear infinite;
+}
+
+.ul-filmstrip__frame {
+    width: 100%;
+    height: 48px;
+    border: 2px solid rgba(168,85,247,0.6);
+    border-radius: 4px;
+    background: rgba(168,85,247,0.04);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.ul-filmstrip__frame::before,
+.ul-filmstrip__frame::after {
+    content: '';
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: rgba(168,85,247,0.5);
+}
+
+.ul-filmstrip__frame::before { left: 6px; }
+.ul-filmstrip__frame::after  { right: 6px; }
+
+@keyframes ul-filmscroll {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-50%); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   RIGHT PANEL
+══════════════════════════════════════════════════════════ */
+.ul-right {
+    width: var(--ul-snake-w);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 32px;
+    background: var(--ul-surface);
+    position: relative;
+}
+
+/* Subtle noise texture via pseudo */
+.ul-right::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+        radial-gradient(ellipse 80% 60% at 50% 0%, rgba(168,85,247,0.08) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 50% 100%, rgba(236,72,153,0.06) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* ── Form wrapper with snake border ──────────────────────── */
+.ul-form-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 380px;
+    border-radius: var(--ul-radius);
+    background: var(--ul-card);
+    padding: 2px; /* room for the SVG border */
+}
+
+/* The SVG sits exactly on top of the wrapper border */
+.ul-snake-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--ul-radius);
+    pointer-events: none;
+    overflow: visible;
+    z-index: 3;
+}
+
+/* The rect that gets the dasharray animation */
+.ul-snake-path {
+    fill: none;
+    stroke-width: 2.5;
+    stroke: url(#ul-snake-gradient);
+    stroke-linecap: round;
+    /* dasharray set dynamically by JS */
+}
+
+/* ── Form inner ───────────────────────────────────────────── */
+.ul-form-inner {
+    padding: 40px 36px 36px;
+    border-radius: calc(var(--ul-radius) - 2px);
+    position: relative;
+    z-index: 1;
+}
+
+/* Header */
+.ul-form-header { margin-bottom: 32px; }
+
+.ul-form-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    background: var(--ul-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+}
+
+.ul-form-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--ul-text);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+/* Alert */
+.ul-alert {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(236,72,153,0.1);
+    border: 1px solid rgba(236,72,153,0.25);
+    border-radius: var(--ul-radius-sm);
+    color: #f9a8d4;
+    font-size: 0.82rem;
+    padding: 10px 14px;
+    margin-bottom: 20px;
+}
+
+.ul-alert__icon {
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--ul-pink); flex-shrink: 0;
+}
+
+/* Fields */
+.ul-form { display: flex; flex-direction: column; gap: 20px; }
+
+.ul-field { display: flex; flex-direction: column; gap: 6px; }
+
+.ul-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ul-text-muted);
+}
+
+.ul-input-wrap {
+    position: relative;
+    display: flex; align-items: center;
+}
+
+.ul-input-icon {
+    position: absolute; left: 14px;
+    font-size: 0.82rem;
+    color: var(--ul-text-muted);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ul-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--ul-border);
+    border-radius: var(--ul-radius-sm);
+    color: var(--ul-text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    padding: 13px 16px 13px 40px;
+    outline: none;
+    transition: border-color var(--ul-transition), background var(--ul-transition),
+                box-shadow var(--ul-transition);
+}
+
+.ul-input::placeholder { color: var(--ul-text-muted); }
+
+.ul-input:focus {
+    border-color: var(--ul-purple);
+    background: rgba(168,85,247,0.06);
+    box-shadow: 0 0 0 3px rgba(168,85,247,0.15);
+}
+
+/* Forgot / footer row */
+.ul-form-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -8px;
+}
+
+.ul-forgot {
+    font-size: 0.75rem;
+    color: var(--ul-text-muted);
+    text-decoration: none;
+    transition: color var(--ul-transition);
+}
+
+.ul-forgot:hover { color: var(--ul-purple); }
+
+/* Submit button */
+.ul-submit {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%;
+    padding: 14px 24px;
+    background: var(--ul-grad);
+    border: none; border-radius: var(--ul-radius-sm);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-top: 4px;
+}
+
+.ul-submit::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+.ul-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(168,85,247,0.4);
+}
+
+.ul-submit:active { transform: translateY(0); }
+
+.ul-submit__arrow {
+    font-size: 1rem;
+    transition: transform var(--ul-transition);
+}
+
+.ul-submit:hover .ul-submit__arrow { transform: translateX(4px); }
+
+/* Register row */
+.ul-register {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 24px;
+    font-size: 0.82rem;
+}
+
+.ul-register__text { color: var(--ul-text-muted); }
+
+.ul-register__link {
+    font-weight: 700;
+    background: var(--ul-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+    transition: opacity var(--ul-transition);
+}
+
+.ul-register__link:hover { opacity: 0.8; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 860px) {
+    :root { --ul-snake-w: 100%; }
+    .ul-left { display: none; }
+    .ul-right { width: 100%; padding: 40px 24px; }
+}

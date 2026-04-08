@@ -8,7 +8,7 @@ use App\Models\Employee;
 class EmployeeAuthController extends Controller
 {
     public function showLogin() {
-        return view('users.user_login');
+        return view('employees.login');
     }
 
     public function login(Request $request) {
