@@ -19,6 +19,7 @@ use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
 use App\Http\Controllers\BranchManagerNotificationController;
 use App\Http\Controllers\UserHomepageController;
+use App\Http\Controllers\EmployeeAuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,3 +95,6 @@ Route::get('/manager/notifications', [BranchManagerNotificationController::class
      ->name('manager.notifications');
 
 Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('home');
+
+Route::get('/users/login', [EmployeeAuthController::class, 'showLogin'])->name('login');
+Route::post('/users/login', [EmployeeAuthController::class, 'login'])->name('login.post');
