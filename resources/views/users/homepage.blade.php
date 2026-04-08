@@ -98,7 +98,7 @@
     <div class="hp-movies-scroll-wrap">
         <div class="hp-movies-row" id="hp-movies-row">
             @forelse ($nowShowing as $movie)
-                <div class="hp-movie-card">
+                <a href="{{ route('user.movie.details', $movie->movie_id) }}" class="hp-movie-card">
                     <div class="hp-movie-card__poster-wrap">
                         <img
                             src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
@@ -122,7 +122,7 @@
                             · {{ $movie->language }}
                         </p>
                     </div>
-                </div>
+                </a>
             @empty
                 <p class="hp-no-movies">No movies available right now.</p>
             @endforelse

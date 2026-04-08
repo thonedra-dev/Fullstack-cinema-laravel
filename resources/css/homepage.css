@@ -434,3 +434,5 @@
 @media (max-width: 420px) {
     :root { --hp-card-w: calc(100vw - 44px); }
 }
+
+a.hp-movie-card { text-decoration: none; color: inherit; }

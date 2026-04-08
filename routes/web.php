@@ -18,8 +18,9 @@ use App\Http\Controllers\BranchManagerResourceController;
 use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
 use App\Http\Controllers\BranchManagerNotificationController;
-use App\Http\Controllers\UserHomepageController;
 use App\Http\Controllers\EmployeeAuthController;
+use App\Http\Controllers\UserHomepageController;
+use App\Http\Controllers\UserMovieDetailsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,3 +99,7 @@ Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('h
 
 Route::get('/employees/login', [EmployeeAuthController::class, 'showLogin'])->name('login');
 Route::post('/employees/login', [EmployeeAuthController::class, 'login'])->name('login.post');
+
+
+Route::get('/movie/{movieId}', [UserMovieDetailsController::class, 'show'])
+     ->name('user.movie.details');
