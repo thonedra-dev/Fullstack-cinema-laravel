@@ -96,5 +96,5 @@ Route::get('/manager/notifications', [BranchManagerNotificationController::class
 
 Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('home');
 
-Route::get('/users/login', [EmployeeAuthController::class, 'showLogin'])->name('login');
-Route::post('/users/login', [EmployeeAuthController::class, 'login'])->name('login.post');
+Route::get('/employees/login', [EmployeeAuthController::class, 'showLogin'])->name('login');
+Route::post('/employees/login', [EmployeeAuthController::class, 'login'])->name('login.post');
