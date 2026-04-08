@@ -18,6 +18,7 @@ use App\Http\Controllers\BranchManagerResourceController;
 use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
 use App\Http\Controllers\BranchManagerNotificationController;
+use App\Http\Controllers\UserHomepageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -91,3 +92,5 @@ Route::post('/proposals/{movieId}/rearrange', [BranchManagerShowtimeController::
 
 Route::get('/manager/notifications', [BranchManagerNotificationController::class, 'index'])
      ->name('manager.notifications');
+
+Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('home');
