@@ -15,8 +15,8 @@ class Movie extends Model
         'runtime',
         'language',
         'production_name',
-        'landscape_poster',   // added — user adds column manually
-        'portrait_poster',    // added — user adds column manually
+        'landscape_poster',
+        'portrait_poster',
     ];
 
     /**
@@ -51,5 +51,13 @@ class Movie extends Model
             'movie_id',
             'cinema_id'
         )->withPivot('supervisor_id', 'showtime_slots', 'start_date', 'maximum_end_date');
+    }
+
+    /**
+     * A movie has many trailers (YouTube links).
+     */
+    public function trailers()
+    {
+        return $this->hasMany(Trailer::class, 'movie_id', 'movie_id');
     }
 }
