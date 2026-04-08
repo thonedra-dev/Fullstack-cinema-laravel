@@ -1,7 +1,7 @@
 {{--
     resources/views/users/homepage.blade.php
     ─────────────────────────────────────────
-    Public user homepage.
+    Public user homepage — cyberpunk cinema aesthetic.
     Controller: UserHomepageController@index
     Data:
       $heroMovies – Movie collection (with ->genres, ->trailer_embed_url)
@@ -15,6 +15,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CinemaX — Movie Showtimes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     @vite(['resources/css/homepage.css', 'resources/js/homepage.js'])
 </head>
 <body class="hp-body">
@@ -35,42 +37,36 @@
 
 {{-- ══════════════════════════════════════════════════════════
      DIVISION 1 — HERO CAROUSEL
-     Shows one landscape_poster at a time.
-     On reload / navigation-back → shifts to the next poster.
-     Dots at the bottom indicate which slide is active.
+     JS advances the slide index on every page load/reload.
 ══════════════════════════════════════════════════════════ --}}
 <section class="hp-hero" id="hp-hero">
 
-    {{-- Slide data injected for JS --}}
+    {{-- JSON data bridge for JS --}}
     <div
         id="hp-hero-data"
         class="hp-hidden"
         data-movies='{!! json_encode(
             $heroMovies->map(fn($m) => [
-                "movie_id"     => $m->movie_id,
-                "title"        => $m->movie_name,
-                "poster"       => asset("images/movies/" . $m->landscape_poster),
-                "genres"       => $m->genres->pluck("genre_name")->join(", "),
-                "runtime_h"    => intdiv($m->runtime, 60),
-                "runtime_m"    => $m->runtime % 60,
-                "language"     => $m->language,
-                "trailer_url"  => $m->trailer_embed_url,
+                "movie_id"    => $m->movie_id,
+                "title"       => $m->movie_name,
+                "poster"      => asset("images/movies/" . $m->landscape_poster),
+                "genres"      => $m->genres->pluck("genre_name")->join(", "),
+                "runtime_h"   => intdiv($m->runtime, 60),
+                "runtime_m"   => $m->runtime % 60,
+                "language"    => $m->language,
+                "trailer_url" => $m->trailer_embed_url,
             ])->values()
         ) !!}'
     ></div>
 
-    {{-- Slide image --}}
-    <div class="hp-hero__slides" id="hp-hero-slides">
-        {{-- Populated by JS --}}
-    </div>
+    <div class="hp-hero__slides" id="hp-hero-slides"></div>
 
-    {{-- Overlay content --}}
     <div class="hp-hero__overlay">
         <div class="hp-hero__content">
             <div class="hp-hero__meta" id="hp-hero-meta"></div>
             <h1 class="hp-hero__title" id="hp-hero-title"></h1>
             <div class="hp-hero__actions">
-                <button class="hp-btn hp-btn--outline" id="hp-watch-trailer-btn" style="display: none;">
+                <button class="hp-btn hp-btn--outline" id="hp-watch-trailer-btn" style="display:none;">
                     ▶ Watch Trailer
                 </button>
                 <button class="hp-btn hp-btn--ghost">Read More</button>
@@ -78,7 +74,6 @@
         </div>
     </div>
 
-    {{-- Dot indicators --}}
     <div class="hp-hero__dots" id="hp-hero-dots"></div>
 
 </section>
@@ -92,7 +87,6 @@
         <h2 class="hp-showtimes__title">Movie <span>Showtimes</span></h2>
     </div>
 
-    {{-- Tab bar (static) --}}
     <div class="hp-tabs">
         <button class="hp-tab hp-tab--active">Now Showing</button>
         <button class="hp-tab">Concerts</button>
@@ -101,7 +95,6 @@
         <a href="#" class="hp-tab-view-all">View all →</a>
     </div>
 
-    {{-- Scrollable card row — exactly 5 visible, scroll for more --}}
     <div class="hp-movies-scroll-wrap">
         <div class="hp-movies-row" id="hp-movies-row">
             @forelse ($nowShowing as $movie)
@@ -111,6 +104,7 @@
                             src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
                             alt="{{ $movie->movie_name }}"
                             class="hp-movie-card__poster"
+                            loading="lazy"
                         >
                     </div>
                     <div class="hp-movie-card__body">
@@ -134,7 +128,6 @@
             @endforelse
         </div>
 
-        {{-- Horizontal scrollbar track --}}
         <div class="hp-scroll-track">
             <div class="hp-scroll-thumb" id="hp-scroll-thumb"></div>
         </div>
