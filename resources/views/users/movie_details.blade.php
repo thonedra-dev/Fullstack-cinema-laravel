@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     @vite(['resources/css/movie_details.css', 'resources/js/movie_details.js'])
 </head>
-<body class="md-body">
+<body class="md-body" data-seat-route="{{ route('user.seats') }}" data-movie-id="{{ $movie->movie_id }}">
 
 {{-- ── Nav (static, consistent with homepage) ────────────── --}}
 <nav class="md-nav">
