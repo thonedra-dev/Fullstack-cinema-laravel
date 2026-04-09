@@ -28,8 +28,8 @@ class AdminMovieProposalController extends Controller
 
             $children = ShowtimeProposal::with('theatre')
                 ->where('manager_id', $p->manager_id)
-                ->where('cinema_id',  $p->cinema_id)
-                ->where('movie_id',   $p->movie_id)
+                ->where('cinema_id', $p->cinema_id)
+                ->where('movie_id', $p->movie_id)
                 ->get();
 
             $p->slot_count = $children->count();
@@ -56,20 +56,23 @@ class AdminMovieProposalController extends Controller
 
         $groupRows = ShowtimeProposal::with('theatre')
             ->where('manager_id', $first->manager_id)
-            ->where('cinema_id',  $first->cinema_id)
-            ->where('movie_id',   $first->movie_id)
+            ->where('cinema_id', $first->cinema_id)
+            ->where('movie_id', $first->movie_id)
             ->orderBy('start_datetime')
             ->get();
 
-        $city  = City::find($first->cinema?->city_id);
+        $city = City::find($first->cinema?->city_id);
 
         $quota = DB::table('cinema_movie_quotas')
-            ->where('movie_id',  $first->movie_id)
+            ->where('movie_id', $first->movie_id)
             ->where('cinema_id', $first->cinema_id)
             ->first();
 
         return view('admin.movie_proposal_detail', compact(
-            'first', 'groupRows', 'city', 'quota'
+            'first',
+            'groupRows',
+            'city',
+            'quota'
         ));
     }
 
@@ -87,18 +90,23 @@ class AdminMovieProposalController extends Controller
         }
 
         $groupRows = ShowtimeProposal::where('manager_id', $statusRecord->manager_id)
-            ->where('cinema_id',  $statusRecord->cinema_id)
-            ->where('movie_id',   $statusRecord->movie_id)
+            ->where('cinema_id', $statusRecord->cinema_id)
+            ->where('movie_id', $statusRecord->movie_id)
             ->get();
 
+        if ($groupRows->isEmpty()) {
+            return redirect()->route('admin.proposals.show', $id)
+                ->with('error', 'No proposal rows found for this approval group.');
+        }
+
         $conflicts = [];
-        $approved  = [];
+        $approved = [];
 
         foreach ($groupRows as $row) {
             $conflict = Showtime::where('theatre_id', $row->theatre_id)
                 ->where(function ($q) use ($row) {
                     $q->where('start_time', '<', $row->end_datetime)
-                      ->where('end_time',   '>', $row->start_datetime);
+                        ->where('end_time', '>', $row->start_datetime);
                 })
                 ->first();
 
@@ -114,34 +122,33 @@ class AdminMovieProposalController extends Controller
                 ->with('error', 'Conflicts on: ' . implode(', ', $conflicts) . '.');
         }
 
-        foreach ($approved as $row) {
-            Showtime::create([
-                'theatre_id' => $row->theatre_id,
-                'movie_id'   => $row->movie_id,
-                'start_time' => $row->start_datetime,
-                'end_time'   => $row->end_datetime,
-            ]);
-        }
+        DB::transaction(function () use ($approved, $statusRecord) {
+            foreach ($approved as $row) {
+                Showtime::create([
+                    'theatre_id' => $row->theatre_id,
+                    'movie_id' => $row->movie_id,
+                    'cinema_id' => $row->cinema_id,
+                    'start_time' => $row->start_datetime,
+                    'end_time' => $row->end_datetime,
+                ]);
+            }
 
-        $statusRecord->update(['status' => 'approved']);
+            $statusRecord->update([
+                'status' => 'approved',
+            ]);
+        });
 
         return redirect()->route('admin.proposals.index')
-            ->with('success', count($approved) . ' showtime(s) approved for "' .
-                $statusRecord->movie?->movie_name . '".');
+            ->with(
+                'success',
+                count($approved) . ' showtime(s) approved for "' .
+                ($statusRecord->movie?->movie_name ?? 'movie') . '".'
+            );
     }
 
     /* ─────────────────────────────────────────────────────────────
        REJECT
        POST /admin/proposals/{id}/reject
-
-       Also inserts a record into manager_notifications so the branch
-       manager sees the rejection note in their notification centre.
-
-       Notification fields:
-         manager_id   – the manager who submitted the proposal (recipient)
-         noti_picture – portrait_poster of the movie
-         noti_message – "'{movie}' proposal rejected by {supervisor}: {admin_note}"
-         tag          – 'Movie Rejection By Admin'
     ───────────────────────────────────────────────────────────── */
     public function reject(Request $request, int $id)
     {
@@ -151,40 +158,33 @@ class AdminMovieProposalController extends Controller
 
         $statusRecord = ShowtimeProposalStatus::findOrFail($id);
 
-        // ── 1. Update proposal status ─────────────────────────
         $statusRecord->update([
-            'status'     => 'rejected',
+            'status' => 'rejected',
             'admin_note' => $request->admin_note,
         ]);
 
-        // ── 2. Build notification fields ──────────────────────
-
-        // Movie — for portrait_poster and name
         $movie = Movie::find($statusRecord->movie_id);
 
-        // Supervisor name — via cinema_movie_quotas → supervisors
         $supervisorRow = DB::table('cinema_movie_quotas')
             ->leftJoin('supervisors', 'cinema_movie_quotas.supervisor_id', '=', 'supervisors.supervisor_id')
-            ->where('cinema_movie_quotas.movie_id',  $statusRecord->movie_id)
+            ->where('cinema_movie_quotas.movie_id', $statusRecord->movie_id)
             ->where('cinema_movie_quotas.cinema_id', $statusRecord->cinema_id)
             ->select('supervisors.supervisor_name')
             ->first();
 
         $supervisorName = $supervisorRow?->supervisor_name ?? 'Admin';
-        $movieName      = $movie?->movie_name ?? 'Movie';
+        $movieName = $movie?->movie_name ?? 'Movie';
 
-        // Compose message:  "{movie}" proposal rejected by {supervisor}: {admin_note}
         $notiMessage = '"' . $movieName . '" proposal rejected by ' .
-                       $supervisorName . ': ' . $request->admin_note;
+            $supervisorName . ': ' . $request->admin_note;
 
-        // ── 3. Insert notification record ─────────────────────
         DB::table('manager_notifications')->insert([
-            'manager_id'   => $statusRecord->manager_id,
+            'manager_id' => $statusRecord->manager_id,
             'noti_picture' => $movie?->portrait_poster,
             'noti_message' => $notiMessage,
-            'tag'          => 'Movie Rejection By Admin',
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'tag' => 'Movie Rejection By Admin',
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         return redirect()->route('admin.proposals.index')
