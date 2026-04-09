@@ -179,6 +179,7 @@
     display: grid;
     grid-template-columns: 260px 1fr;
     min-height: 60vh;
+    border-top: 1px solid var(--md-border);
 }
 
 /* ── Sidebar ─────────────────────────────────────────────── */
@@ -258,28 +259,48 @@
 
 /* ── Main panel ──────────────────────────────────────────── */
 .md-main-panel {
-    padding: 28px 40px 60px;
-    display: flex; flex-direction: column; gap: 0;
+    padding: 24px 0 0 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
 }
 
 /* Cinema header row */
 .md-cinema-header {
-    display: flex; align-items: center;
-    justify-content: space-between; flex-wrap: wrap; gap: 12px;
-    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 28px;
 }
 
 .md-cinema-header__name {
-    font-size: 1.1rem; font-weight: 800;
-    color: var(--md-text); letter-spacing: -0.01em;
+    font-size: 1.28rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: var(--md-grad);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .md-availability-legend {
-    display: flex; align-items: center; gap: 14px;
-    font-size: 0.72rem; font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    flex-wrap: wrap;
 }
 
-.md-avail { display: flex; align-items: center; gap: 4px; }
+.md-avail {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    line-height: 1;
+}
+
 .md-avail--available { color: #22c55e; }
 .md-avail--fast      { color: #f59e0b; }
 .md-avail--sold      { color: #ef4444; }
@@ -287,34 +308,47 @@
 /* ── Date strip ──────────────────────────────────────────── */
 .md-date-strip-wrap {
     overflow-x: auto;
-    -ms-overflow-style: none; scrollbar-width: none;
-    margin-bottom: 28px;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    margin-bottom: 22px;
     border-bottom: 1px solid var(--md-border);
     padding-bottom: 0;
+}
+
+.md-date-strip-wrap--top {
+    margin: 0 0 24px;
 }
 
 .md-date-strip-wrap::-webkit-scrollbar { display: none; }
 
 .md-date-strip {
-    display: flex; gap: 2px;
+    display: flex;
+    gap: 6px;
     min-width: max-content;
 }
 
 /* Date button — TGV style */
 .md-date-btn {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 12px 18px;
-    background: none; border: none; border-bottom: 3px solid transparent;
-    cursor: pointer; min-width: 72px;
-    transition: color var(--md-transition), border-color var(--md-transition);
-    gap: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    min-width: 86px;
+    transition: color var(--md-transition), border-color var(--md-transition), background var(--md-transition);
+    gap: 3px;
 }
 
 .md-date-btn:hover .md-date-btn__num { color: var(--md-text); }
 
 .md-date-btn__day {
-    font-size: 0.7rem; font-weight: 600;
-    color: var(--md-text-muted); text-transform: capitalize;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--md-text-muted);
+    text-transform: capitalize;
     letter-spacing: 0.03em;
 }
 
@@ -323,29 +357,36 @@
 }
 
 .md-date-btn__num {
-    font-size: 1.1rem; font-weight: 800;
-    color: var(--md-text-sub); line-height: 1;
+    font-size: 1.34rem;
+    font-weight: 800;
+    color: var(--md-text-sub);
+    line-height: 1;
     transition: color var(--md-transition);
 }
 
 .md-date-btn__month {
-    font-size: 0.72rem; font-weight: 700;
-    color: var(--md-text-muted); text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--md-text-muted);
+    text-transform: uppercase;
     letter-spacing: 0.06em;
 }
 
 /* Active date — white bold + purple underline */
 .md-date-btn--active {
     border-bottom-color: var(--md-purple);
+    background: rgba(168,85,247,0.05);
 }
 
-.md-date-btn--active .md-date-btn__day  { color: var(--md-text-sub); }
-.md-date-btn--active .md-date-btn__num  { color: var(--md-text); font-size: 1.2rem; }
-.md-date-btn--active .md-date-btn__month{ color: var(--md-text-sub); }
+.md-date-btn--active .md-date-btn__day   { color: var(--md-text-sub); }
+.md-date-btn--active .md-date-btn__num   { color: var(--md-text); font-size: 1.42rem; }
+.md-date-btn--active .md-date-btn__month { color: var(--md-text-sub); }
 
 /* ── Showtime section (theatre blocks + time pills) ──────── */
 .md-showtime-section {
-    display: flex; flex-direction: column; gap: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
 }
 
 .md-select-hint {
@@ -368,27 +409,37 @@
 }
 
 /* Time pills */
-.md-time-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+.md-time-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+}
 
 .md-time-pill {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 12px 22px;
-    background: var(--md-surface);
-    border: 1px solid var(--md-border-vis);
-    border-radius: 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem; font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 132px;
+    min-height: 54px;
+    padding: 14px 28px;
+    background: rgba(255,255,255,0.045);
+    border: 1px solid rgba(168,85,247,0.22);
+    border-radius: 10px;
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
     color: var(--md-purple);
-    cursor: pointer; white-space: nowrap;
+    cursor: pointer;
+    white-space: nowrap;
     transition: background var(--md-transition), border-color var(--md-transition),
                 transform 0.12s, box-shadow 0.12s;
 }
 
 .md-time-pill:hover {
-    background: rgba(168,85,247,0.1);
+    background: rgba(168,85,247,0.12);
     border-color: var(--md-purple);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(168,85,247,0.2);
+    box-shadow: 0 8px 24px rgba(168,85,247,0.24);
 }
 
 /* No showtimes placeholder */
@@ -398,20 +449,27 @@
     font-size: 0.9rem;
 }
 
+.md-showtimes-shell {
+    padding: 0 40px 60px;
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 860px) {
+    .md-showtimes-shell { padding: 0 24px 48px; }
     .md-showtimes-layout { grid-template-columns: 1fr; }
     .md-sidebar {
-        max-height: none; position: static;
-        border-right: none; border-bottom: 1px solid var(--md-border);
+        max-height: none;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--md-border);
     }
     .md-back { margin: 14px 24px; }
     .md-hero__overlay { padding: 24px 28px 28px; }
-    .md-main-panel { padding: 24px 24px 48px; }
+    .md-main-panel { padding: 24px 0 0; }
     .md-nav { padding: 0 24px; gap: 16px; }
     .md-nav__links { display: none; }
+    .md-cinema-header { align-items: flex-start; }
 }
-
 @media (max-width: 560px) {
     .md-hero { aspect-ratio: 16/9; min-height: auto; }
     .md-hero__title { font-size: 1.4rem; }
