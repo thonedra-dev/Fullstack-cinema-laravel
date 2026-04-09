@@ -89,43 +89,46 @@
 
 @else
 
-<div class="md-showtimes-layout">
+<div class="md-showtimes-shell">
 
-    {{-- ── LEFT: State accordion + cinemas ───────────────── --}}
-    <aside class="md-sidebar" id="md-sidebar">
-        {{-- Populated by movie_details.js --}}
-    </aside>
+    {{-- Date strip now sits above the whole layout --}}
+    <div class="md-date-strip-wrap md-date-strip-wrap--top">
+        <div class="md-date-strip" id="md-date-strip">
+            {{-- Populated by JS --}}
+        </div>
+    </div>
 
-    {{-- ── RIGHT: Date strip + theatre blocks ────────────── --}}
-    <div class="md-main-panel" id="md-main-panel">
+    <div class="md-showtimes-layout">
 
-        {{-- Cinema header --}}
-        <div class="md-cinema-header" id="md-cinema-header">
-            <span class="md-cinema-header__name" id="md-cinema-label">
-                Select a cinema
-            </span>
-            <div class="md-availability-legend">
-                <span class="md-avail md-avail--available">🟩 Available</span>
-                <span class="md-avail md-avail--fast">🟨 Selling fast</span>
-                <span class="md-avail md-avail--sold">🟥 Sold out</span>
+        {{-- ── LEFT: State accordion + cinemas ───────────────── --}}
+        <aside class="md-sidebar" id="md-sidebar">
+            {{-- Populated by movie_details.js --}}
+        </aside>
+
+        {{-- ── RIGHT: Header + theatre blocks ───────────────── --}}
+        <div class="md-main-panel" id="md-main-panel">
+
+            <div class="md-cinema-header" id="md-cinema-header">
+                <span class="md-cinema-header__name" id="md-cinema-label">
+                    Select a cinema
+                </span>
+
+                <div class="md-availability-legend">
+                    <span class="md-avail md-avail--available">🟩 Available</span>
+                    <span class="md-avail md-avail--fast">🟨 Selling fast</span>
+                    <span class="md-avail md-avail--sold">🟥 Sold out</span>
+                </div>
             </div>
-        </div>
 
-        {{-- Date strip --}}
-        <div class="md-date-strip-wrap">
-            <div class="md-date-strip" id="md-date-strip">
-                {{-- Populated by JS --}}
+            <div class="md-showtime-section" id="md-showtime-section">
+                <p class="md-select-hint">Select a cinema from the left to view showtimes.</p>
             </div>
-        </div>
 
-        {{-- Theatre blocks + time pills --}}
-        <div class="md-showtime-section" id="md-showtime-section">
-            <p class="md-select-hint">Select a cinema from the left to view showtimes.</p>
-        </div>
+        </div>{{-- /.md-main-panel --}}
 
-    </div>{{-- /.md-main-panel --}}
+    </div>{{-- /.md-showtimes-layout --}}
 
-</div>{{-- /.md-showtimes-layout --}}
+</div>{{-- /.md-showtimes-shell --}}
 
 @endif
 
