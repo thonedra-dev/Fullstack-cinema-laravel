@@ -1,0 +1,453 @@
+/* ============================================================
+   resources/css/select_seats.css
+   Seat selection page — cyberpunk cinema aesthetic.
+   Seat icons match the admin/BM seat builder style (sb-seat pattern),
+   scaled up for the public booking flow.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --ss-bg:          #07070f;
+    --ss-surface:     #0e0e1a;
+    --ss-card:        #13131f;
+    --ss-border:      rgba(168,85,247,0.14);
+    --ss-border-vis:  rgba(168,85,247,0.30);
+
+    --ss-purple:      #a855f7;
+    --ss-pink:        #ec4899;
+    --ss-grad:        linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+
+    --ss-text:        #f0eeff;
+    --ss-text-sub:    rgba(240,238,255,0.60);
+    --ss-text-muted:  rgba(240,238,255,0.32);
+
+    /* Seat type colours (matching the admin seat builder) */
+    --ss-standard:    #4ade80;   /* green */
+    --ss-couple:      #f87171;   /* red-pink */
+    --ss-premium-bg:  #1a1a2e;   /* near-black with gold outline */
+    --ss-premium-out: #d4af37;   /* gold */
+    --ss-family:      #f472b6;   /* pink */
+    --ss-sold:        #2a2a3a;
+    --ss-sold-text:   rgba(255,255,255,0.18);
+
+    /* Seat dimensions — larger than admin builder */
+    --ss-seat-w:      42px;
+    --ss-seat-h:      36px;
+    --ss-seat-lg-w:   56px;  /* premium / family */
+    --ss-seat-gap:    8px;
+    --ss-row-gap:     16px;
+}
+
+.ss-body {
+    background: var(--ss-bg);
+    color: var(--ss-text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 100px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   HERO — landscape poster background
+══════════════════════════════════════════════════════════ */
+.ss-hero {
+    position: relative;
+    width: 100%;
+    min-height: 320px;
+    background-size: cover;
+    background-position: center 30%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.ss-hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(7,7,15,0.45) 0%,
+        rgba(7,7,15,0.78) 60%,
+        var(--ss-bg) 100%
+    );
+    z-index: 1;
+}
+
+.ss-hero-content {
+    position: relative; z-index: 2;
+    text-align: center;
+    width: 100%; max-width: 860px;
+    padding: 40px 24px 36px;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+
+/* Step progress */
+.ss-steps {
+    display: flex; align-items: center; gap: 10px;
+}
+
+.ss-step {
+    display: flex; align-items: center; gap: 8px;
+    opacity: 0.35;
+    transition: opacity 0.25s;
+}
+
+.ss-step--active { opacity: 1; }
+
+.ss-step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700;
+    background: var(--ss-surface);
+}
+
+.ss-step--active .ss-step-num {
+    background: var(--ss-grad); border: none;
+    box-shadow: 0 0 14px rgba(168,85,247,0.5);
+    color: #fff;
+}
+
+.ss-step-text {
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+}
+
+.ss-step-divider {
+    width: 40px; height: 2px;
+    background: rgba(255,255,255,0.12);
+}
+
+/* Movie title */
+.ss-movie-title {
+    font-size: clamp(1.5rem, 4vw, 2.4rem);
+    font-weight: 800; letter-spacing: -0.03em;
+    text-shadow: 0 2px 16px rgba(0,0,0,0.7);
+    line-height: 1.1;
+}
+
+/* Info banner pill */
+.ss-info-banner {
+    display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center;
+    gap: 0;
+    background: rgba(14,14,26,0.80);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--ss-border-vis);
+    padding: 12px 28px;
+    border-radius: 50px;
+}
+
+.ss-info-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 0.88rem; font-weight: 500; color: var(--ss-text);
+    padding: 0 14px;
+}
+
+.ss-info-icon { font-size: 1rem; }
+
+.ss-info-sep {
+    width: 1px; height: 20px;
+    background: rgba(255,255,255,0.15);
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAIN SEAT AREA
+══════════════════════════════════════════════════════════ */
+.ss-main {
+    max-width: 1000px; margin: 0 auto;
+    padding: 32px 24px 60px;
+    display: flex; flex-direction: column; align-items: center; gap: 32px;
+}
+
+/* ── Legend ──────────────────────────────────────────────── */
+.ss-legend {
+    display: flex; align-items: center; flex-wrap: wrap; justify-content: center;
+    gap: 16px 24px;
+    background: var(--ss-surface);
+    border: 1px solid var(--ss-border);
+    padding: 14px 28px;
+    border-radius: 12px;
+}
+
+.ss-legend-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.80rem; color: var(--ss-text-sub);
+    font-weight: 500;
+}
+
+/* Legend seat swatches use the same icon system as real seats */
+.ss-legend-seat {
+    width: 24px; height: 20px;
+    border-radius: 4px 4px 5px 5px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* Pseudo backrest */
+.ss-legend-seat::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 1px; right: 1px; height: 6px;
+    border-radius: 2px 2px 1px 1px;
+    background: inherit; opacity: 0.65;
+}
+
+/* Pseudo footrest */
+.ss-legend-seat::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: -2px; right: -2px; height: 3px;
+    border-radius: 2px; background: inherit; opacity: 0.45;
+}
+
+.ss-t-standard { background: var(--ss-standard); }
+.ss-t-couple   { background: var(--ss-couple); }
+.ss-t-premium  { background: var(--ss-premium-bg); outline: 1.5px solid var(--ss-premium-out); outline-offset: -1px; }
+.ss-t-premium::before { background: var(--ss-premium-bg); opacity: 1; }
+.ss-t-family   { background: var(--ss-family); }
+.ss-t-selected { background: var(--ss-grad); }
+.ss-t-sold     { background: var(--ss-sold); }
+
+.ss-legend-sep {
+    width: 1px; height: 22px; background: var(--ss-border-vis);
+    margin: 0 4px;
+}
+
+/* ── Screen ──────────────────────────────────────────────── */
+.ss-screen-wrap {
+    width: 100%; max-width: 640px;
+    text-align: center;
+    position: relative;
+    padding-bottom: 6px;
+}
+
+.ss-screen-glow {
+    position: absolute; top: -10px; left: 10%; width: 80%; height: 60px;
+    background: var(--ss-purple); filter: blur(48px); opacity: 0.14;
+    z-index: 0; pointer-events: none;
+}
+
+.ss-screen {
+    height: 42px; position: relative; z-index: 1;
+    border-top-left-radius:  50% 100%;
+    border-top-right-radius: 50% 100%;
+    border-top: 3px solid var(--ss-purple);
+    background: linear-gradient(to bottom, rgba(168,85,247,0.18), transparent);
+}
+
+.ss-screen-label {
+    margin-top: 8px; font-size: 0.70rem;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--ss-text-muted);
+    position: relative; z-index: 1;
+}
+
+/* ── No seats fallback ───────────────────────────────────── */
+.ss-no-seats {
+    font-size: 0.875rem; color: var(--ss-text-muted); padding: 24px 0; text-align: center;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SEAT MAP
+══════════════════════════════════════════════════════════ */
+.ss-seat-map {
+    display: flex; flex-direction: column;
+    gap: var(--ss-row-gap);
+    align-items: center;
+    width: 100%;
+}
+
+.ss-seat-row {
+    display: flex; align-items: center;
+    gap: 20px; justify-content: center;
+}
+
+.ss-row-label {
+    width: 24px; text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 800; font-size: 0.9rem;
+    color: var(--ss-text-muted); flex-shrink: 0;
+}
+
+.ss-row-seats {
+    display: flex; align-items: flex-end;
+    gap: var(--ss-seat-gap); flex-wrap: nowrap;
+}
+
+/* ── Couple pair wrapper ─────────────────────────────────── */
+.ss-couple-pair {
+    display: flex; gap: 3px; align-items: flex-end;
+    background: rgba(248,113,113,0.07);
+    border: 1px solid rgba(248,113,113,0.18);
+    border-radius: 8px; padding: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   INDIVIDUAL SEAT ICON  (cinema chair silhouette)
+   Uses the same ::before (backrest) + ::after (footrest)
+   trick as the admin seat builder, but larger.
+══════════════════════════════════════════════════════════ */
+.ss-seat {
+    position: relative;
+    width:  var(--ss-seat-w);
+    height: var(--ss-seat-h);
+    border-radius: 5px 5px 7px 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; user-select: none;
+    flex-shrink: 0;
+    transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+}
+
+/* Backrest */
+.ss-seat::before {
+    content: '';
+    position: absolute;
+    top: -7px; left: 2px; right: 2px; height: 11px;
+    border-radius: 3px 3px 2px 2px;
+    background: inherit; opacity: 0.65;
+}
+
+/* Footrest */
+.ss-seat::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: -3px; right: -3px; height: 4px;
+    border-radius: 3px; background: inherit; opacity: 0.45;
+}
+
+/* Large variant (premium / family) */
+.ss-seat--lg {
+    width:  var(--ss-seat-lg-w);
+    height: calc(var(--ss-seat-h) + 6px);
+    border-radius: 5px 5px 8px 8px;
+}
+
+.ss-seat--lg::before { top: -8px; height: 13px; }
+.ss-seat--lg::after  { left: -4px; right: -4px; height: 5px; }
+
+/* ── Seat type colours ───────────────────────────────────── */
+.ss-seat--standard {
+    background: var(--ss-standard);
+    color: rgba(0,0,0,0.7);
+}
+
+.ss-seat--couple {
+    background: var(--ss-couple);
+    color: rgba(255,255,255,0.85);
+}
+
+.ss-seat--premium {
+    background: var(--ss-premium-bg);
+    outline: 1.5px solid var(--ss-premium-out);
+    outline-offset: -1px;
+    color: var(--ss-premium-out);
+}
+
+.ss-seat--premium::before { background: var(--ss-premium-bg); opacity: 1; }
+
+.ss-seat--family {
+    background: var(--ss-family);
+    color: rgba(255,255,255,0.85);
+}
+
+/* ── States ──────────────────────────────────────────────── */
+.ss-seat--available:hover {
+    transform: translateY(-4px) scale(1.06);
+    box-shadow: 0 8px 20px rgba(255,255,255,0.15);
+    filter: brightness(1.15);
+    z-index: 2;
+}
+
+.ss-seat--selected,
+.ss-seat--available.selected {
+    background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+    outline: none !important;
+    color: #fff !important;
+    box-shadow: 0 0 18px rgba(168,85,247,0.65), 0 4px 12px rgba(0,0,0,0.4);
+    transform: scale(1.08);
+    z-index: 2;
+}
+
+.ss-seat--selected::before,
+.ss-seat--available.selected::before {
+    background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+    opacity: 0.7;
+}
+
+.ss-seat--sold {
+    background: var(--ss-sold) !important;
+    outline: none !important;
+    color: var(--ss-sold-text) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.ss-seat--sold::before { background: var(--ss-sold) !important; }
+.ss-seat--sold::after  { background: var(--ss-sold) !important; }
+
+/* ══════════════════════════════════════════════════════════
+   BOTTOM ACTION BAR
+══════════════════════════════════════════════════════════ */
+.ss-bottom-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(14,14,26,0.96);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--ss-border-vis);
+    padding: 16px 5%;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 16px;
+    z-index: 100;
+}
+
+.ss-bottom-info {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+
+.ss-bottom-count {
+    font-size: 0.95rem; font-weight: 600; color: var(--ss-text-sub);
+}
+
+.ss-bottom-seats {
+    font-size: 0.9rem; font-weight: 800;
+    background: var(--ss-grad);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 0.03em;
+}
+
+.ss-btn-next {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ss-grad); border: none;
+    padding: 13px 32px; border-radius: 10px;
+    color: #fff; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+
+.ss-btn-next:disabled {
+    opacity: 0.38; cursor: not-allowed; pointer-events: none;
+}
+
+.ss-btn-next:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(168,85,247,0.45);
+}
+
+.ss-btn-arrow { font-size: 1rem; }
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+    :root {
+        --ss-seat-w:    34px;
+        --ss-seat-h:    29px;
+        --ss-seat-lg-w: 46px;
+        --ss-seat-gap:  5px;
+        --ss-row-gap:   12px;
+    }
+    .ss-hero { min-height: 260px; }
+    .ss-movie-title { font-size: 1.4rem; }
+    .ss-info-banner { padding: 10px 16px; gap: 0; }
+    .ss-info-item { padding: 0 8px; font-size: 0.78rem; }
+}

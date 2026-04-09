@@ -4,38 +4,38 @@
  * Drives the movie detail + showtime page.
  *
  * DATA (from #md-data data-groups):
- *   stateGroups = [
- *     {
- *       state: "Selangor",
- *       cinemas: [
- *         {
- *           cinema_id: 1,
- *           cinema_name: "TGV Sunway Pyramid",
- *           city: "Petaling Jaya",
- *           dateGroups: [
- *             {
- *               date: "2026-04-09",
- *               label_day: "Today",
- *               label_num: "9",
- *               label_month: "Apr",
- *               theatres: [
- *                 { name: "DELUXE", times: ["07:00 PM", "09:30 PM"] }
- *               ]
- *             }
- *           ]
- *         }
- *       ]
- *     }
- *   ]
+ * stateGroups = [
+ * {
+ * state: "Selangor",
+ * cinemas: [
+ * {
+ * cinema_id: 1,
+ * cinema_name: "TGV Sunway Pyramid",
+ * city: "Petaling Jaya",
+ * dateGroups: [
+ * {
+ * date: "2026-04-09",
+ * label_day: "Today",
+ * label_num: "9",
+ * label_month: "Apr",
+ * theatres: [
+ * { name: "DELUXE", times: ["07:00 PM", "09:30 PM"] }
+ * ]
+ * }
+ * ]
+ * }
+ * ]
+ * }
+ * ]
  *
  * FLOW:
- *   1. Build state accordion in #md-sidebar
- *   2. Auto-select first state (expanded) + first cinema
- *   3. Render date strip for that cinema's dateGroups
- *   4. Auto-select first date and render theatre blocks + time pills
- *   5. Clicking a state toggle → expand/collapse (one open at a time)
- *   6. Clicking a cinema → switch active cinema, re-render dates+times
- *   7. Clicking a date  → re-render times only
+ * 1. Build state accordion in #md-sidebar
+ * 2. Auto-select first state (expanded) + first cinema
+ * 3. Render date strip for that cinema's dateGroups
+ * 4. Auto-select first date and render theatre blocks + time pills
+ * 5. Clicking a state toggle → expand/collapse (one open at a time)
+ * 6. Clicking a cinema → switch active cinema, re-render dates+times
+ * 7. Clicking a date  → re-render times only
  */
 (function () {
     'use strict';
@@ -221,10 +221,20 @@
                     pill.type        = 'button';
                     pill.className   = 'md-time-pill';
                     pill.textContent = time;
-                    /* Placeholder — booking action to be wired later */
-                    pill.addEventListener('click', function () {
-                        // future: open seat selection
-                    });
+
+                    // This is the part that makes it clickable
+                   pill.addEventListener('click', function () {
+    var seatRoute  = document.body.dataset.seatRoute;
+    var movieId    = document.body.dataset.movieId;
+    if (!seatRoute || !movieId || !activeCinema) return;
+    var url = seatRoute
+        + '?movie_id='    + encodeURIComponent(movieId)
+        + '&cinema_id='   + encodeURIComponent(activeCinema.cinema_id)
+        + '&theatre_name='+ encodeURIComponent(theatre.name)
+        + '&date='        + encodeURIComponent(dateGroup.date)
+        + '&time='        + encodeURIComponent(time);
+    window.location.href = url;
+});
                     pillsWrap.appendChild(pill);
                 });
             }
