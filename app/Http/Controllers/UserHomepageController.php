@@ -1,4 +1,5 @@
 <?php
+// app/Http/Controllers/UserHomepageController.php
 
 namespace App\Http\Controllers;
 
@@ -9,31 +10,29 @@ class UserHomepageController extends Controller
 {
     /**
      * Show the public user homepage.
-     * GET /
      *
-     * Passes to view:
-     *   $heroMovies    – All movies that have a landscape_poster (for hero carousel)
-     *                    Each decorated with ->trailer_embed_url (null if no trailer)
-     *   $nowShowing    – All movies that have a portrait_poster (for showtime grid)
+     * Only movies that exist in the showtimes table are allowed
+     * to appear on the homepage.
      */
     public function index()
     {
-        // Movies with landscape posters — for the hero slideshow
-        // Also carry the first trailer embed URL so the Watch Trailer button works
+        $showtimeMovieIds = DB::table('showtimes')
+            ->select('movie_id')
+            ->distinct();
+
         $heroMovies = Movie::with(['genres', 'trailers'])
+            ->whereIn('movie_id', $showtimeMovieIds)
             ->whereNotNull('landscape_poster')
             ->where('landscape_poster', '!=', '')
             ->orderBy('created_at', 'desc')
             ->get()
-            ->map(function ($movie) {
-                // Grab the first trailer's embed URL if it exists
-                $firstTrailer = $movie->trailers->first();
-                $movie->trailer_embed_url = $firstTrailer?->embed_url;
+            ->map(function (Movie $movie) {
+                $movie->trailer_embed_url = $movie->trailers->first()?->embed_url;
                 return $movie;
             });
 
-        // Movies with portrait posters — for the "Now Showing" scroll row
         $nowShowing = Movie::with('genres')
+            ->whereIn('movie_id', DB::table('showtimes')->select('movie_id')->distinct())
             ->whereNotNull('portrait_poster')
             ->where('portrait_poster', '!=', '')
             ->orderBy('created_at', 'desc')
