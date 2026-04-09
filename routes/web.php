@@ -21,7 +21,7 @@ use App\Http\Controllers\BranchManagerNotificationController;
 use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\UserHomepageController;
 use App\Http\Controllers\UserMovieDetailsController;
-
+use App\Http\Controllers\UserSeatSelectionController;
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
@@ -103,3 +103,5 @@ Route::post('/employees/login', [EmployeeAuthController::class, 'login'])->name(
 
 Route::get('/movie/{movieId}', [UserMovieDetailsController::class, 'show'])
      ->name('user.movie.details');
+
+Route::get('/booking/seats', [App\Http\Controllers\UserSeatSelectionController::class, 'index'])->name('user.seats');
