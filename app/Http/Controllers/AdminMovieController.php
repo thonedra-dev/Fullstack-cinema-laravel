@@ -85,10 +85,11 @@ class AdminMovieController extends Controller
                         ->withErrors(['cinemas_json' => "End date must be after start date on assignment #{$rowNum}."]);
                 }
 
+                // Slots: unlimited — only minimum of 1 enforced
                 $slots = (int) $item['slots'];
-                if ($slots < 1 || $slots > 20) {
+                if ($slots < 1) {
                     return back()->withInput()
-                        ->withErrors(['cinemas_json' => "Invalid slot count on assignment #{$rowNum}."]);
+                        ->withErrors(['cinemas_json' => "Slot count must be at least 1 on assignment #{$rowNum}."]);
                 }
 
                 if (!Cinema::where('cinema_id', $item['cinemaId'])->exists()) {
@@ -154,7 +155,7 @@ class AdminMovieController extends Controller
             DB::table('trailers')->insert([
                 'movie_id'    => $movie->movie_id,
                 'youtube_url' => $trailerUrl,
-                'type'        => 'main',          // default type; nullable per schema
+                'type'        => 'main',
                 'created_at'  => now(),
                 'updated_at'  => now(),
             ]);
