@@ -56,7 +56,13 @@
                 {{-- Body --}}
                 <div class="bmn-card__body">
                     <div class="bmn-card__header">
-                        <span class="bmn-card__tag">{{ $noti->tag }}</span>
+                        <span class="bmn-card__tag bmn-card__tag--{{ $noti->tag === 'Showtime Approved' ? 'approved' : 'rejected' }}">
+                            {{ $noti->tag }} 
+                        </span>
+                        @if (!$noti->is_read)
+                             <span class="bmn-card__unread-dot" title="Unread"></span>
+                        @endif
+                        
                         <span class="bmn-card__time">
                             {{ \Carbon\Carbon::parse($noti->created_at)->diffForHumans() }}
                         </span>

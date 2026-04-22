@@ -98,6 +98,24 @@
     font-family: monospace;
 }
 
+/* Approved tag variant */
+.bmn-card__tag--approved {
+    background: rgba(34,197,94,0.1);
+    border-color: rgba(34,197,94,0.25);
+    color: var(--bm-accent);
+}
+
+/* Unread dot */
+.bmn-card__unread-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--bm-danger);
+    flex-shrink: 0;
+    box-shadow: 0 0 6px rgba(248,113,113,0.6);
+    animation: bm-badge-pop 0.3s ease both;
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 520px) {
     .bmn-card { gap: 12px; padding: 14px 16px; }
