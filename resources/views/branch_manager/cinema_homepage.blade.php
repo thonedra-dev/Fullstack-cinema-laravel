@@ -50,8 +50,15 @@
     </a>
 
     {{-- 4: Notifications (static) --}}
-    <a href="{{ route('manager.notifications') }}" class="bm-portal-card">
-    <div class="bm-portal-card__icon">🔔</div>
+   <a href="{{ route('manager.notifications') }}" class="bm-portal-card bm-portal-card--noti">
+    <div class="bm-portal-card__icon">
+        🔔
+        @if ($bmUnreadNotifCount > 0)
+            <span class="bm-noti-badge">
+                {{ $bmUnreadNotifOver ? '10+' : $bmUnreadNotifCapped }}
+            </span>
+        @endif
+    </div>
     <div class="bm-portal-card__body">
         <p class="bm-portal-card__title">Notifications</p>
         <p class="bm-portal-card__desc">View rejection notes and admin messages.</p>
