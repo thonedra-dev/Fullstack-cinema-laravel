@@ -1,6 +1,5 @@
 /* ============================================================
    admin_team.css  —  Shared Admin Panel Styles
-   Place at: resources/css/admin_team.css
    ============================================================ */
 
 /* ---------- Google Fonts ---------- */
@@ -29,6 +28,7 @@
     --font-heading:   'Space Grotesk', sans-serif;
     --transition:     0.2s ease;
     --sidebar-w:      240px;
+    --sidebar-collapsed-w: 72px;
 }
 
 /* ---------- Reset ---------- */
@@ -41,46 +41,93 @@ body {
     font-size: 15px;
     line-height: 1.6;
     min-height: 100vh;
-    display: flex;
 }
 
 /* ============================================================
-   SIDEBAR
+   APP WRAPPER (for sidebar state)
+   ============================================================ */
+.at-app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ============================================================
+   SIDEBAR (collapsible)
    ============================================================ */
 .at-sidebar {
-    width: var(--sidebar-w);
-    min-height: 100vh;
+    width: var(--sidebar-collapsed-w);
     background: var(--bg-surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    z-index: 100;
-    transition: transform var(--transition);
+    position: relative;
+    transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    overflow-x: hidden;
+    white-space: nowrap;
 }
 
-/* Brand */
-.at-sidebar__brand {
+/* Expanded state */
+.at-app[data-sidebar-state="expanded"] .at-sidebar {
+    width: var(--sidebar-w);
+}
+
+/* Sidebar Header (brand icon + toggle) */
+.at-sidebar__header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 24px 20px 20px;
+    justify-content: space-between;
+    padding: 20px 16px;
     border-bottom: 1px solid var(--border);
+    gap: 12px;
 }
 
-.at-sidebar__brand-icon { font-size: 1.4rem; }
-
-.at-sidebar__brand-name {
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
+/* Brand icon (clickable) */
+.at-sidebar__brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--accent-glow);
+    border-radius: var(--radius-sm);
+    color: var(--accent-light);
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: all var(--transition);
+    flex-shrink: 0;
 }
 
-/* Nav */
+.at-sidebar__brand-icon:hover {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Punk toggle button */
+.at-sidebar__toggle-btn {
+    background: #ff3b6f;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    color: white;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.at-sidebar__toggle-btn:hover {
+    background: #ff5c8a;
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(255, 59, 111, 0.5);
+}
+
+/* Navigation */
 .at-nav {
     flex: 1;
     padding: 20px 12px;
@@ -94,6 +141,7 @@ body {
     letter-spacing: 0.1em;
     color: var(--text-muted);
     padding: 16px 8px 6px;
+    transition: opacity 0.2s;
 }
 
 .at-nav__link {
@@ -116,8 +164,29 @@ body {
     color: var(--accent-light);
 }
 
-.at-nav__link.is-active { font-weight: 600; }
-.at-nav__icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+.at-nav__link.is-active {
+    font-weight: 600;
+}
+
+.at-nav__icon {
+    font-size: 1rem;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.at-nav__text {
+    transition: opacity 0.2s;
+}
+
+/* Hide text and group labels when collapsed */
+.at-app[data-sidebar-state="collapsed"] .at-nav__text {
+    display: none;
+}
+
+.at-app[data-sidebar-state="collapsed"] .at-nav__group-label {
+    display: none;
+}
 
 /* Sidebar footer */
 .at-sidebar__footer {
@@ -128,17 +197,22 @@ body {
 .at-sidebar__footer-text {
     font-size: 0.72rem;
     color: var(--text-muted);
+    transition: opacity 0.2s;
+}
+
+.at-app[data-sidebar-state="collapsed"] .at-sidebar__footer-text {
+    display: none;
 }
 
 /* ============================================================
-   LAYOUT
+   LAYOUT (main content)
    ============================================================ */
 .at-layout {
-    margin-left: var(--sidebar-w);
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    transition: margin-left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
 }
 
 /* Top bar */
@@ -217,12 +291,10 @@ body {
 }
 
 /* ============================================================
-   SHARED COMPONENTS  (used across all feature pages)
+   SHARED COMPONENTS (unchanged)
    ============================================================ */
-
-/* Page header */
+/* (All .ac-* and .vc-* classes remain exactly as before) */
 .ac-page-header { margin-bottom: 32px; }
-
 .ac-page-header__title {
     font-family: var(--font-heading);
     font-size: 1.75rem;
@@ -231,16 +303,12 @@ body {
     letter-spacing: -0.03em;
     line-height: 1.15;
 }
-
 .ac-page-header__title span { color: var(--accent-light); }
-
 .ac-page-header__sub {
     font-size: 0.875rem;
     color: var(--text-secondary);
     margin-top: 5px;
 }
-
-/* Card */
 .ac-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -248,19 +316,13 @@ body {
     padding: 32px;
     box-shadow: var(--shadow-card);
 }
-
-/* Form grid */
 .ac-form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
-
 .ac-form-grid .ac-field--full { grid-column: 1 / -1; }
-
-/* Field */
 .ac-field { display: flex; flex-direction: column; gap: 7px; }
-
 .ac-field label {
     font-size: 0.78rem;
     font-weight: 600;
@@ -268,9 +330,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.06em;
 }
-
 .ac-field label .required { color: var(--accent-light); margin-left: 2px; }
-
 .ac-field label .optional {
     color: var(--text-muted);
     font-weight: 400;
@@ -278,8 +338,6 @@ body {
     font-size: 0.73rem;
     letter-spacing: 0;
 }
-
-/* Inputs */
 .ac-input,
 .ac-select,
 .ac-textarea {
@@ -294,17 +352,14 @@ body {
     width: 100%;
     outline: none;
 }
-
 .ac-input:focus,
 .ac-select:focus,
 .ac-textarea:focus {
     border-color: var(--border-focus);
     box-shadow: 0 0 0 3px var(--accent-glow);
 }
-
 .ac-input::placeholder,
 .ac-textarea::placeholder { color: var(--text-muted); }
-
 .ac-select {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b90a7' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -313,18 +368,12 @@ body {
     padding-right: 38px;
     cursor: pointer;
 }
-
 .ac-select:disabled { opacity: 0.45; cursor: not-allowed; }
 .ac-textarea { resize: vertical; min-height: 90px; }
-
-/* Validation */
 .ac-error { font-size: 0.77rem; color: var(--danger); margin-top: 2px; }
-
 .ac-input.is-invalid,
 .ac-select.is-invalid,
 .ac-textarea.is-invalid { border-color: var(--danger); }
-
-/* File upload */
 .ac-file-label {
     display: flex;
     align-items: center;
@@ -336,21 +385,15 @@ body {
     cursor: pointer;
     transition: border-color var(--transition), background var(--transition);
 }
-
 .ac-file-label:hover {
     border-color: var(--accent);
     background: var(--accent-glow);
 }
-
 .ac-file-label input[type="file"] { display: none; }
 .ac-file-label__icon { font-size: 1.4rem; }
-
 .ac-file-label__text { font-size: 0.875rem; color: var(--text-secondary); }
 .ac-file-label__text strong { color: var(--accent-light); font-weight: 600; }
-
 .ac-file-preview { font-size: 0.78rem; color: var(--accent-light); margin-top: 4px; }
-
-/* Button */
 .ac-btn {
     display: inline-flex;
     align-items: center;
@@ -365,28 +408,22 @@ body {
     transition: all var(--transition);
     letter-spacing: 0.02em;
 }
-
 .ac-btn--primary {
     background: var(--accent);
     color: #fff;
     box-shadow: 0 4px 20px rgba(91,106,240,0.3);
 }
-
 .ac-btn--primary:hover {
     background: var(--accent-light);
     transform: translateY(-1px);
     box-shadow: 0 6px 28px rgba(91,106,240,0.45);
 }
-
 .ac-btn--primary:active { transform: translateY(0); }
-
 .ac-form-actions {
     margin-top: 28px;
     display: flex;
     justify-content: flex-end;
 }
-
-/* Badge */
 .ac-badge {
     display: inline-block;
     padding: 3px 10px;
@@ -400,8 +437,6 @@ body {
     color: var(--accent-light);
     border: 1px solid rgba(91,106,240,0.25);
 }
-
-/* Thumb */
 .ac-thumb {
     width: 62px; height: 46px;
     object-fit: cover;
@@ -410,7 +445,6 @@ body {
     display: block;
     background: var(--bg-surface);
 }
-
 .ac-thumb-placeholder {
     width: 62px; height: 46px;
     border-radius: var(--radius-sm);
@@ -422,20 +456,13 @@ body {
     color: var(--text-muted);
     background: var(--bg-surface);
 }
-
-/* Empty state */
 .ac-empty { padding: 60px 20px; text-align: center; color: var(--text-muted); }
 .ac-empty__icon { font-size: 2.5rem; margin-bottom: 12px; }
 .ac-empty__text { font-size: 0.9rem; }
 .ac-empty__text a { color: var(--accent-light); text-decoration: none; }
-
-/* Table */
 .ac-table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--border); }
-
 table.ac-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-
 table.ac-table thead { background: var(--bg-surface); }
-
 table.ac-table thead th {
     padding: 13px 16px;
     text-align: left;
@@ -448,88 +475,98 @@ table.ac-table thead th {
     border-bottom: 1px solid var(--border);
     white-space: nowrap;
 }
-
 table.ac-table tbody tr {
     border-bottom: 1px solid var(--border);
     transition: background var(--transition);
 }
-
 table.ac-table tbody tr:last-child { border-bottom: none; }
 table.ac-table tbody tr:hover { background: rgba(91,106,240,0.04); }
-
 table.ac-table tbody td {
     padding: 13px 16px;
     color: var(--text-secondary);
     vertical-align: middle;
 }
-
 table.ac-table tbody td.td-primary { color: var(--text-primary); font-weight: 600; }
 table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; color: var(--text-muted); }
 
 /* ============================================================
-   RESPONSIVE
+   RESPONSIVE (mobile overlay)
    ============================================================ */
 @media (max-width: 900px) {
     .at-sidebar {
-        transform: translateX(calc(-1 * var(--sidebar-w)));
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        width: var(--sidebar-w); /* full width when open */
     }
 
-    .at-sidebar.is-open {
+    .at-app[data-sidebar-state="expanded"] .at-sidebar {
         transform: translateX(0);
         box-shadow: 4px 0 32px rgba(0,0,0,0.5);
     }
 
-    .at-layout { margin-left: 0; }
+    /* On mobile, collapsed state means sidebar hidden */
+    .at-app[data-sidebar-state="collapsed"] .at-sidebar {
+        transform: translateX(-100%);
+    }
 
-    .at-topbar__toggle { display: flex; }
+    .at-layout {
+        margin-left: 0;
+    }
 
-    .at-main { padding: 24px 16px 60px; }
-    .ac-card { padding: 22px; }
-    .ac-page-header__title { font-size: 1.35rem; }
+    .at-topbar__toggle {
+        display: flex;
+    }
+
+    .at-main {
+        padding: 24px 16px 60px;
+    }
+    .ac-card {
+        padding: 22px;
+    }
+    .ac-page-header__title {
+        font-size: 1.35rem;
+    }
 }
 
 @media (max-width: 600px) {
-    .ac-form-grid { grid-template-columns: 1fr; }
-    .ac-form-grid .ac-field--full { grid-column: auto; }
+    .ac-form-grid {
+        grid-template-columns: 1fr;
+    }
+    .ac-form-grid .ac-field--full {
+        grid-column: auto;
+    }
 }
 
-/* === APPEND BELOW ========================================== */
- 
-/* ── Utility ─────────────────────────────────────────────── */
+/* === APPEND BELOW (unchanged) ========================================== */
 .vc-hidden { display: none !important; }
- 
-/* ── Cinema Card (shared: view_cinema + create_theatre) ───── */
 .vc-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 20px;
 }
- 
 .vc-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
     cursor: pointer;
-    transition:
-        border-color var(--transition),
-        transform    var(--transition),
-        box-shadow   var(--transition);
+    transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
     outline: none;
 }
- 
 .vc-card:hover {
     border-color: var(--accent);
     transform: translateY(-2px);
     box-shadow: 0 8px 32px rgba(91,106,240,0.18);
 }
- 
 .vc-card:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
- 
-/* Image wrapper */
 .vc-card__img-wrap {
     position: relative;
     width: 100%;
@@ -538,7 +575,6 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     background: var(--bg-surface);
     flex-shrink: 0;
 }
- 
 .vc-card__img {
     width: 100%;
     height: 100%;
@@ -546,11 +582,9 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     display: block;
     transition: transform 0.35s ease;
 }
- 
 .vc-card:hover .vc-card__img {
     transform: scale(1.04);
 }
- 
 .vc-card__img-placeholder {
     width: 100%;
     height: 100%;
@@ -560,8 +594,6 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     font-size: 2.5rem;
     color: var(--text-muted);
 }
- 
-/* Meta Data hover button */
 .vc-meta-btn {
     position: absolute;
     bottom: 10px;
@@ -575,7 +607,7 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     font-weight: 700;
     letter-spacing: 0.05em;
     padding: 5px 12px;
-    pointer-events: none;        /* card click handles everything */
+    pointer-events: none;
     opacity: 0;
     transform: translateY(6px);
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -583,13 +615,10 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     -webkit-backdrop-filter: blur(4px);
     user-select: none;
 }
- 
 .vc-card__img-wrap:hover .vc-meta-btn {
     opacity: 1;
     transform: translateY(0);
 }
- 
-/* Card body */
 .vc-card__body {
     padding: 14px 16px;
     display: flex;
@@ -597,7 +626,6 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     justify-content: space-between;
     gap: 10px;
 }
- 
 .vc-card__name {
     font-family: var(--font-heading);
     font-size: 0.875rem;
@@ -610,7 +638,6 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     text-overflow: ellipsis;
     white-space: nowrap;
 }
- 
 .vc-card__location {
     display: flex;
     flex-direction: column;
@@ -618,21 +645,17 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     gap: 2px;
     flex-shrink: 0;
 }
- 
 .vc-card__city {
     font-size: 0.78rem;
     color: var(--text-secondary);
     font-weight: 500;
     white-space: nowrap;
 }
- 
 .vc-card__state {
     font-size: 0.7rem;
     color: var(--text-muted);
     white-space: nowrap;
 }
- 
-/* Shared back button + detail header row */
 .vc-detail-header {
     display: flex;
     align-items: center;
@@ -640,7 +663,6 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     margin-bottom: 28px;
     flex-wrap: wrap;
 }
- 
 .vc-back-btn {
     background: var(--bg-surface);
     border: 1px solid var(--border);
@@ -653,8 +675,128 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
     cursor: pointer;
     transition: border-color var(--transition), color var(--transition);
 }
- 
 .vc-back-btn:hover {
     border-color: var(--accent);
     color: var(--accent-light);
+}
+
+/* ============================================================
+   SIDEBAR HEADER – with gradient text
+   ============================================================ */
+
+.at-sidebar__header {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.at-sidebar__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.at-sidebar__brand-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--accent-glow);
+    border-radius: var(--radius-sm);
+    color: var(--accent-light);
+    font-size: 1.3rem;
+    text-decoration: none;
+    transition: all var(--transition);
+    flex-shrink: 0;
+}
+
+.at-sidebar__brand-icon:hover {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.05);
+}
+
+.at-sidebar__brand-name {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+/* Gradient text for "Admin Panel" */
+.gradient-text {
+    background: linear-gradient(135deg, #ffffff, var(--accent-light), #ff3b6f);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+/* Hide brand name when sidebar is collapsed */
+.at-app[data-sidebar-state="collapsed"] .at-sidebar__brand-name {
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+}
+
+/* Adjust header padding when collapsed */
+.at-app[data-sidebar-state="collapsed"] .at-sidebar__header {
+    padding: 24px 16px 20px;
+}
+
+.at-app[data-sidebar-state="collapsed"] .at-sidebar__brand {
+    justify-content: center;
+}
+
+/* ============================================================
+   BORDER TOGGLE BUTTON (on the divider line)
+   ============================================================ */
+
+.at-border-toggle {
+    position: fixed;
+    left: var(--sidebar-collapsed-w);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 48px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    z-index: 101;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.at-border-toggle:hover {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent-light);
+}
+
+/* When sidebar is expanded, move the button with it */
+.at-app[data-sidebar-state="expanded"] .at-border-toggle {
+    left: var(--sidebar-w);
+}
+
+/* Change icon direction based on state */
+.at-app[data-sidebar-state="collapsed"] .at-border-toggle i {
+    transform: rotate(0deg);
+}
+
+.at-app[data-sidebar-state="expanded"] .at-border-toggle i {
+    transform: rotate(180deg);
+}
+
+/* On mobile, hide the border toggle (use topbar toggle instead) */
+@media (max-width: 900px) {
+    .at-border-toggle {
+        display: none;
+    }
 }
