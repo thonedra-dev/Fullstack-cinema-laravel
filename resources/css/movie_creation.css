@@ -279,6 +279,7 @@
 }
 
 /* Cinema identity strip at top of modal */
+
 .mc-modal__strip {
     display: flex;
     align-items: center;
@@ -286,6 +287,20 @@
     border-bottom: 1px solid var(--border);
     overflow: hidden;
 }
+
+/* Scrollable multi-cinema variant */
+.mc-modal__strip--scroll {
+    overflow-x: auto;
+    gap: 0;
+    padding: 12px 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent) transparent;
+    min-height: 80px;
+}
+
+.mc-modal__strip--scroll::-webkit-scrollbar { height: 4px; }
+.mc-modal__strip--scroll::-webkit-scrollbar-thumb { background: var(--accent-glow); border-radius: 2px; }
+
 
 .mc-modal__img {
     width: 100px;
@@ -404,3 +419,154 @@
     .mc-modal        { max-width: 100%; }
     .mc-select-hint  { display: none; }
 }
+
+/* ── Modal cinema pill (inside scrollable strip) ─────────── */
+.mc-modal__cinema-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    width: 90px;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+    margin-right: 8px;
+}
+
+.mc-modal__pill-img {
+    width: 74px; height: 50px;
+    object-fit: cover; border-radius: 4px;
+    display: block;
+}
+
+.mc-modal__pill-ph {
+    width: 74px; height: 50px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: var(--text-muted);
+}
+
+.mc-modal__pill-info { text-align: center; }
+
+.mc-modal__pill-name {
+    font-family: var(--font-heading);
+    font-size: 0.68rem; font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 74px;
+}
+
+.mc-modal__pill-loc {
+    font-size: 0.60rem; color: var(--text-muted);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 74px;
+}
+
+/* Sub-label below the strip */
+.mc-modal__sub {
+    font-size: 0.78rem; color: var(--text-muted);
+    margin-bottom: 14px;
+}
+
+/* ── Cinema selection action bar ────────────────────────── */
+.mc-selection-bar {
+    display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    padding: 14px 0; margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mc-selection-bar__left {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+.mc-sel-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 16px; border-radius: var(--radius-sm);
+    font-family: var(--font-heading); font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: background var(--transition), color var(--transition), opacity var(--transition);
+}
+
+.mc-sel-btn--primary {
+    background: var(--accent); color: #000;
+    box-shadow: 0 2px 12px rgba(91,106,240,0.25);
+}
+
+.mc-sel-btn--primary:hover:not(:disabled) { opacity: 0.85; }
+.mc-sel-btn--primary:disabled             { opacity: 0.38; cursor: not-allowed; }
+
+.mc-sel-btn--secondary {
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.3);
+    color: var(--accent-light);
+}
+
+.mc-sel-btn--secondary:hover { background: rgba(91,106,240,0.18); }
+
+.mc-sel-btn--ghost {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+}
+
+.mc-sel-btn--ghost:hover { border-color: var(--danger); color: var(--danger); }
+
+.mc-sel-count {
+    font-size: 0.78rem; font-weight: 600;
+    color: var(--accent-light);
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.22);
+    border-radius: 20px; padding: 3px 12px;
+}
+/* ── Pending selection overlay (blue, before assignment) ─── */
+.mc-pending-overlay {
+    position: absolute; inset: 0;
+    background: rgba(91,106,240,0.55);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-heading); font-size: 0.82rem;
+    font-weight: 700; color: #fff; letter-spacing: 0.04em;
+    border-radius: inherit;
+}
+
+.mc-card--assigned { opacity: 0.6; pointer-events: none; }
+.mc-card--pending  { outline: 2px solid var(--accent-light); outline-offset: 2px; }
+
+/* ── Summary actions row ─────────────────────────────────── */
+.mc-summary-actions {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 8px;
+}
+
+.mc-clear-all-btn {
+    background: none;
+    border: 1px solid rgba(240,91,91,0.3);
+    border-radius: var(--radius-sm);
+    color: var(--danger); font-family: var(--font-heading);
+    font-size: 0.72rem; font-weight: 700;
+    padding: 4px 12px; cursor: pointer;
+    transition: background var(--transition);
+}
+
+.mc-clear-all-btn:hover { background: rgba(240,91,91,0.1); }
+
+/* Individual remove button on summary card */
+.mc-assignment-card__name-row {
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 6px; margin-bottom: 2px;
+}
+
+.mc-assignment-card__remove {
+    background: none; border: none;
+    color: var(--danger); font-size: 0.78rem; font-weight: 700;
+    cursor: pointer; padding: 0 2px; line-height: 1;
+    opacity: 0; transition: opacity var(--transition);
+    flex-shrink: 0;
+}
+
+.mc-assignment-card:hover .mc-assignment-card__remove { opacity: 1; }
+
