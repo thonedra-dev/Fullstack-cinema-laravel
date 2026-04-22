@@ -23,6 +23,12 @@ class BranchManagerNotificationController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        // Mark all unread as read now that the manager is viewing the page
+        DB::table('manager_notifications')
+            ->where('manager_id', $managerId)
+            ->where('is_read', false)
+            ->update(['is_read' => true, 'updated_at' => now()]);
+
         return view('branch_manager.branch_manager_noti', compact('notifications'));
     }
 }

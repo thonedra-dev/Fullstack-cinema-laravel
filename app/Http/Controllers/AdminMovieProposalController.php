@@ -138,6 +138,22 @@ class AdminMovieProposalController extends Controller
             ]);
         });
 
+        // ── Approval notification ─────────────────────────────
+        $approvedMovie = Movie::find($statusRecord->movie_id);
+        $movieName = $approvedMovie?->movie_name ?? 'Movie';
+        $slotCount = count($approved);
+
+        DB::table('manager_notifications')->insert([
+            'manager_id' => $statusRecord->manager_id,
+            'noti_picture' => $approvedMovie?->portrait_poster,
+            'noti_message' => '"' . $movieName . '" — ' . $slotCount .
+                ' showtime(s) have been approved and are now live on the schedule.',
+            'tag' => 'Showtime Approved',
+            'is_read' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         return redirect()->route('admin.proposals.index')
             ->with(
                 'success',
