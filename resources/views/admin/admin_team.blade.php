@@ -1,14 +1,12 @@
 {{--
     resources/views/admin/admin_team.blade.php
-    ──────────────────────────────────────────
-    Central admin layout shell.
+    Central admin layout shell with collapsible sidebar.
     All feature Blades extend this via @extends('admin.admin_team').
 
     Slots:
       @section('page_title')        — browser <title> suffix           (optional)
       @section('hide_topbar_title') — define this section to hide the  (optional)
-                                      topbar title bar (inline heading
-                                      acts as the page title instead)
+                                      topbar title bar
       @section('head_extras')       — extra <link>/<script> in <head>  (optional)
       @section('content')           — main feature body                (required)
 --}}
@@ -23,112 +21,127 @@
 </head>
 <body>
 
-{{-- ════════════════════════════════════════════════════════
-     SIDEBAR NAV
-════════════════════════════════════════════════════════ --}}
-<aside class="at-sidebar" id="at-sidebar">
+<div class="at-app" data-sidebar-state="collapsed">
 
-    <div class="at-sidebar__brand">
-        <span class="at-sidebar__brand-icon">🎬</span>
-        <span class="at-sidebar__brand-name">AdminPanel</span>
+    {{-- ════════════════════════════════════════════════════════
+         SIDEBAR (collapsible)
+    ════════════════════════════════════════════════════════ --}}
+    <aside class="at-sidebar" id="at-sidebar">
+
+    {{-- Sidebar Header with Brand + Gradient Title --}}
+    <div class="at-sidebar__header">
+        <div class="at-sidebar__brand">
+            <a href="{{ route('admin.panel') }}" class="at-sidebar__brand-icon" title="Back to Admin Panel">
+                🎬
+            </a>
+            <span class="at-sidebar__brand-name gradient-text">Admin Panel</span>
+        </div>
     </div>
 
     <nav class="at-nav">
-
         <div class="at-nav__group-label">Cinemas</div>
         <a href="{{ route('admin.cinema.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.cinema.create') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">＋</span> Add Cinema
+            <span class="at-nav__icon">＋</span>
+            <span class="at-nav__text">Add Cinema</span>
         </a>
         <a href="{{ route('admin.cinema.index') }}"
            class="at-nav__link {{ request()->routeIs('admin.cinema.index') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">☰</span> View Cinemas
+            <span class="at-nav__icon">☰</span>
+            <span class="at-nav__text">View Cinemas</span>
         </a>
 
         <div class="at-nav__group-label">Locations</div>
         <a href="{{ route('admin.city.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.city.create') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">📍</span> Add City
+            <span class="at-nav__icon">📍</span>
+            <span class="at-nav__text">Add City</span>
         </a>
 
         <div class="at-nav__group-label">Theatres</div>
         <a href="{{ route('admin.theatre.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.theatre.create') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">🏟</span> Create Theatre
+            <span class="at-nav__icon">🏟</span>
+            <span class="at-nav__text">Create Theatre</span>
         </a>
 
-       <div class="at-nav__group-label">Services</div>
+        <div class="at-nav__group-label">Services</div>
         <a href="{{ route('admin.service.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.service.create') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">⚙</span> Add Service
+            <span class="at-nav__icon">⚙</span>
+            <span class="at-nav__text">Add Service</span>
         </a>
 
         <div class="at-nav__group-label">Movies</div>
         <a href="{{ route('admin.movie.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.movie.create') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">🎬</span> Create Movie
+            <span class="at-nav__icon">🎬</span>
+            <span class="at-nav__text">Create Movie</span>
         </a>
 
         <div class="at-nav__group-label">Managers</div>
         <a href="{{ route('admin.managers.index') }}"
            class="at-nav__link {{ request()->routeIs('admin.managers.index') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">👤</span> Managers
+            <span class="at-nav__icon">👤</span>
+            <span class="at-nav__text">Managers</span>
         </a>
 
         <div class="at-nav__group-label">Proposals</div>
         <a href="{{ route('admin.proposals.index') }}"
            class="at-nav__link {{ request()->routeIs('admin.proposals.*') ? 'is-active' : '' }}">
-            <span class="at-nav__icon">📩</span> Movie Proposals
+            <span class="at-nav__icon">📩</span>
+            <span class="at-nav__text">Movie Proposals</span>
         </a>
-
-    </nav>
-
     </nav>
 
     <div class="at-sidebar__footer">
         <span class="at-sidebar__footer-text">v1.0 · Admin</span>
     </div>
-
 </aside>
 
-{{-- ════════════════════════════════════════════════════════
-     MAIN CONTENT AREA
-════════════════════════════════════════════════════════ --}}
-<div class="at-layout">
+ {{-- Border Toggle Button --}}
+<button class="at-border-toggle" id="borderToggleBtn" aria-label="Toggle sidebar">
+    <i class="fas fa-angle-double-left"></i>
+</button>
 
-    {{-- Top bar --}}
-    <header class="at-topbar">
-        <button class="at-topbar__toggle" id="at-sidebar-toggle" aria-label="Toggle sidebar">
-            <span></span><span></span><span></span>
-        </button>
-        {{-- Hide topbar title if feature page has its own prominent inline heading --}}
-        @unless(View::hasSection('hide_topbar_title'))
-            <div class="at-topbar__title">@yield('page_title', 'Dashboard')</div>
-        @endunless
-    </header>
+    {{-- ════════════════════════════════════════════════════════
+         MAIN CONTENT AREA
+    ════════════════════════════════════════════════════════ --}}
+    <div class="at-layout">
 
-    {{-- Flash messages --}}
-    <div class="at-messages">
-        @if (session('success'))
-            <div class="at-alert at-alert--success">
-                <span class="at-alert__icon">✓</span>
-                {{ session('success') }}
-            </div>
-        @endif
-        @if (session('error'))
-            <div class="at-alert at-alert--error">
-                <span class="at-alert__icon">✕</span>
-                {{ session('error') }}
-            </div>
-        @endif
-    </div>
+        {{-- Top bar (mobile toggle only) --}}
+        <header class="at-topbar">
+            <button class="at-topbar__toggle" id="at-sidebar-toggle" aria-label="Toggle sidebar">
+                <span></span><span></span><span></span>
+            </button>
+            @unless(View::hasSection('hide_topbar_title'))
+                <div class="at-topbar__title">@yield('page_title', 'Dashboard')</div>
+            @endunless
+        </header>
 
-    {{-- Feature content --}}
-    <main class="at-main">
-        @yield('content')
-    </main>
+        {{-- Flash messages --}}
+        <div class="at-messages">
+            @if (session('success'))
+                <div class="at-alert at-alert--success">
+                    <span class="at-alert__icon">✓</span>
+                    {{ session('success') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="at-alert at-alert--error">
+                    <span class="at-alert__icon">✕</span>
+                    {{ session('error') }}
+                </div>
+            @endif
+        </div>
 
-</div>{{-- /.at-layout --}}
+        {{-- Feature content --}}
+        <main class="at-main">
+            @yield('content')
+        </main>
+    </div>{{-- /.at-layout --}}
+
+</div>{{-- /.at-app --}}
 
 </body>
 </html>
