@@ -20,16 +20,10 @@
 
     {{-- Header – centered brand, greeting only --}}
     <header class="ap-header">
-        <div class="ap-header__brand">
-            <i class="fas fa-crown ap-header__logo"></i>
-            <span class="ap-header__name">ADMINPANEL</span>
-        </div>
-        <h2 class="ap-header__title" id="greeting-title"> </h2>
-    </header>
-    
+        <h2 class="ap-header__title" id="greeting-title">
             {{-- JS fills dynamic greeting --}}
-    
-<br><br>
+        </h2>
+    </header>
     {{-- Compact card grid --}}
     <main class="ap-grid">
         <a href="{{ route('admin.cinema.create') }}" class="ap-card">
