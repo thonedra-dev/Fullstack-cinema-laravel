@@ -105,3 +105,7 @@ Route::get('/movie/{movieId}', [UserMovieDetailsController::class, 'show'])
      ->name('user.movie.details');
 
 Route::get('/booking/seats', [App\Http\Controllers\UserSeatSelectionController::class, 'index'])->name('user.seats');
+
+Route::get('/admin', function () {
+    return view('admin.admin_panel');
+})->name('admin.launchpad');
