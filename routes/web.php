@@ -112,6 +112,3 @@ Route::get('/manager/showtimes/by-date', [BranchManagerShowtimeController::class
 
 Route::get('/manager/theatre/{theatreId}', [BranchManagerTheatreFormationController::class, 'show'])
      ->name('manager.theatre.formation');
-
-Route::get('auth/google', [GoogleController::class, 'redirect'])->name('google.redirect');
-Route::get('auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
