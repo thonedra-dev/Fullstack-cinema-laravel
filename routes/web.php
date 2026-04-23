@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminCinemaController;
 use App\Http\Controllers\AdminCinemaViewController;
@@ -22,6 +22,7 @@ use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\UserHomepageController;
 use App\Http\Controllers\UserMovieDetailsController;
 use App\Http\Controllers\UserSeatSelectionController;
+use App\Http\Controllers\BranchManagerTheatreFormationController;
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
@@ -80,8 +81,6 @@ Route::get('/manager/upcoming',  [BranchManagerUpcomingController::class, 'index
 // Setup timetable — dual entry
 Route::get('/manager/setup/movie/{movieId}',     [BranchManagerShowtimeController::class, 'fromMovie'])
     ->name('manager.setup.movie')->where('movieId', '[0-9]+');
-Route::get('/manager/setup/theatre/{theatreId}', [BranchManagerShowtimeController::class, 'fromTheatre'])
-    ->name('manager.setup.theatre')->where('theatreId', '[0-9]+');
 Route::post('/manager/showtimes', [BranchManagerShowtimeController::class, 'store'])
     ->name('manager.showtimes.store');
 
@@ -106,6 +105,11 @@ Route::get('/movie/{movieId}', [UserMovieDetailsController::class, 'show'])
 
 Route::get('/booking/seats', [App\Http\Controllers\UserSeatSelectionController::class, 'index'])->name('user.seats');
 
-Route::get('/admin', function () {
-    return view('admin.admin_panel');
-})->name('admin.launchpad');
+Route::get('/admin/panel', function () { return view('admin.admin_panel'); })->name('admin.panel');
+
+Route::get('/manager/showtimes/by-date', [BranchManagerShowtimeController::class, 'getShowtimesByDate'])
+    ->name('manager.showtimes.by-date');
+
+Route::get('/manager/theatre/{theatreId}', [BranchManagerTheatreFormationController::class, 'show'])
+     ->name('manager.theatre.formation');
+
