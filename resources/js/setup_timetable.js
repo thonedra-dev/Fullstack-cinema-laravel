@@ -645,13 +645,19 @@
     }
 
     function toggleDate(iso) {
-        var idx = selectedDates.indexOf(iso);
-        if (idx === -1) selectedDates.push(iso);
-        else            selectedDates.splice(idx, 1);
-        selectedDates.sort();
-        renderCalendar();
-        renderDateChips();
+    var idx = selectedDates.indexOf(iso);
+    if (idx === -1) {
+        selectedDates.push(iso);
+        // Fetch existing showtimes for this date
+        fetchExistingShowtimes(iso);
+    } else {
+        selectedDates.splice(idx, 1);
+        // Optionally clear the panel if no date selected? Keep last fetched.
     }
+    selectedDates.sort();
+    renderCalendar();
+    renderDateChips();
+}
 
     function renderDateChips() {
         var container = document.getElementById('smt-dates-preview');
@@ -677,6 +683,56 @@
             container.appendChild(chip);
         });
     }
+
+    /* ================================================================
+   FETCH EXISTING SHOWTIMES FOR A DATE
+=============================================================== */
+function fetchExistingShowtimes(isoDate) {
+    var container = document.getElementById('smt-existing-list');
+    if (!container) return;
+
+    if (!selectedTheatreId) {
+        container.innerHTML = '<p class="smt-existing-hint">Select a theatre first to see existing showtimes.</p>';
+        return;
+    }
+
+    container.innerHTML = '<p class="smt-existing-hint">Loading...</p>';
+
+    fetch('/manager/showtimes/by-date?date=' + isoDate + '&theatre_id=' + selectedTheatreId)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.error) {
+                container.innerHTML = '<p class="smt-existing-hint">' + data.error + '</p>';
+                return;
+            }
+            if (!data.showtimes || data.showtimes.length === 0) {
+                container.innerHTML = '<p class="smt-existing-hint">No approved showtimes on this date for this theatre.</p>';
+                return;
+            }
+            var html = '';
+            data.showtimes.forEach(function(st) {
+                html += '<div class="smt-existing-item">' +
+                    '<strong>' + escapeHtml(st.movie_name) + '</strong><br>' +
+                    st.start_time + ' → ' + st.end_time +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        })
+        .catch(function() {
+            container.innerHTML = '<p class="smt-existing-hint">Failed to load existing showtimes.</p>';
+        });
+}
+
+// Simple escape to prevent XSS
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
     /* ================================================================
        CALENDAR NAV

@@ -693,3 +693,38 @@
 }
 
 .smt-cflct-modal__dismiss:hover { background: #d94f4f; }
+
+/* Existing showtimes panel */
+.smt-existing-showtimes {
+    margin-top: 24px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.smt-existing-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.smt-existing-item {
+    background: var(--bg-card);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent);
+    font-size: 0.85rem;
+}
+
+.smt-existing-item strong {
+    color: var(--accent-light);
+}
+
+.smt-existing-hint {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+    padding: 12px;
+}

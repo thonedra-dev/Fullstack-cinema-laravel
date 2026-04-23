@@ -55,31 +55,6 @@ class BranchManagerShowtimeController extends Controller
         );
     }
 
-    /* ─────────────────────────────────────────────────────────────
-       ENTRY B — from bm_resources theatre card (theatre pre-selected)
-       GET /manager/setup/theatre/{theatreId}
-    ───────────────────────────────────────────────────────────── */
-    public function fromTheatre(int $theatreId)
-    {
-        if ($r = $this->guard()) return $r;
-
-        $cinemaId = session('bm_cinema_id');
-        $cinema   = Cinema::findOrFail($cinemaId);
-        $theatre  = Theatre::findOrFail($theatreId);
-
-        if ((int) $theatre->cinema_id !== (int) $cinemaId) {
-            return redirect()->route('manager.resources')
-                ->with('bm_error', 'This theatre does not belong to your cinema.');
-        }
-
-        return $this->renderSetupPage(
-            cinema:             $cinema,
-            movie:              null,
-            quota:              null,
-            preselectedMode:    'theatre',
-            preselectedTheatre: $theatre
-        );
-    }
 
     /* ─────────────────────────────────────────────────────────────
        SHARED RENDER
@@ -315,4 +290,39 @@ class BranchManagerShowtimeController extends Controller
         return redirect()->route('manager.setup.movie', $movieId)
             ->with('bm_success', 'Previous proposal cleared. You can now build a fresh schedule.');
     }
+
+    /* ─────────────────────────────────────────────────────────────
+   FETCH EXISTING SHOWTIMES FOR A GIVEN DATE + THEATRE
+   GET /manager/showtimes/by-date
+   ───────────────────────────────────────────────────────────── */
+public function getShowtimesByDate(Request $request)
+{
+    if ($r = $this->guard()) return $r;
+
+    $cinemaId = (int) session('bm_cinema_id');
+    $date     = $request->input('date');      // YYYY-MM-DD
+    $theatreId = (int) $request->input('theatre_id');
+
+    if (!$date || !$theatreId) {
+        return response()->json(['error' => 'Missing date or theatre_id'], 400);
+    }
+
+    // Fetch showtimes for that theatre on that exact date
+    $showtimes = Showtime::where('theatre_id', $theatreId)
+        ->whereDate('start_time', $date)
+        ->with('movie')  // eager load movie relation
+        ->orderBy('start_time', 'asc')
+        ->get();
+
+    $result = $showtimes->map(function ($st) {
+        return [
+            'start_time' => $st->start_time->format('h:i A'),
+            'end_time'   => $st->end_time->format('h:i A'),
+            'movie_name' => $st->movie->movie_name ?? 'Unknown',
+        ];
+    });
+
+    return response()->json(['showtimes' => $result]);
+}
+
 }

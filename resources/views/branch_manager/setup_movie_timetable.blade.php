@@ -243,33 +243,40 @@
             </div>
 
             {{-- ── Date picker ──────────────────────────── --}}
-            <div class="smt-date-section">
-                <div class="smt-section-label">
-                    📅 Select Date(s)
-                    <span class="smt-section-hint">(click multiple to batch-schedule under this time)</span>
-                </div>
+            {{-- ── Date picker ──────────────────────────── --}}
+<div class="smt-date-section">
+    <div class="smt-section-label">
+        📅 Select Date(s)
+        <span class="smt-section-hint">(click multiple to batch-schedule under this time)</span>
+    </div>
 
-                <div class="smt-calendar-wrap">
-                    <div class="smt-cal-header">
-                        <button type="button" class="smt-cal-nav" id="smt-cal-prev">‹</button>
-                        <span class="smt-cal-month-label" id="smt-cal-month"></span>
-                        <button type="button" class="smt-cal-nav" id="smt-cal-next">›</button>
-                    </div>
-                    <div class="smt-cal-weekdays">
-                        <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
-                        <span>Th</span><span>Fr</span><span>Sa</span>
-                    </div>
-                    <div class="smt-cal-grid" id="smt-cal-grid"></div>
-                </div>
+    <div class="smt-calendar-wrap">
+        <div class="smt-cal-header">
+            <button type="button" class="smt-cal-nav" id="smt-cal-prev">‹</button>
+            <span class="smt-cal-month-label" id="smt-cal-month"></span>
+            <button type="button" class="smt-cal-nav" id="smt-cal-next">›</button>
+        </div>
+        <div class="smt-cal-weekdays">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
+            <span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+        <div class="smt-cal-grid" id="smt-cal-grid"></div>
+    </div>
 
-                {{-- Selected dates chips preview --}}
-                <div class="smt-dates-preview" id="smt-dates-preview"></div>
-            </div>
+    {{-- Selected dates chips preview --}}
+    <div class="smt-dates-preview" id="smt-dates-preview"></div>
+</div>
 
-            {{-- ── Add to Schedule button ───────────────── --}}
-            <button type="button" class="smt-add-slot-btn" id="smt-add-slot-btn">
-                ➕ Add to Schedule
-            </button>
+{{-- ── NEW: Existing Showtimes on clicked date ── --}}
+<div class="smt-existing-showtimes" id="smt-existing-showtimes">
+    <div class="smt-section-label">📋 Existing Showtimes on this Date</div>
+    <div id="smt-existing-list" class="smt-existing-list">
+        <p class="smt-existing-hint">Click a date to see approved showtimes.</p>
+    </div>
+</div>
+
+{{-- ── Add to Schedule button ───────────────── --}}
+<button type="button" class="smt-add-slot-btn" id="smt-add-slot-btn">➕ Add to Schedule</button>
 
             {{-- ── Conflict / validation area ──────────── --}}
             <div class="smt-conflict-area vc-hidden" id="smt-conflict-area">
