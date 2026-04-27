@@ -23,6 +23,7 @@ use App\Http\Controllers\UserHomepageController;
 use App\Http\Controllers\UserMovieDetailsController;
 use App\Http\Controllers\UserSeatSelectionController;
 use App\Http\Controllers\BranchManagerTheatreFormationController;
+
 /*
 |--------------------------------------------------------------------------
 | Admin Routes
@@ -112,3 +113,9 @@ Route::get('/manager/showtimes/by-date', [BranchManagerShowtimeController::class
 
 Route::get('/manager/theatre/{theatreId}', [BranchManagerTheatreFormationController::class, 'show'])
      ->name('manager.theatre.formation');
+
+Route::get('/auth/google/redirect', [GoogleController::class, 'redirect']);
+
+Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+
+Route::get('/users/sign-up', function () {return view('users.signup');});

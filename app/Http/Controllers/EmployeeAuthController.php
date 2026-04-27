@@ -11,18 +11,17 @@ class EmployeeAuthController extends Controller
         return view('employees.login');
     }
 
-    public function login(Request $request) {
-        $credentials = $request->validate([
-            'email_address' => 'required|email',
-            'password' => 'required',
-        ]);
+   public function login(Request $request) {
+    $credentials = $request->validate([
+        'email_address' => 'required|email',
+        'password' => 'required',
+    ]);
 
-        // Attempt login using the custom 'email_address' column
-        if (Auth::attempt(['email_address' => $credentials['email_address'], 'password' => $credentials['password']])) {
-            $request->session()->regenerate();
-            return redirect()->route('home'); // Redirects to /users/homepage
-        }
-
-        return back()->withErrors(['email' => 'Invalid credentials, bro.']);
+    if (Auth::attempt(['email_address' => $credentials['email_address'], 'password' => $credentials['password']])) {
+        $request->session()->regenerate();
+        return "Login Successful"; // Stop redirect, just show text
     }
+
+    return "Login Failed"; // Stop back redirect, just show text
+}
 }

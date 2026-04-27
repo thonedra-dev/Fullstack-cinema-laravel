@@ -4,9 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class GoogleController extends Controller
 {
@@ -19,24 +18,24 @@ class GoogleController extends Controller
     {
         try {
             $googleUser = Socialite::driver('google')->user();
-            
-            $user = User::updateOrCreate(
-                ['email' => $googleUser->getEmail()],
+
+            $user = Customer::updateOrCreate(
+                ['email_address' => $googleUser->getEmail()],
                 [
                     'name' => $googleUser->getName(),
                     'google_id' => $googleUser->getId(),
                     'avatar' => $googleUser->getAvatar(),
+                    'is_verified' => true,
                     'email_verified_at' => now(),
                 ]
             );
-            
-            Auth::login($user);
-            
-            return redirect('/dashboard');
-            
+
+            Auth::guard('customer')->login($user);
+
+            return redirect('/users/homepage');
+
         } catch (\Exception $e) {
-            Log::error('Google login error: ' . $e->getMessage());
-            return redirect('/login')->with('error', 'Google login failed. Please try again.');
+            dd($e->getMessage());
         }
     }
 }
