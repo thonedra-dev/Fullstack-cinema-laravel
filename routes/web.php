@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\ManualSignupController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminCinemaController;
 use App\Http\Controllers\AdminCinemaViewController;
@@ -118,4 +119,8 @@ Route::get('/auth/google/redirect', [GoogleController::class, 'redirect']);
 
 Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
-Route::get('/users/sign-up', function () {return view('users.signup');});
+Route::get('/users/sign-up', function () {return view('users.signup');})->name('users.signup');
+Route::post('/users/sign-up/start', [ManualSignupController::class, 'start'])->name('users.signup.start');
+Route::post('/users/sign-up/verify', [ManualSignupController::class, 'verify'])->name('users.signup.verify');
+Route::post('/users/sign-up/resend', [ManualSignupController::class, 'resend'])->name('users.signup.resend');
+Route::post('/users/sign-up/complete', [ManualSignupController::class, 'complete'])->name('users.signup.complete');

@@ -21,6 +21,8 @@ class Customer extends Authenticatable
         'is_verified',
         'email_verified_at',
         'google_id',
+        'verification_code',
+        'verification_code_expires_at',
     ];
 
     protected $hidden = [
@@ -30,6 +32,7 @@ class Customer extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'verification_code_expires_at' => 'datetime',
         'is_verified' => 'boolean',
     ];
 }
