@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -161,13 +160,11 @@ class ManualSignupController extends Controller
             'avatar' => $avatarPath,
         ])->save();
 
-        Auth::guard('customer')->login($customer);
         $request->session()->forget(self::SESSION_CUSTOMER_ID);
-        $request->session()->regenerate();
 
         return response()->json([
-            'message' => 'Signup complete.',
-            'redirect' => url('/users/homepage'),
+            'message' => 'Signup complete. Please sign in to continue.',
+            'redirect' => route('users.login', ['registered' => 1]),
         ]);
     }
 
