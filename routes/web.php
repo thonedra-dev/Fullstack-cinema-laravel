@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\Auth\GoogleController;
+use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\ManualSignupController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminCinemaController;
@@ -98,6 +99,10 @@ Route::get('/manager/notifications', [BranchManagerNotificationController::class
 
 Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('home');
 
+Route::get('/users/login', [CustomerLoginController::class, 'showLogin'])->name('users.login');
+Route::post('/users/login', [CustomerLoginController::class, 'login'])->name('users.login.post');
+Route::post('/users/logout', [CustomerLoginController::class, 'logout'])->name('users.logout');
+
 Route::get('/employees/login', [EmployeeAuthController::class, 'showLogin'])->name('login');
 Route::post('/employees/login', [EmployeeAuthController::class, 'login'])->name('login.post');
 
@@ -115,9 +120,9 @@ Route::get('/manager/showtimes/by-date', [BranchManagerShowtimeController::class
 Route::get('/manager/theatre/{theatreId}', [BranchManagerTheatreFormationController::class, 'show'])
      ->name('manager.theatre.formation');
 
-Route::get('/auth/google/redirect', [GoogleController::class, 'redirect']);
+Route::get('/auth/google/redirect', [GoogleController::class, 'redirect'])->name('google.redirect');
 
-Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name('google.callback');
 
 Route::get('/users/sign-up', function () {return view('users.signup');})->name('users.signup');
 Route::post('/users/sign-up/start', [ManualSignupController::class, 'start'])->name('users.signup.start');
