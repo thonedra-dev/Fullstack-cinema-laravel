@@ -46,7 +46,7 @@
         <div class="su-alert" id="su-alert" role="status" aria-live="polite"></div>
 
         <form class="su-form su-form--active" id="su-info-form" data-step-panel="1">
-            <a href="/auth/google/redirect" class="su-google">
+            <a href="{{ route('google.redirect', ['intent' => 'signup']) }}" class="su-google">
                 <span class="su-google__mark">G</span>
                 <span>Sign up with Google</span>
             </a>
@@ -70,7 +70,7 @@
 
             <button type="submit" class="su-primary">Next</button>
 
-            <p class="su-footnote">Have an account? <a href="{{ route('home') }}">Sign in</a></p>
+            <p class="su-footnote">Have an account? <a href="{{ route('users.login') }}">Sign in</a></p>
         </form>
 
         <form class="su-form" id="su-code-form" data-step-panel="2">

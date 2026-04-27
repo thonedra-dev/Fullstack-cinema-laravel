@@ -25,14 +25,33 @@
      NAVIGATION BAR  (static)
 ══════════════════════════════════════════════════════════ --}}
 <nav class="hp-nav">
-    <div class="hp-nav__brand">🎬 CinemaX</div>
-    <div class="hp-nav__links">
-        <a href="#" class="hp-nav__link hp-nav__link--active">Movies</a>
+    <a href="{{ route('home') }}" class="hp-nav__brand">
+        <span class="hp-nav__brand-mark"></span>
+        <span>CinemaX</span>
+    </a>
+    <div class="hp-nav__links" aria-label="Primary navigation">
+        <a href="{{ route('home') }}" class="hp-nav__link hp-nav__link--active">Movies</a>
         <a href="#" class="hp-nav__link">Cinemas</a>
         <a href="#" class="hp-nav__link">Food &amp; Drinks</a>
         <a href="#" class="hp-nav__link">Promotions</a>
     </div>
-    <button class="hp-nav__signin">Sign In</button>
+    <div class="hp-nav__account">
+        @php
+            $customer = auth('customer')->user();
+        @endphp
+        @if ($customer)
+            <span class="hp-nav__user">
+                <span class="hp-nav__avatar">{{ strtoupper(substr($customer->name ?? 'C', 0, 1)) }}</span>
+                <span>{{ $customer->name }}</span>
+            </span>
+            <form action="{{ route('users.logout') }}" method="POST" class="hp-nav__logout-form">
+                @csrf
+                <button type="submit" class="hp-nav__signin">Sign Out</button>
+            </form>
+        @else
+            <a href="{{ route('users.login') }}" class="hp-nav__signin">Sign In</a>
+        @endif
+    </div>
 </nav>
 
 {{-- ══════════════════════════════════════════════════════════
