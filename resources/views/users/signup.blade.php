@@ -18,6 +18,21 @@
     data-complete-url="{{ route('users.signup.complete') }}"
 >
 
+<a href="{{ route('home') }}" class="su-brand" aria-label="CinemaX homepage">
+    <span class="su-brand__mark"></span>
+    <span>CinemaX</span>
+</a>
+
+<div class="su-scene" aria-hidden="true">
+    <span class="su-light su-light--left"></span>
+    <span class="su-light su-light--right"></span>
+    <span class="su-reel su-reel--left"></span>
+    <span class="su-reel su-reel--right"></span>
+    <span class="su-clap"></span>
+    <span class="su-ticket su-ticket--one"></span>
+    <span class="su-ticket su-ticket--two"></span>
+</div>
+
 <main class="su-shell">
     <a href="{{ route('home') }}" class="su-close" aria-label="Back to homepage">x</a>
 

@@ -47,7 +47,7 @@ html {
 .ul-brand {
     position: fixed;
     top: 22px;
-    right: 34px;
+    left: 34px;
     z-index: 4;
     display: inline-flex;
     align-items: center;
@@ -486,7 +486,7 @@ html {
 @media (max-width: 540px) {
     .ul-brand {
         top: 18px;
-        right: 18px;
+        left: 18px;
         font-size: 1.12rem;
     }
 
