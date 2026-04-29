@@ -80,6 +80,7 @@
     <input type="hidden" name="movie_id"      id="smt-hidden-movie"
            value="{{ $movie?->movie_id ?? '' }}">
     <input type="hidden" name="schedule_json" id="smt-schedule-json" value="">
+    <input type="hidden" name="replace_rejected" id="smt-replace-rejected" value="0">
 
     {{-- ── Inline data bridge for JS ─────────────────────── --}}
     <div
@@ -103,6 +104,8 @@
         data-preselected-theatre-id="{{ $preselectedTheatre?->theatre_id ?? '' }}"
         data-preselected-movie-id="{{ $movie?->movie_id ?? '' }}"
         data-preselected-runtime="{{ $movie?->runtime ?? '' }}"
+        data-has-rejected-proposal="{{ $rejectedProposal ? '1' : '0' }}"
+        data-rejected-note="{{ e($rejectedProposal?->admin_note ?? '') }}"
         data-existing-showtimes='{!! json_encode($existingShowtimes) !!}'
     ></div>
 
@@ -350,6 +353,34 @@
             Got it — I'll fix my schedule
         </button>
 
+    </div>
+</div>
+@endif
+
+@if ($rejectedProposal)
+<div class="smt-resubmit-overlay" id="smt-resubmit-overlay" style="display:none;">
+    <div class="smt-resubmit-modal" role="dialog" aria-modal="true" aria-labelledby="smt-resubmit-title">
+        <div class="smt-resubmit-modal__mark">!</div>
+        <div class="smt-resubmit-modal__body">
+            <p class="smt-resubmit-modal__eyebrow">Rejected Proposal Replacement</p>
+            <h2 id="smt-resubmit-title">Replace the old proposal?</h2>
+            <p class="smt-resubmit-modal__text">
+                Finalizing this revised timetable will delete the rejected proposal and submit this new schedule for admin review.
+            </p>
+            @if ($rejectedProposal->admin_note)
+                <p class="smt-resubmit-modal__note">
+                    <strong>Admin note:</strong> {{ $rejectedProposal->admin_note }}
+                </p>
+            @endif
+        </div>
+        <div class="smt-resubmit-modal__actions">
+            <button type="button" class="smt-resubmit-modal__deny" id="smt-resubmit-deny">
+                Keep Editing
+            </button>
+            <button type="button" class="smt-resubmit-modal__accept" id="smt-resubmit-accept">
+                Replace and Submit
+            </button>
+        </div>
     </div>
 </div>
 @endif

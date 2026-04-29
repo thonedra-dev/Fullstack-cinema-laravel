@@ -7,7 +7,7 @@
 .um-grid {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 18px;
 }
 
 .um-card {
@@ -21,10 +21,13 @@
 /* Landscape poster area */
 .um-card__landscape {
     position: relative;
-    width: 100%;
-    aspect-ratio: 21 / 7;
+    width: calc(100% - 28px);
+    aspect-ratio: 21 / 5.4;
+    margin: 14px 14px 0;
     overflow: hidden;
     background: var(--bm-surface);
+    border-radius: var(--bm-radius-md);
+    border: 1px solid rgba(255,255,255,0.06);
 }
 
 .um-card__landscape-img {
@@ -41,10 +44,10 @@
 /* Portrait overlay on landscape */
 .um-card__portrait-wrap {
     position: absolute;
-    bottom: -20px;
-    left: 24px;
-    width: 80px;
-    height: 120px;
+    bottom: -30px;
+    left: 28px;
+    width: 102px;
+    height: 156px;
     border-radius: 8px;
     border: 2px solid var(--bm-border);
     overflow: hidden;
@@ -58,8 +61,8 @@
 
 /* Card body */
 .um-card__body {
-    padding: 28px 24px 24px;
-    padding-left: 120px; /* clear the portrait overlay */
+    padding: 22px 24px 20px;
+    padding-left: 154px; /* clear the larger portrait overlay */
 }
 
 .um-card__title-row {
@@ -143,7 +146,7 @@
     gap: 16px;
     font-size: 0.72rem;
     color: var(--bm-text-muted);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
 }
 
@@ -179,9 +182,9 @@
 /* ── Proposal status badges (replaces setup button) ─────── */
 .um-proposal-badge {
     display: inline-flex; align-items: center; gap: 8px;
-    padding: 10px 18px; border-radius: var(--bm-radius-sm);
+    padding: 9px 16px; border-radius: var(--bm-radius-sm);
     font-family: var(--bm-font-head); font-size: 0.82rem;
-    font-weight: 700; margin-top: 16px; width: 100%;
+    font-weight: 700; width: 100%;
     justify-content: center; letter-spacing: 0.02em;
 }
 
@@ -191,40 +194,93 @@
     color: #f59e0b;
 }
 
-.um-proposal-badge--rejected {
-    background: rgba(248,113,113,0.1);
-    border: 1px solid rgba(248,113,113,0.3);
-    color: #f87171;
+.um-rejected-compact {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: var(--bm-radius-md);
+    border: 1px solid rgba(248,113,113,0.24);
+    background:
+        linear-gradient(90deg, rgba(248,113,113,0.13), rgba(34,197,94,0.06)),
+        var(--bm-surface);
 }
 
-.um-rejection-note {
-    margin-top: 10px;
-    background: rgba(248,113,113,0.08);
-    border: 1px solid rgba(248,113,113,0.2);
+.um-rejected-line {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.um-rejected-line__status {
+    flex: 0 0 auto;
+    font-family: var(--bm-font-head);
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: #f87171;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.um-rejected-line__divider {
+    width: 1px;
+    height: 18px;
+    flex: 0 0 auto;
+    background: rgba(255,255,255,0.16);
+}
+
+.um-rejected-line__label {
+    flex: 0 0 auto;
+    color: #fca5a5;
+    font-family: var(--bm-font-head);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.um-rejected-line__text {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--bm-text-sub);
+    text-overflow: ellipsis;
+}
+
+.um-resubmit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 118px;
+    padding: 10px 18px;
     border-radius: var(--bm-radius-sm);
-    padding: 10px 14px;
+    border: 1px solid rgba(74,222,128,0.9);
+    background: #22c55e;
+    color: #06120b;
+    font-family: var(--bm-font-head);
+    font-size: 0.84rem;
+    font-weight: 900;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(34,197,94,0.2);
+    transition: transform var(--bm-transition), background var(--bm-transition);
 }
-.um-rejection-note__label {
-    font-family: var(--bm-font-head); font-size: 0.65rem;
-    font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.07em; color: #f87171; display: block; margin-bottom: 4px;
+
+.um-resubmit-btn:hover {
+    transform: translateY(-1px);
+    background: #4ade80;
 }
-.um-rejection-note__text {
-    font-size: 0.82rem; color: var(--bm-text-secondary); line-height: 1.5; margin: 0;
-}
-.um-rearrange-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    gap: 8px; width: 100%; padding: 11px 20px;
-    background: transparent; border: 2px solid var(--bm-accent);
-    border-radius: var(--bm-radius-sm); color: var(--bm-accent);
-    font-family: var(--bm-font-head); font-size: 0.875rem; font-weight: 700;
-    cursor: pointer; transition: background var(--bm-transition);
-}
-.um-rearrange-btn:hover { background: var(--bm-accent-glow); }
 
 /* Responsive */
 @media (max-width: 600px) {
     .um-card__landscape { aspect-ratio: 16/6; }
     .um-card__body { padding: 28px 16px 20px; padding-left: 16px; }
     .um-card__portrait-wrap { display: none; }
+    .um-rejected-compact { grid-template-columns: 1fr; }
+    .um-rejected-line { flex-wrap: wrap; white-space: normal; }
+    .um-rejected-line__text { width: 100%; }
+    .um-resubmit-btn { width: 100%; }
 }

@@ -44,6 +44,8 @@
     var preTheatreId      = configEl.dataset.preselectedTheatreId  || '';
     var preMovieId        = configEl.dataset.preselectedMovieId    || '';
     var preRuntime        = parseInt(configEl.dataset.preselectedRuntime || '0', 10);
+    var hasRejectedProposal = configEl.dataset.hasRejectedProposal === '1';
+    var rejectedReplaceConfirmed = false;
 
     /* ── Working state ─────────────────────────────────────── */
     var selectedTheatreId = preTheatreId ? parseInt(preTheatreId, 10) : null;
@@ -804,6 +806,51 @@ function escapeHtml(str) {
                 return;
             }
             syncScheduleJson();
+
+            if (hasRejectedProposal && !rejectedReplaceConfirmed) {
+                e.preventDefault();
+                openRejectedReplaceModal();
+            }
+        });
+    }
+
+    function openRejectedReplaceModal() {
+        var overlay = document.getElementById('smt-resubmit-overlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+    }
+
+    function closeRejectedReplaceModal() {
+        var overlay = document.getElementById('smt-resubmit-overlay');
+        if (!overlay) return;
+        overlay.style.display = 'none';
+    }
+
+    function initRejectedReplaceModal() {
+        var overlay = document.getElementById('smt-resubmit-overlay');
+        if (!overlay) return;
+
+        var denyBtn = document.getElementById('smt-resubmit-deny');
+        var acceptBtn = document.getElementById('smt-resubmit-accept');
+        var replaceField = document.getElementById('smt-replace-rejected');
+        var form = document.getElementById('smt-form');
+
+        if (denyBtn) {
+            denyBtn.addEventListener('click', closeRejectedReplaceModal);
+        }
+
+        if (acceptBtn && form) {
+            acceptBtn.addEventListener('click', function () {
+                rejectedReplaceConfirmed = true;
+                if (replaceField) replaceField.value = '1';
+                syncScheduleJson();
+                closeRejectedReplaceModal();
+                form.submit();
+            });
+        }
+
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closeRejectedReplaceModal();
         });
     }
 
@@ -820,6 +867,7 @@ function escapeHtml(str) {
         initAddSlotBtn();
         initClearAllBtn();
         initFormSubmit();
+        initRejectedReplaceModal();
         initConflictModal();
         renderPreview();
         updateSubmitBtn();
