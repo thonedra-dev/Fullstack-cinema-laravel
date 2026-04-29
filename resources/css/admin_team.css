@@ -34,6 +34,11 @@
 /* ---------- Reset ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html,
+body {
+    height: 100%;
+}
+
 body {
     background: var(--bg-base);
     color: var(--text-primary);
@@ -41,14 +46,16 @@ body {
     font-size: 15px;
     line-height: 1.6;
     min-height: 100vh;
+    overflow: hidden;
 }
 
 /* ============================================================
    APP WRAPPER (for sidebar state)
    ============================================================ */
 .at-app {
-    display: flex;
-    min-height: 100vh;
+    display: block;
+    height: 100vh;
+    overflow: hidden;
 }
 
 /* ============================================================
@@ -56,14 +63,17 @@ body {
    ============================================================ */
 .at-sidebar {
     width: var(--sidebar-collapsed-w);
+    height: 100vh;
     background: var(--bg-surface);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    position: relative;
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 100;
     transition: width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    overflow-x: hidden;
+    overflow: hidden;
     white-space: nowrap;
 }
 
@@ -130,18 +140,9 @@ body {
 /* Navigation */
 .at-nav {
     flex: 1;
-    padding: 20px 12px;
+    padding: 18px 12px;
     overflow-y: auto;
-}
-
-.at-nav__group-label {
-    font-size: 0.68rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    padding: 16px 8px 6px;
-    transition: opacity 0.2s;
+    overflow-x: hidden;
 }
 
 .at-nav__link {
@@ -184,10 +185,6 @@ body {
     display: none;
 }
 
-.at-app[data-sidebar-state="collapsed"] .at-nav__group-label {
-    display: none;
-}
-
 /* Sidebar footer */
 .at-sidebar__footer {
     padding: 16px 20px;
@@ -208,24 +205,33 @@ body {
    LAYOUT (main content)
    ============================================================ */
 .at-layout {
-    flex: 1;
+    width: calc(100% - var(--sidebar-collapsed-w));
+    height: 100vh;
+    margin-left: var(--sidebar-collapsed-w);
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
-    transition: margin-left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    overflow: hidden;
+    transition:
+        margin-left 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1),
+        width 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+.at-app[data-sidebar-state="expanded"] .at-layout {
+    width: calc(100% - var(--sidebar-w));
+    margin-left: var(--sidebar-w);
 }
 
 /* Top bar */
 .at-topbar {
     height: 56px;
+    flex-shrink: 0;
     background: var(--bg-surface);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 16px;
     padding: 0 28px;
-    position: sticky;
-    top: 0;
+    position: relative;
     z-index: 90;
 }
 
@@ -257,7 +263,10 @@ body {
 }
 
 /* Flash messages */
-.at-messages { padding: 20px 28px 0; }
+.at-messages {
+    flex-shrink: 0;
+    padding: 20px 28px 0;
+}
 
 .at-alert {
     display: flex;
@@ -287,7 +296,26 @@ body {
 /* Main content */
 .at-main {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
     padding: 32px 28px 72px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(123,135,245,0.75) rgba(255,255,255,0.06);
+}
+
+.at-main::-webkit-scrollbar {
+    width: 10px;
+}
+
+.at-main::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+}
+
+.at-main::-webkit-scrollbar-thumb {
+    background: rgba(123,135,245,0.72);
+    border: 2px solid var(--bg-base);
+    border-radius: 999px;
 }
 
 /* ============================================================
@@ -516,6 +544,7 @@ table.ac-table tbody td.td-mono { font-family: monospace; font-size: 0.82rem; co
 
     .at-layout {
         margin-left: 0;
+        width: 100%;
     }
 
     .at-topbar__toggle {

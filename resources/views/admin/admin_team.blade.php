@@ -39,7 +39,6 @@
     </div>
 
     <nav class="at-nav">
-        <div class="at-nav__group-label">Cinemas</div>
         <a href="{{ route('admin.cinema.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.cinema.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">＋</span>
@@ -51,42 +50,36 @@
             <span class="at-nav__text">View Cinemas</span>
         </a>
 
-        <div class="at-nav__group-label">Locations</div>
         <a href="{{ route('admin.city.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.city.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">📍</span>
             <span class="at-nav__text">Add City</span>
         </a>
 
-        <div class="at-nav__group-label">Theatres</div>
         <a href="{{ route('admin.theatre.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.theatre.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">🏟</span>
             <span class="at-nav__text">Create Theatre</span>
         </a>
 
-        <div class="at-nav__group-label">Services</div>
         <a href="{{ route('admin.service.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.service.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">⚙</span>
             <span class="at-nav__text">Add Service</span>
         </a>
 
-        <div class="at-nav__group-label">Movies</div>
         <a href="{{ route('admin.movie.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.movie.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">🎬</span>
             <span class="at-nav__text">Create Movie</span>
         </a>
 
-        <div class="at-nav__group-label">Managers</div>
         <a href="{{ route('admin.managers.index') }}"
            class="at-nav__link {{ request()->routeIs('admin.managers.index') ? 'is-active' : '' }}">
             <span class="at-nav__icon">👤</span>
             <span class="at-nav__text">Managers</span>
         </a>
 
-        <div class="at-nav__group-label">Proposals</div>
         <a href="{{ route('admin.proposals.index') }}"
            class="at-nav__link {{ request()->routeIs('admin.proposals.*') ? 'is-active' : '' }}">
             <span class="at-nav__icon">📩</span>
