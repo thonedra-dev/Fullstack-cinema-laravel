@@ -172,25 +172,25 @@
 .mpd-section-title {
     display: inline-flex;
     align-items: center;
-    gap: 9px;
-    margin-bottom: 18px;
-    padding: 7px 12px 7px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(34,197,94,0.28);
-    background: rgba(34,197,94,0.08);
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
     color: #22c55e;
     font-family: var(--font-heading);
-    font-size: 0.75rem;
+    font-size: 1rem;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.18em;
+    line-height: 1.1;
     text-transform: uppercase;
 }
 
 .mpd-section-title::before {
     content: "";
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
+    width: 4px;
+    height: 19px;
+    border-radius: 4px;
     background: #22c55e;
     box-shadow: 0 0 14px rgba(34,197,94,0.8);
 }
@@ -218,11 +218,42 @@
 }
 
 /* ── Movie card helpers ──────────────────────────────────── */
-.mpd-movie-flex { display: flex; gap: 14px; align-items: flex-start; }
+.mpd-movie-flex {
+    display: grid;
+    grid-template-columns: minmax(150px, 34%) minmax(0, 1fr);
+    gap: 22px;
+    align-items: stretch;
+}
 
 .mpd-movie-poster {
-    width: 70px; aspect-ratio: 2/3; object-fit: cover;
-    border-radius: var(--radius-sm); border: 1px solid var(--border); flex-shrink: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 304px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(34,197,94,0.22);
+    box-shadow: 0 18px 40px rgba(0,0,0,0.32);
+}
+
+.mpd-movie-copy {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 24px;
+    align-content: start;
+}
+
+.mpd-movie-flex > .mpd-movie-copy:only-child {
+    grid-column: 1 / -1;
+}
+
+.mpd-movie-copy .mpd-info-row {
+    margin-bottom: 0;
+}
+
+.mpd-movie-copy .mpd-info-row:first-child,
+.mpd-movie-copy .mpd-info-row:last-child {
+    grid-column: 1 / -1;
 }
 
 .mpd-movie-title { font-weight: 800; font-size: 1rem; color: #22c55e; }
@@ -245,7 +276,7 @@
 
 .mpd-manager-card .mpd-section-title {
     grid-column: 1 / -1;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .mpd-manager-card .mpd-info-row {
@@ -347,7 +378,10 @@
 
 /* Selected-date showtime list */
 .mpd-showtime-panel {
-    min-height: 242px;
+    height: 304px;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     padding: 16px;
     border-radius: var(--radius-md);
     border: 1px solid rgba(34,197,94,0.2);
@@ -390,9 +424,28 @@
     display: flex;
     flex-direction: column;
     gap: 9px;
+    max-height: 210px;
+    min-height: 0;
+    overflow-y: auto;
     margin: 0;
-    padding: 0;
+    padding: 0 4px 0 0;
     list-style: none;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(34,197,94,0.7) rgba(255,255,255,0.06);
+}
+
+.mpd-showtime-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mpd-showtime-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px;
+}
+
+.mpd-showtime-list::-webkit-scrollbar-thumb {
+    background: rgba(34,197,94,0.7);
+    border-radius: 999px;
 }
 
 .mpd-showtime-item {
@@ -717,8 +770,13 @@
     .mpd-layout { grid-template-columns: 1fr; }
     .mp-card__poster-wrap { width: 52px; height: 70px; }
     .mpd-manager-card { grid-template-columns: 1fr; }
+    .mpd-movie-flex { grid-template-columns: minmax(130px, 0.45fr) minmax(0, 1fr); }
+    .mpd-movie-poster { min-height: 250px; }
 }
 
 @media (max-width: 700px) {
     .mpd-schedule-visual { grid-template-columns: 1fr; }
+    .mpd-movie-flex { grid-template-columns: 1fr; }
+    .mpd-movie-poster { height: auto; max-height: 420px; }
+    .mpd-movie-copy { grid-template-columns: 1fr; }
 }

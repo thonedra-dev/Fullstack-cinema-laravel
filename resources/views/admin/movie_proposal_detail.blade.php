@@ -132,7 +132,7 @@
                          alt="{{ $first->movie->movie_name }}"
                          class="mpd-movie-poster">
                 @endif
-                <div style="flex:1;min-width:0;">
+                <div class="mpd-movie-copy">
                     <div class="mpd-info-row">
                         <span class="mpd-info-label">Title</span>
                         <span class="mpd-info-value mpd-movie-title mpd-highlight">
