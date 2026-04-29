@@ -97,6 +97,16 @@ class BranchManagerShowtimeController extends Controller
             ];
         });
 
+        $rejectedProposal = null;
+
+        if ($movie) {
+            $rejectedProposal = ShowtimeProposalStatus::where('manager_id', (int) session('bm_manager_id'))
+                ->where('cinema_id', $cinemaId)
+                ->where('movie_id', $movie->movie_id)
+                ->where('status', 'rejected')
+                ->first();
+        }
+
         return view('branch_manager.setup_movie_timetable', compact(
             'cinema',
             'movie',
@@ -105,7 +115,8 @@ class BranchManagerShowtimeController extends Controller
             'assignedMovies',
             'existingShowtimes',
             'preselectedMode',
-            'preselectedTheatre'
+            'preselectedTheatre',
+            'rejectedProposal'
         ));
     }
 
@@ -127,6 +138,7 @@ class BranchManagerShowtimeController extends Controller
 
         $movieId = (int) $request->input('movie_id');
         $movie   = Movie::findOrFail($movieId);
+        $replaceRejected = $request->boolean('replace_rejected');
 
         $quota = DB::table('cinema_movie_quotas')
             ->where('movie_id', $movieId)
@@ -214,30 +226,62 @@ class BranchManagerShowtimeController extends Controller
             return back()->with('bm_conflicts', $allConflicts);
         }
 
-        // Create / find Parent Status record
-        $statusRecord = ShowtimeProposalStatus::firstOrCreate(
-            [
-                'manager_id' => $managerId,
-                'cinema_id'  => $cinemaId,
-                'movie_id'   => $movieId,
-            ],
-            ['status' => 'pending', 'admin_note' => null]
-        );
+        $statusRecord = ShowtimeProposalStatus::where('manager_id', $managerId)
+            ->where('cinema_id', $cinemaId)
+            ->where('movie_id', $movieId)
+            ->first();
 
-        if ($statusRecord->status === 'rejected') {
-            $statusRecord->update(['status' => 'pending', 'admin_note' => null]);
+        if ($statusRecord?->status === 'pending') {
+            return back()->with('bm_error', 'This movie already has a proposal waiting for admin review.');
         }
 
-        foreach ($allInserts as $slot) {
-            ShowtimeProposal::create([
-                'manager_id'     => $managerId,
-                'cinema_id'      => $cinemaId,
-                'theatre_id'     => $slot['theatreId'],
-                'movie_id'       => $movieId,
-                'start_datetime' => $slot['start_datetime'],
-                'end_datetime'   => $slot['end_datetime'],
-            ]);
+        if ($statusRecord?->status === 'approved') {
+            return redirect()->route('manager.upcoming')
+                ->with('bm_error', 'This movie already has approved showtimes.');
         }
+
+        if ($statusRecord?->status === 'rejected' && ! $replaceRejected) {
+            return back()->with('bm_error', 'Please confirm replacement of the rejected proposal before resubmitting.');
+        }
+
+        DB::transaction(function () use (
+            $allInserts,
+            $cinemaId,
+            $managerId,
+            $movieId,
+            $statusRecord
+        ) {
+            if ($statusRecord?->status === 'rejected') {
+                ShowtimeProposal::where('manager_id', $managerId)
+                    ->where('cinema_id', $cinemaId)
+                    ->where('movie_id', $movieId)
+                    ->delete();
+
+                $statusRecord->update([
+                    'status' => 'pending',
+                    'admin_note' => null,
+                ]);
+            } elseif (! $statusRecord) {
+                ShowtimeProposalStatus::create([
+                    'manager_id' => $managerId,
+                    'cinema_id' => $cinemaId,
+                    'movie_id' => $movieId,
+                    'status' => 'pending',
+                    'admin_note' => null,
+                ]);
+            }
+
+            foreach ($allInserts as $slot) {
+                ShowtimeProposal::create([
+                    'manager_id'     => $managerId,
+                    'cinema_id'      => $cinemaId,
+                    'theatre_id'     => $slot['theatreId'],
+                    'movie_id'       => $movieId,
+                    'start_datetime' => $slot['start_datetime'],
+                    'end_datetime'   => $slot['end_datetime'],
+                ]);
+            }
+        });
 
         return redirect()->route('manager.upcoming')
             ->with('bm_success',
@@ -278,17 +322,8 @@ class BranchManagerShowtimeController extends Controller
                 ->with('bm_error', 'Only rejected proposals can be rearranged.');
         }
 
-        // Delete all child ShowtimeProposal rows for this movie + cinema
-        ShowtimeProposal::where('movie_id',  $movieId)
-            ->where('cinema_id', $cinemaId)
-            ->delete();
-
-        // Delete the parent ShowtimeProposalStatus record
-        $statusRecord->delete();
-
-        // Redirect to a fresh movie setup page
         return redirect()->route('manager.setup.movie', $movieId)
-            ->with('bm_success', 'Previous proposal cleared. You can now build a fresh schedule.');
+            ->with('bm_success', 'Build the revised schedule. The old rejected proposal will be replaced only after final confirmation.');
     }
 
     /* ─────────────────────────────────────────────────────────────
