@@ -3,7 +3,7 @@
  * Detail page behaviour:
  *   - Theatre tab switching (updates theatre image, name, slot count)
  *   - Mini calendar render & navigation
- *   - Alarm-clock display (updates on calendar day click)
+ *   - Showtime list display (updates on calendar day click)
  *   - Full-list popup
  *   - Reject modal
  */
@@ -25,8 +25,9 @@
 
     // Active state
     var activeIdx  = 0;
-    var slotDates  = {};     // { 'YYYY-MM-DD': slotObj }
+    var slotDates  = {};     // { 'YYYY-MM-DD': [slotObj, slotObj] }
     var calDate    = new Date();
+    var activeDate = null;
 
     // ── Helpers ───────────────────────────────────────────────
     function pad(n) { return String(n).padStart(2, '0'); }
@@ -54,6 +55,54 @@
         endEl.textContent  = slot.end_display;
     }
 
+    function updateShowtimeList(date, slots) {
+        var dateEl = el('mpd-showtime-date');
+        var listEl = el('mpd-showtime-list');
+        var countEl = el('mpd-showtime-count');
+        if (!listEl) return;
+
+        listEl.innerHTML = '';
+
+        if (!slots || slots.length === 0) {
+            if (dateEl) dateEl.textContent = 'No date selected';
+            if (countEl) countEl.textContent = '0 slots';
+
+            var empty = document.createElement('li');
+            empty.className = 'mpd-showtime-item mpd-showtime-item--empty';
+            empty.textContent = 'Select a highlighted date to view proposed showtimes.';
+            listEl.appendChild(empty);
+            return;
+        }
+
+        if (dateEl) dateEl.textContent = slots[0].dateLabel || date;
+        if (countEl) countEl.textContent = slots.length + ' slot' + (slots.length === 1 ? '' : 's');
+
+        slots.forEach(function (slot, idx) {
+            var item = document.createElement('li');
+            item.className = 'mpd-showtime-item';
+
+            var dot = document.createElement('span');
+            dot.className = 'mpd-showtime-dot';
+
+            var body = document.createElement('span');
+            body.className = 'mpd-showtime-copy';
+
+            var label = document.createElement('span');
+            label.className = 'mpd-showtime-label';
+            label.textContent = 'Showtime ' + (idx + 1);
+
+            var time = document.createElement('span');
+            time.className = 'mpd-showtime-time';
+            time.textContent = slot.start + ' to ' + slot.end;
+
+            body.appendChild(label);
+            body.appendChild(time);
+            item.appendChild(dot);
+            item.appendChild(body);
+            listEl.appendChild(item);
+        });
+    }
+
     // ── Calendar ──────────────────────────────────────────────
     function renderCal() {
         var grid  = el('mpd-cal-grid');
@@ -79,24 +128,30 @@
         // Day cells
         for (var d = 1; d <= daysInMonth; d++) {
             var iso     = year + '-' + pad(month + 1) + '-' + pad(d);
-            var hasSlot = Object.prototype.hasOwnProperty.call(slotDates, iso);
+            var slots   = slotDates[iso] || [];
+            var hasSlot = slots.length > 0;
             var cell    = document.createElement('div');
 
-            cell.className   = 'mpd-cal-day' + (hasSlot ? ' mpd-cal-day--has-slot' : '');
+            cell.className   = 'mpd-cal-day'
+                + (hasSlot ? ' mpd-cal-day--has-slot' : '')
+                + (iso === activeDate ? ' mpd-cal-day--active' : '');
             cell.textContent = d;
 
             if (hasSlot) {
-                var s = slotDates[iso];
+                var s = slots;
+                s.start = slots[0].start;
+                s.end = slots[slots.length - 1].end;
                 cell.title = s.start + ' → ' + s.end;
 
-                cell.addEventListener('click', (function (slot) {
+                cell.addEventListener('click', (function (dateKey, daySlots) {
                     return function () {
                         grid.querySelectorAll('.mpd-cal-day--active')
                             .forEach(function (x) { x.classList.remove('mpd-cal-day--active'); });
                         this.classList.add('mpd-cal-day--active');
-                        updateClock(slot);
+                        activeDate = dateKey;
+                        updateShowtimeList(dateKey, daySlots);
                     };
-                })(s));
+                })(iso, s));
             }
 
             grid.appendChild(cell);
@@ -130,18 +185,23 @@
 
         // Rebuild slot-date index
         slotDates = {};
-        t.slots.forEach(function (s) { slotDates[s.date] = s; });
+        t.slots.forEach(function (s) {
+            if (!slotDates[s.date]) slotDates[s.date] = [];
+            slotDates[s.date].push(s);
+        });
 
         // Navigate calendar to first slot month
         if (t.slots.length > 0) {
             var fd = new Date(t.slots[0].date);
             calDate = new Date(fd.getFullYear(), fd.getMonth(), 1);
+            activeDate = t.slots[0].date;
         } else {
             calDate = new Date();
+            activeDate = null;
         }
 
         renderCal();
-        updateClock(t.slots[0] || null);
+        updateShowtimeList(activeDate, activeDate ? slotDates[activeDate] : []);
 
         // Refresh popup list
         renderPopupList(t);

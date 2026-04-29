@@ -91,7 +91,7 @@
 
         {{-- Cinema ─────────────────────────────────── --}}
         <div class="ac-card mpd-info-card">
-            <div class="ac-card__title">Cinema</div>
+            <div class="ac-card__title mpd-section-title">Cinema</div>
 
             @if ($first->cinema?->cinema_picture)
                 <img src="{{ asset('images/cinemas/' . $first->cinema->cinema_picture) }}"
@@ -99,7 +99,7 @@
                      class="mpd-cinema-banner">
             @endif
 
-            <div class="mpd-info-row">
+            <div class="mpd-info-row mpd-row-highlight">
                 <span class="mpd-info-label">Cinema Name</span>
                 <span class="mpd-info-value">{{ $first->cinema?->cinema_name ?? '—' }}</span>
             </div>
@@ -125,7 +125,7 @@
 
         {{-- Movie ──────────────────────────────────── --}}
         <div class="ac-card mpd-info-card">
-            <div class="ac-card__title">Movie</div>
+            <div class="ac-card__title mpd-section-title">Movie</div>
             <div class="mpd-movie-flex">
                 @if (!empty($first->movie?->portrait_poster))
                     <img src="{{ asset('images/movies/' . $first->movie->portrait_poster) }}"
@@ -135,7 +135,7 @@
                 <div style="flex:1;min-width:0;">
                     <div class="mpd-info-row">
                         <span class="mpd-info-label">Title</span>
-                        <span class="mpd-info-value mpd-movie-title">
+                        <span class="mpd-info-value mpd-movie-title mpd-highlight">
                             {{ $first->movie?->movie_name ?? '—' }}
                         </span>
                     </div>
@@ -173,8 +173,8 @@
         </div>
 
         {{-- Branch Manager ──────────────────────────── --}}
-        <div class="ac-card mpd-info-card">
-            <div class="ac-card__title">Branch Manager</div>
+        <div class="ac-card mpd-info-card mpd-manager-card">
+            <div class="ac-card__title mpd-section-title">Branch Manager</div>
             <div class="mpd-info-row">
                 <span class="mpd-info-label">Name</span>
                 <span class="mpd-info-value">{{ $first->manager?->manager_name ?? '—' }}</span>
@@ -243,7 +243,7 @@
 
             {{-- Schedule header ── --}}
             <div class="mpd-schedule-header">
-                <div class="ac-card__title" style="margin-bottom:0;">
+                <div class="ac-card__title mpd-section-title" style="margin-bottom:0;">
                     Proposed Schedule
                 </div>
                 <button class="mpd-maximize-btn" id="mpd-maximize-btn" type="button">
@@ -255,7 +255,22 @@
             <div class="mpd-schedule-visual">
 
                 {{-- Static alarm clock --}}
-                <div class="mpd-clock-wrap">
+                <div class="mpd-showtime-panel">
+                    <div class="mpd-showtime-panel__top">
+                        <div>
+                            <span class="mpd-info-label">Selected Date</span>
+                            <div class="mpd-showtime-date" id="mpd-showtime-date">No date selected</div>
+                        </div>
+                        <span class="mpd-showtime-count" id="mpd-showtime-count">0 slots</span>
+                    </div>
+                    <ul class="mpd-showtime-list" id="mpd-showtime-list">
+                        <li class="mpd-showtime-item mpd-showtime-item--empty">
+                            Select a highlighted date to view proposed showtimes.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mpd-clock-wrap" style="display:none;">
                     <div class="mpd-clock">
                         <div class="mpd-clock__digit" id="mpd-clock-h">--</div>
                         <div class="mpd-clock__sep">:</div>
@@ -286,7 +301,7 @@
         {{-- ── Admin-Defined Quota ──────────────────────────── --}}
         @if ($quota)
             <div class="ac-card mpd-info-card mpd-quota-reminder">
-                <div class="ac-card__title">Admin-Defined Quota</div>
+                <div class="ac-card__title mpd-section-title">Admin-Defined Quota</div>
                 <div class="mpd-quota-grid">
                     <div class="mpd-info-row">
                         <span class="mpd-info-label">Start Date</span>

@@ -17,6 +17,8 @@ export default defineConfig({
                 'resources/css/upcoming_movies.css',
                 'resources/css/setup_timetable.css',
                 'resources/js/setup_timetable.js',
+                'resources/css/movie_proposals.css',
+                'resources/js/movie_proposals.js',
             ],
             refresh: true,
         }),
