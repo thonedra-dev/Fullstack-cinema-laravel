@@ -198,6 +198,189 @@
     gap: 16px;
 }
 
+/* Ticket pricing rules */
+.mc-section--pricing {
+    border-color: rgba(39, 215, 102, 0.24);
+    background:
+        radial-gradient(circle at top right, rgba(39, 215, 102, 0.08), transparent 34%),
+        var(--bg-card);
+}
+
+.mc-pricing-intro {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(39, 215, 102, 0.22);
+    border-radius: var(--radius-md);
+    background: rgba(8, 26, 18, 0.72);
+}
+
+.mc-pricing-intro__title {
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    font-weight: 800;
+    margin-bottom: 3px;
+}
+
+.mc-pricing-intro__copy {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.mc-pricing-intro__badge {
+    flex-shrink: 0;
+    color: #03150a;
+    background: linear-gradient(135deg, #27d766, #9dffba);
+    border-radius: 999px;
+    padding: 5px 13px;
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.mc-pricing-status {
+    margin-bottom: 14px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(240, 91, 91, 0.42);
+    background: rgba(240, 91, 91, 0.12);
+    color: #ff9a9a;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.mc-pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 16px;
+}
+
+.mc-pricing-card {
+    border: 1px solid rgba(39, 215, 102, 0.18);
+    border-radius: var(--radius-md);
+    background:
+        linear-gradient(145deg, rgba(39, 215, 102, 0.07), transparent 42%),
+        var(--bg-surface);
+    overflow: hidden;
+}
+
+.mc-pricing-card__top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.mc-pricing-card__eyebrow {
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.mc-pricing-card__title {
+    color: #27d766;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 900;
+    margin-left: auto;
+}
+
+.mc-pricing-table {
+    padding: 10px;
+}
+
+.mc-pricing-row {
+    display: grid;
+    grid-template-columns: minmax(82px, 1fr) minmax(92px, 120px) minmax(92px, 120px);
+    gap: 8px;
+    align-items: center;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+}
+
+.mc-pricing-row:nth-child(even):not(.mc-pricing-row--head) {
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.mc-pricing-row--head {
+    color: var(--text-muted);
+    font-family: var(--font-heading);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+
+.mc-pricing-seat {
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.mc-price-field {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: rgba(5, 8, 14, 0.72);
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+}
+
+.mc-price-field:focus-within {
+    border-color: rgba(39, 215, 102, 0.62);
+    box-shadow: 0 0 0 2px rgba(39, 215, 102, 0.12);
+    background: rgba(7, 18, 13, 0.86);
+}
+
+.mc-price-field span {
+    color: #27d766;
+    font-family: var(--font-heading);
+    font-size: 0.64rem;
+    font-weight: 900;
+}
+
+.mc-price-input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.mc-price-input::placeholder {
+    color: rgba(148, 163, 184, 0.55);
+}
+
+.mc-price-input.is-invalid {
+    color: #ff9a9a;
+}
+
+.mc-price-field:has(.mc-price-input.is-invalid) {
+    border-color: rgba(240, 91, 91, 0.6);
+    box-shadow: 0 0 0 2px rgba(240, 91, 91, 0.1);
+}
+
 /* ── Selection view helpers ─────────────────────────────── */
 .mc-select-hint {
     font-size: 0.78rem;
@@ -418,6 +601,14 @@
     .mc-quota-full   { grid-column: auto; }
     .mc-modal        { max-width: 100%; }
     .mc-select-hint  { display: none; }
+    .mc-pricing-intro { align-items: flex-start; flex-direction: column; }
+    .mc-pricing-grid { grid-template-columns: 1fr; }
+    .mc-pricing-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+        padding: 10px 6px;
+    }
+    .mc-pricing-row--head { display: none; }
 }
 
 /* ── Modal cinema pill (inside scrollable strip) ─────────── */
