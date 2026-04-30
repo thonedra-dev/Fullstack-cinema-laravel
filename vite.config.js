@@ -14,6 +14,8 @@ export default defineConfig({
                 'resources/js/signup.js',
                 'resources/css/user_login.css',
                 'resources/js/user_login.js',
+                'resources/css/movie_creation.css',
+                'resources/js/movie_creation.js',
                 'resources/css/upcoming_movies.css',
                 'resources/css/setup_timetable.css',
                 'resources/js/setup_timetable.js',
