@@ -28,6 +28,10 @@
     var selectedCinemas  = [];   // confirmed assignments
     var pendingSelection = [];   // cinema IDs currently ticked but not yet assigned
 
+    var PRICING_THEATRES = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
+    var PRICING_SEATS    = ['standard', 'premium', 'family', 'couple'];
+    var PRICING_DAYS     = ['weekday', 'weekend'];
+
     /* ── Helpers ───────────────────────────────────────────── */
     function show(el) { if (el) el.classList.remove('vc-hidden'); }
     function hide(el) { if (el) el.classList.add('vc-hidden'); }
@@ -469,7 +473,152 @@
     }
 
     /* ================================================================
-       10. SERIALIZE / RESTORE
+       10. TICKET PRICE MATRIX
+    ================================================================ */
+    function pricingKey(theatreName, seatType, dayType) {
+        return [theatreName, seatType, dayType].join('|');
+    }
+
+    function showPricingMessage(message) {
+        var status = document.getElementById('mc-pricing-status');
+        if (!status) return;
+        status.textContent = message;
+        show(status);
+    }
+
+    function clearPricingMessage() {
+        var status = document.getElementById('mc-pricing-status');
+        if (!status) return;
+        status.textContent = '';
+        hide(status);
+    }
+
+    function collectPricingRules(showErrors) {
+        var inputs = Array.prototype.slice.call(document.querySelectorAll('.mc-price-input'));
+        var rules = [];
+        var firstInvalid = null;
+
+        inputs.forEach(function (input) {
+            input.classList.remove('is-invalid');
+        });
+
+        PRICING_THEATRES.forEach(function (theatreName) {
+            PRICING_SEATS.forEach(function (seatType) {
+                PRICING_DAYS.forEach(function (dayType) {
+                    var selector =
+                        '.mc-price-input[data-theatre-name="' + theatreName.replace(/"/g, '\\"') + '"]' +
+                        '[data-seat-type="' + seatType + '"]' +
+                        '[data-day-type="' + dayType + '"]';
+                    var input = document.querySelector(selector);
+                    var raw = input ? input.value.trim() : '';
+                    var amount = Number(raw);
+
+                    if (!input || raw === '' || !Number.isFinite(amount) || amount <= 0) {
+                        if (showErrors && input) input.classList.add('is-invalid');
+                        if (!firstInvalid) firstInvalid = input || true;
+                        return;
+                    }
+
+                    rules.push({
+                        theatreName: theatreName,
+                        seatType: seatType,
+                        dayType: dayType,
+                        price: amount.toFixed(2),
+                    });
+                });
+            });
+        });
+
+        if (firstInvalid && showErrors) {
+            showPricingMessage('Please fill every ticket price with an amount greater than 0.');
+            if (firstInvalid !== true && firstInvalid.focus) firstInvalid.focus();
+            return null;
+        }
+
+        return rules;
+    }
+
+    function syncPricingHidden(showErrors) {
+        var input = document.getElementById('mc-ticket-prices-json');
+        if (!input) return true;
+
+        var rules = collectPricingRules(showErrors);
+        if (!rules) return false;
+
+        input.value = JSON.stringify(rules);
+        clearPricingMessage();
+        return true;
+    }
+
+    function initPricingInputs() {
+        document.querySelectorAll('.mc-price-input').forEach(function (input) {
+            input.addEventListener('input', function () {
+                input.classList.remove('is-invalid');
+                syncPricingHidden(false);
+            });
+
+            input.addEventListener('blur', function () {
+                var amount = Number(input.value);
+                if (input.value.trim() !== '' && Number.isFinite(amount) && amount > 0) {
+                    input.value = amount.toFixed(2);
+                }
+                syncPricingHidden(false);
+            });
+        });
+    }
+
+    function restorePricingFromOld() {
+        var input = document.getElementById('mc-ticket-prices-json');
+        if (!input || !input.value) return;
+
+        var parsed;
+        try { parsed = JSON.parse(input.value); }
+        catch (e) { return; }
+        if (!Array.isArray(parsed)) return;
+
+        var valuesByKey = {};
+        parsed.forEach(function (rule) {
+            if (!rule) return;
+            valuesByKey[pricingKey(rule.theatreName, rule.seatType, rule.dayType)] = rule.price;
+        });
+
+        document.querySelectorAll('.mc-price-input').forEach(function (priceInput) {
+            var key = pricingKey(
+                priceInput.dataset.theatreName,
+                priceInput.dataset.seatType,
+                priceInput.dataset.dayType
+            );
+            if (valuesByKey[key] !== undefined) {
+                priceInput.value = valuesByKey[key];
+            }
+        });
+
+        syncPricingHidden(false);
+    }
+
+    function initMainFormSubmit() {
+        var form = document.getElementById('mc-main-form');
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            syncHidden();
+
+            if (selectedCinemas.length === 0) {
+                e.preventDefault();
+                showPricingMessage('Assign at least one cinema before creating ticket price rules.');
+                switchView('mc-form-view');
+                return;
+            }
+
+            if (!syncPricingHidden(true)) {
+                e.preventDefault();
+                switchView('mc-form-view');
+            }
+        });
+    }
+
+    /* ================================================================
+       11. SERIALIZE / RESTORE
     ================================================================ */
     function syncHidden() {
         var input = document.getElementById('mc-cinemas-json');
@@ -499,7 +648,11 @@
         initCinemaCards();
         initSelectionBarButtons();
         initModal();
+        initPricingInputs();
         restoreFromOld();
+        restorePricingFromOld();
+        syncPricingHidden(false);
+        initMainFormSubmit();
     });
 
 })();

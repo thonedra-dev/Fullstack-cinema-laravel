@@ -39,6 +39,7 @@
           enctype="multipart/form-data" novalidate>
         @csrf
         <input type="hidden" id="mc-cinemas-json" name="cinemas_json" value="{{ old('cinemas_json', '[]') }}">
+        <input type="hidden" id="mc-ticket-prices-json" name="ticket_prices_json" value="{{ old('ticket_prices_json', '[]') }}">
 
         {{-- ── 01: Movie Details ──────────────────────────── --}}
         <div class="mc-section">
@@ -185,9 +186,89 @@
         </div>
 
         {{-- ── 04: Supervisor Confirmation ────────────────── --}}
-        <div class="mc-section mc-section--auth">
+        {{-- Ticket pricing rules --}}
+        @php
+            $pricingTheatres = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
+            $pricingSeats = [
+                'standard' => 'Standard',
+                'premium' => 'Premium',
+                'family' => 'Family',
+                'couple' => 'Couple',
+            ];
+            $pricingDays = [
+                'weekday' => 'Weekdays',
+                'weekend' => 'Weekends',
+            ];
+        @endphp
+        <div class="mc-section mc-section--pricing">
             <div class="mc-section__header">
                 <span class="mc-section__number">04</span>
+                <span class="mc-section__title">Ticket Pricing Rules</span>
+            </div>
+
+            @error('ticket_prices_json')
+                <div class="at-alert at-alert--error" style="margin-bottom:14px;">
+                    <span class="at-alert__icon">x</span> {{ $message }}
+                </div>
+            @enderror
+
+            <div class="mc-pricing-intro">
+                <div>
+                    <p class="mc-pricing-intro__title">One movie price map, applied to every assigned cinema theatre.</p>
+                    <p class="mc-pricing-intro__copy">
+                        Fill each theatre type by seat type and day type before the final movie creation submit.
+                    </p>
+                </div>
+                <span class="mc-pricing-intro__badge">40 rules</span>
+            </div>
+
+            <div id="mc-pricing-status" class="mc-pricing-status vc-hidden" role="alert"></div>
+
+            <div class="mc-pricing-grid" id="mc-pricing-grid">
+                @foreach ($pricingTheatres as $theatreName)
+                    <div class="mc-pricing-card">
+                        <div class="mc-pricing-card__top">
+                            <span class="mc-pricing-card__eyebrow">Theatre</span>
+                            <h3 class="mc-pricing-card__title">{{ $theatreName }}</h3>
+                        </div>
+
+                        <div class="mc-pricing-table">
+                            <div class="mc-pricing-row mc-pricing-row--head">
+                                <span>Seat Type</span>
+                                <span>Weekday</span>
+                                <span>Weekend</span>
+                            </div>
+
+                            @foreach ($pricingSeats as $seatKey => $seatLabel)
+                                <div class="mc-pricing-row">
+                                    <span class="mc-pricing-seat">{{ $seatLabel }}</span>
+                                    @foreach ($pricingDays as $dayKey => $dayLabel)
+                                        <label class="mc-price-field" aria-label="{{ $theatreName }} {{ $seatLabel }} {{ $dayLabel }} price">
+                                            <span>RM</span>
+                                            <input
+                                                type="number"
+                                                class="mc-price-input"
+                                                inputmode="decimal"
+                                                min="0.01"
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                data-theatre-name="{{ $theatreName }}"
+                                                data-seat-type="{{ $seatKey }}"
+                                                data-day-type="{{ $dayKey }}"
+                                            >
+                                        </label>
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="mc-section mc-section--auth">
+            <div class="mc-section__header">
+                <span class="mc-section__number">05</span>
                 <span class="mc-section__title">Supervisor Confirmation</span>
             </div>
             <div class="mc-auth-grid">
