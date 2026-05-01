@@ -26,20 +26,24 @@ class AdminMovieProposalController extends Controller
         foreach ($proposals as $p) {
             $p->first_id = $p->id;
 
-            $children = ShowtimeProposal::with('theatre')
+            $children = ShowtimeProposal::with('hall.theatre')
                 ->where('manager_id', $p->manager_id)
                 ->where('cinema_id', $p->cinema_id)
                 ->where('movie_id', $p->movie_id)
                 ->get();
 
+            $children->each(function ($child) {
+                $child->setRelation('theatre', $child->hall?->theatre);
+            });
+
             $p->slot_count = $children->count();
             $p->start_time = $children->pluck('start_datetime')->min();
 
-            $uniqueTheatres = $children->unique('theatre_id');
-            if ($uniqueTheatres->count() > 1) {
-                $p->theatre = (object) ['theatre_name' => $uniqueTheatres->count() . ' Theatres'];
+            $uniqueHalls = $children->unique('hall_id');
+            if ($uniqueHalls->count() > 1) {
+                $p->theatre = (object) ['theatre_name' => $uniqueHalls->count() . ' Theatres'];
             } else {
-                $p->theatre = $uniqueTheatres->first()?->theatre;
+                $p->theatre = $uniqueHalls->first()?->theatre;
             }
         }
 
@@ -54,12 +58,16 @@ class AdminMovieProposalController extends Controller
     {
         $first = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie.genres'])->findOrFail($id);
 
-        $groupRows = ShowtimeProposal::with('theatre')
+        $groupRows = ShowtimeProposal::with('hall.theatre')
             ->where('manager_id', $first->manager_id)
             ->where('cinema_id', $first->cinema_id)
             ->where('movie_id', $first->movie_id)
             ->orderBy('start_datetime')
             ->get();
+
+        $groupRows->each(function ($row) {
+            $row->setRelation('theatre', $row->hall?->theatre);
+        });
 
         $city = City::find($first->cinema?->city_id);
 
@@ -103,7 +111,7 @@ class AdminMovieProposalController extends Controller
         $approved = [];
 
         foreach ($groupRows as $row) {
-            $conflict = Showtime::where('theatre_id', $row->theatre_id)
+            $conflict = Showtime::where('hall_id', $row->hall_id)
                 ->where(function ($q) use ($row) {
                     $q->where('start_time', '<', $row->end_datetime)
                         ->where('end_time', '>', $row->start_datetime);
@@ -125,7 +133,7 @@ class AdminMovieProposalController extends Controller
         DB::transaction(function () use ($approved, $statusRecord) {
             foreach ($approved as $row) {
                 Showtime::create([
-                    'theatre_id' => $row->theatre_id,
+                    'hall_id' => $row->hall_id,
                     'movie_id' => $row->movie_id,
                     'cinema_id' => $row->cinema_id,
                     'start_time' => $row->start_datetime,
