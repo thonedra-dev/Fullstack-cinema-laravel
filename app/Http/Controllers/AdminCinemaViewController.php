@@ -18,6 +18,7 @@ class AdminCinemaViewController extends Controller
     {
         $cinemas = Cinema::with([
             'city',
+            'halls.theatre',
             'theatres',
             'movies.genres',
         ])
@@ -25,11 +26,11 @@ class AdminCinemaViewController extends Controller
         ->get();
 
         // For each cinema, filter its movies collection to only those
-        // that have at least one showtime in this cinema's theatres.
+        // that have at least one showtime in this cinema's halls.
         $cinemas->each(function ($cinema) {
-            $theatreIds = $cinema->theatres->pluck('theatre_id');
+            $hallIds = $cinema->halls->pluck('hall_id');
 
-            $activeMovieIds = Showtime::whereIn('theatre_id', $theatreIds)
+            $activeMovieIds = Showtime::whereIn('hall_id', $hallIds)
                 ->distinct()
                 ->pluck('movie_id');
 
