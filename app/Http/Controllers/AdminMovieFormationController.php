@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cinema;
+use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Showtime;
-use App\Models\Theatre;
 use Carbon\Carbon;
 
 class AdminMovieFormationController extends Controller
@@ -19,15 +19,16 @@ class AdminMovieFormationController extends Controller
         $movie  = Movie::with('genres')->findOrFail($movieId);
         $cinema = Cinema::with('city')->findOrFail($cinemaId);
 
-        // Theatre map for this specific cinema, keyed by theatre_id
-        $theatreMap = Theatre::where('cinema_id', $cinemaId)
+        // Hall map for this specific cinema, keyed by hall_id.
+        $hallMap = Hall::with('theatre')
+            ->where('cinema_id', $cinemaId)
             ->get()
-            ->keyBy('theatre_id');
+            ->keyBy('hall_id');
 
-        $theatreIds = $theatreMap->keys()->toArray();
+        $hallIds = $hallMap->keys()->toArray();
 
         // All approved showtimes for this movie in this specific cinema
-        $allShowtimes = Showtime::whereIn('theatre_id', $theatreIds)
+        $allShowtimes = Showtime::whereIn('hall_id', $hallIds)
             ->where('movie_id', $movieId)
             ->orderBy('start_time')
             ->get();
@@ -37,7 +38,7 @@ class AdminMovieFormationController extends Controller
         // Build date-grouped structure exactly like the Branch Manager version for the JS engine
         $dateGroups = $allShowtimes
             ->groupBy(fn($st) => $st->start_time->format('Y-m-d'))
-            ->map(function ($dayShowtimes, $dateStr) use ($theatreMap) {
+            ->map(function ($dayShowtimes, $dateStr) use ($hallMap) {
                 $dt = Carbon::parse($dateStr);
 
                 return [
@@ -46,11 +47,11 @@ class AdminMovieFormationController extends Controller
                     'label_num'   => $dt->format('j'),
                     'label_month' => $dt->format('M'),
                     'theatres'    => $dayShowtimes
-                        ->groupBy('theatre_id')
-                        ->map(function ($tShowtimes, $tId) use ($theatreMap) {
-                            $theatre = $theatreMap->get((int) $tId);
+                        ->groupBy('hall_id')
+                        ->map(function ($tShowtimes, $hallId) use ($hallMap) {
+                            $hall = $hallMap->get((int) $hallId);
                             return [
-                                'name'  => $theatre?->theatre_name ?? ('Theatre ' . $tId),
+                                'name'  => $hall?->theatre?->theatre_name ?? ('Hall ' . $hallId),
                                 'times' => $tShowtimes
                                     ->sortBy('start_time')
                                     ->map(fn($s) => $s->start_time->format('h:i A'))
