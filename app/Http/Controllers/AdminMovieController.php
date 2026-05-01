@@ -6,13 +6,19 @@ use App\Models\Cinema;
 use App\Models\CinemaMovieQuota;
 use App\Models\Genre;
 use App\Models\Movie;
+use App\Models\MovieTicketPrice;
 use App\Models\Supervisor;
+use App\Models\Theatre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AdminMovieController extends Controller
 {
+    private const PRICING_THEATRES = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
+    private const PRICING_SEATS = ['standard', 'premium', 'family', 'couple'];
+    private const PRICING_DAYS = ['weekday', 'weekend'];
+
     /**
      * Show the Movie Creation form.
      * GET /admin/movie/create
@@ -48,6 +54,7 @@ class AdminMovieController extends Controller
             'supervisor_id'       => 'required|integer|exists:supervisors,supervisor_id',
             'supervisor_password' => 'required|string',
             'cinemas_json'        => 'nullable|string',
+            'ticket_prices_json'  => 'required|string',
         ]);
 
         // ── 2. Verify supervisor password ──────────────────────
@@ -61,6 +68,7 @@ class AdminMovieController extends Controller
 
         // ── 3. Parse and validate cinemas_json ─────────────────
         $assignments = [];
+        $seenCinemaIds = [];
 
         if (!empty($validated['cinemas_json'])) {
             $decoded = json_decode($validated['cinemas_json'], true);
@@ -97,13 +105,131 @@ class AdminMovieController extends Controller
                         ->withErrors(['cinemas_json' => "Cinema #{$item['cinemaId']} not found."]);
                 }
 
+                $cinemaId = (int) $item['cinemaId'];
+                if (isset($seenCinemaIds[$cinemaId])) {
+                    return back()->withInput()
+                        ->withErrors(['cinemas_json' => "Cinema #{$cinemaId} has been assigned more than once."]);
+                }
+                $seenCinemaIds[$cinemaId] = true;
+
                 $assignments[] = [
-                    'cinema_id'        => (int) $item['cinemaId'],
+                    'cinema_id'        => $cinemaId,
                     'start_date'       => $item['startDate'],
                     'maximum_end_date' => $item['endDate'],
                     'showtime_slots'   => $slots,
                 ];
             }
+        }
+
+        if (empty($assignments)) {
+            return back()->withInput()
+                ->withErrors(['cinemas_json' => 'Assign at least one cinema before creating the movie.']);
+        }
+
+        // Ticket prices are defined once by theatre type, then applied to the
+        // matching theatre records under every assigned cinema.
+        $ticketPriceRules = [];
+        $decodedPrices = json_decode($validated['ticket_prices_json'], true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decodedPrices)) {
+            return back()->withInput()
+                ->withErrors(['ticket_prices_json' => 'Invalid ticket pricing data.']);
+        }
+
+        $validTheatreMap = array_combine(
+            array_map(fn ($name) => strtolower($name), self::PRICING_THEATRES),
+            self::PRICING_THEATRES
+        );
+
+        foreach ($decodedPrices as $index => $item) {
+            $rowNum = $index + 1;
+            $theatreKey = strtolower(trim((string) ($item['theatreName'] ?? '')));
+            $seatType = strtolower(trim((string) ($item['seatType'] ?? '')));
+            $dayType = strtolower(trim((string) ($item['dayType'] ?? '')));
+            $price = $item['price'] ?? null;
+
+            if (!isset($validTheatreMap[$theatreKey])) {
+                return back()->withInput()
+                    ->withErrors(['ticket_prices_json' => "Invalid theatre type on ticket price rule #{$rowNum}."]);
+            }
+
+            if (!in_array($seatType, self::PRICING_SEATS, true)) {
+                return back()->withInput()
+                    ->withErrors(['ticket_prices_json' => "Invalid seat type on ticket price rule #{$rowNum}."]);
+            }
+
+            if (!in_array($dayType, self::PRICING_DAYS, true)) {
+                return back()->withInput()
+                    ->withErrors(['ticket_prices_json' => "Invalid day type on ticket price rule #{$rowNum}."]);
+            }
+
+            if (!is_numeric($price) || (float) $price <= 0 || (float) $price > 999999.99) {
+                return back()->withInput()
+                    ->withErrors(['ticket_prices_json' => "Ticket price must be between RM0.01 and RM999999.99 on rule #{$rowNum}."]);
+            }
+
+            $theatreName = $validTheatreMap[$theatreKey];
+            $ruleKey = "{$theatreName}|{$seatType}|{$dayType}";
+
+            if (isset($ticketPriceRules[$ruleKey])) {
+                return back()->withInput()
+                    ->withErrors(['ticket_prices_json' => "Duplicate ticket price rule for {$theatreName}, {$seatType}, {$dayType}."]);
+            }
+
+            $ticketPriceRules[$ruleKey] = [
+                'theatre_name' => $theatreName,
+                'seat_type'    => $seatType,
+                'day_type'     => $dayType,
+                'price'        => number_format((float) $price, 2, '.', ''),
+            ];
+        }
+
+        foreach (self::PRICING_THEATRES as $theatreName) {
+            foreach (self::PRICING_SEATS as $seatType) {
+                foreach (self::PRICING_DAYS as $dayType) {
+                    $ruleKey = "{$theatreName}|{$seatType}|{$dayType}";
+                    if (!isset($ticketPriceRules[$ruleKey])) {
+                        return back()->withInput()
+                            ->withErrors(['ticket_prices_json' => "Missing ticket price rule for {$theatreName}, {$seatType}, {$dayType}."]);
+                    }
+                }
+            }
+        }
+
+        $selectedCinemaIds = array_values(array_unique(array_column($assignments, 'cinema_id')));
+        $cinemaNames = Cinema::whereIn('cinema_id', $selectedCinemaIds)
+            ->pluck('cinema_name', 'cinema_id');
+        $theatres = Theatre::whereIn('cinema_id', $selectedCinemaIds)->get();
+        $theatresByCinemaAndName = [];
+
+        foreach ($theatres as $theatre) {
+            $theatreKey = strtolower(trim($theatre->theatre_name));
+            if (!isset($validTheatreMap[$theatreKey])) {
+                continue;
+            }
+
+            $mapKey = $theatre->cinema_id . '|' . $validTheatreMap[$theatreKey];
+            $theatresByCinemaAndName[$mapKey] ??= $theatre;
+        }
+
+        $missingTheatres = [];
+        foreach ($selectedCinemaIds as $cinemaId) {
+            foreach (self::PRICING_THEATRES as $theatreName) {
+                $mapKey = $cinemaId . '|' . $theatreName;
+                if (!isset($theatresByCinemaAndName[$mapKey])) {
+                    $missingTheatres[] = $theatreName . ' at ' . ($cinemaNames[$cinemaId] ?? "cinema #{$cinemaId}");
+                }
+            }
+        }
+
+        if (!empty($missingTheatres)) {
+            $shownMissing = array_slice($missingTheatres, 0, 6);
+            $suffix = count($missingTheatres) > 6 ? ' and ' . (count($missingTheatres) - 6) . ' more' : '';
+
+            return back()->withInput()
+                ->withErrors([
+                    'ticket_prices_json' => 'Missing theatre records for pricing: ' . implode(', ', $shownMissing) . $suffix . '.',
+                ]);
         }
 
         // ── 4. Handle poster uploads ───────────────────────────
@@ -123,7 +249,17 @@ class AdminMovieController extends Controller
         }
 
         // ── 5. Insert Movie ────────────────────────────────────
-        $movie = Movie::create([
+        $movie = DB::transaction(function () use (
+            $validated,
+            $landscapeFilename,
+            $portraitFilename,
+            $assignments,
+            $supervisor,
+            $ticketPriceRules,
+            $selectedCinemaIds,
+            $theatresByCinemaAndName
+        ) {
+            $movie = Movie::create([
             'movie_name'       => $validated['movie_name'],
             'runtime'          => $validated['runtime'],
             'language'         => $validated['language'],
@@ -150,16 +286,41 @@ class AdminMovieController extends Controller
         }
 
         // ── 8. Insert Trailer row (if URL provided) ────────────
+            $now = now();
+            $ticketPriceRows = [];
+
+            foreach ($selectedCinemaIds as $cinemaId) {
+                foreach ($ticketPriceRules as $rule) {
+                    $mapKey = $cinemaId . '|' . $rule['theatre_name'];
+                    $theatre = $theatresByCinemaAndName[$mapKey];
+
+                    $ticketPriceRows[] = [
+                        'movie_id'    => $movie->movie_id,
+                        'theatre_id'  => $theatre->theatre_id,
+                        'seat_type'   => $rule['seat_type'],
+                        'day_type'    => $rule['day_type'],
+                        'price'       => $rule['price'],
+                        'created_at'  => $now,
+                        'updated_at'  => $now,
+                    ];
+                }
+            }
+
+            MovieTicketPrice::insert($ticketPriceRows);
+
         $trailerUrl = trim($validated['trailer_url'] ?? '');
         if ($trailerUrl !== '') {
             DB::table('trailers')->insert([
                 'movie_id'    => $movie->movie_id,
                 'youtube_url' => $trailerUrl,
                 'type'        => 'main',
-                'created_at'  => now(),
-                'updated_at'  => now(),
+                'created_at'  => $now,
+                'updated_at'  => $now,
             ]);
         }
+
+            return $movie;
+        });
 
         return redirect()
             ->route('admin.movie.create')
