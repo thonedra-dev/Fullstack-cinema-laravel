@@ -18,7 +18,7 @@ class AdminTheatreResourceController extends Controller
      */
     public function show(int $id)
     {
-        $theatre = Theatre::with(['cinema.city', 'seats'])
+        $theatre = Theatre::with(['seats', 'services'])
                           ->findOrFail($id);
 
         /*
