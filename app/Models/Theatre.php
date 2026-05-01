@@ -14,15 +14,21 @@ class Theatre extends Model
         'theatre_name',
         'theatre_icon',
         'theatre_poster',
-        'cinema_id',
     ];
 
-    /**
-     * A theatre belongs to a cinema.
-     */
-    public function cinema()
+    public function halls()
     {
-        return $this->belongsTo(Cinema::class, 'cinema_id', 'cinema_id');
+        return $this->hasMany(Hall::class, 'theatre_id', 'theatre_id');
+    }
+
+    public function cinemas()
+    {
+        return $this->belongsToMany(
+            Cinema::class,
+            'halls',
+            'theatre_id',
+            'cinema_id'
+        )->withPivot('hall_id');
     }
 
     /**
@@ -50,6 +56,18 @@ class Theatre extends Model
 
     public function showtimes()
     {
-        return $this->hasMany(Showtime::class, 'theatre_id', 'theatre_id');
+        return $this->hasManyThrough(
+            Showtime::class,
+            Hall::class,
+            'theatre_id',
+            'hall_id',
+            'theatre_id',
+            'hall_id'
+        );
+    }
+
+    public function ticketPrices()
+    {
+        return $this->hasMany(MovieTicketPrice::class, 'theatre_id', 'theatre_id');
     }
 }
