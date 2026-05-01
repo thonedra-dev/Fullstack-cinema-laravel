@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cinema;
 use App\Models\Seat;
 use App\Models\Service;
 use App\Models\Theatre;
@@ -17,7 +16,7 @@ class AdminTheatreController extends Controller
      */
     public function create()
     {
-        $cinemas  = Cinema::with('city')->orderBy('cinema_name')->get();
+        $cinemas = collect();
         $services = Service::orderBy('service_name')->get();
 
         return view('admin.create_theatre', compact('cinemas', 'services'));
@@ -32,8 +31,7 @@ class AdminTheatreController extends Controller
     {
         // ── 1. Validate core theatre fields ───────────────────────
         $validated = $request->validate([
-            'theatre_name'   => 'required|string|max:255',
-            'cinema_id'      => 'required|integer|exists:cinemas,cinema_id',
+            'theatre_name'   => 'required|string|max:255|unique:theatres,theatre_name',
             'theatre_icon'   => 'nullable|image|mimes:png,svg,webp|max:1024',
             'theatre_poster' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'services'       => 'nullable|array',
@@ -93,7 +91,6 @@ class AdminTheatreController extends Controller
         // ── 4. Create the Theatre row ──────────────────────────────
         $theatre = Theatre::create([
             'theatre_name'   => $validated['theatre_name'],
-            'cinema_id'      => $validated['cinema_id'],
             'theatre_icon'   => $iconFilename,
             'theatre_poster' => $posterFilename,
         ]);
