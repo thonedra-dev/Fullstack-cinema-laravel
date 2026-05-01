@@ -12,7 +12,7 @@ class ShowtimeProposal extends Model
 
     /*
      * Schema after migration:
-     *   id, manager_id, cinema_id, theatre_id, movie_id,
+     *   id, manager_id, cinema_id, hall_id, movie_id,
      *   start_datetime (timestamp), end_datetime (timestamp),
      *   status, admin_note, created_at, updated_at
      *
@@ -22,7 +22,7 @@ class ShowtimeProposal extends Model
     protected $fillable = [
         'manager_id',
         'cinema_id',
-        'theatre_id',
+        'hall_id',
         'movie_id',
         'start_datetime',   // full timestamp e.g. 2026-04-08 14:00:00
         'end_datetime',     // full timestamp e.g. 2026-04-08 16:28:00
@@ -43,9 +43,26 @@ class ShowtimeProposal extends Model
         return $this->belongsTo(Cinema::class, 'cinema_id', 'cinema_id');
     }
 
+    public function hall()
+    {
+        return $this->belongsTo(Hall::class, 'hall_id', 'hall_id');
+    }
+
+    public function getTheatreIdAttribute($value)
+    {
+        return $value ?? $this->hall?->theatre_id;
+    }
+
     public function theatre()
     {
-        return $this->belongsTo(Theatre::class, 'theatre_id', 'theatre_id');
+        return $this->hasOneThrough(
+            Theatre::class,
+            Hall::class,
+            'hall_id',
+            'theatre_id',
+            'hall_id',
+            'theatre_id'
+        );
     }
 
     public function movie()
