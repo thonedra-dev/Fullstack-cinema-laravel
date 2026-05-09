@@ -3,30 +3,35 @@
  *
  * Multi-slot showtime scheduler.
  *
+ * NAMING CONVENTION (was previously inconsistent):
+ *   hallId / selectedHallId  — always refers to halls.hall_id
+ *   theatreId in entry obj   — always refers to theatres.theatre_id (the master type)
+ *   theatreName              — display name from the master theatre type
+ *
  * FLOW:
- *   1. Pick a theatre (sidebar)         → seat layout renders
+ *   1. Pick a hall (sidebar)            → seat layout renders
  *   2. Set a start time (clock widget)
  *   3. Pick one or more dates (calendar)
  *   4. Click "Add to Schedule"
  *      → two-level conflict check:
- *          a. Against approved DB showtimes (same theatre, same date)
- *          b. Against already-staged slots  (same theatre, same date)
+ *          a. Against approved DB showtimes (same hall, same date)
+ *          b. Against already-staged slots  (same hall, same date)
  *      → if clean: stage the slot group into the preview panel
- *   5. Repeat — same theatre/different time OR different theatre entirely.
+ *   5. Repeat — same hall/different time OR different hall entirely.
  *      A date that is already staged CAN be clicked again for a different time.
  *   6. "Submit Proposal" POSTs schedule_json to the controller.
  *
  * CALENDAR VISUAL STATES:
  *   .smt-cal-day--past     → before today, NOT clickable
- *   .smt-cal-day--staged   → green tint (has committed slot for active theatre)
+ *   .smt-cal-day--staged   → green tint (has committed slot for active hall)
  *                            STILL CLICKABLE — user can add more times on same date
  *   .smt-cal-day--selected → bright green fill (currently ticked in staging area)
  *
  * CONFLICT RULES (checked before committing each "Add to Schedule"):
  *   Rule A — DB:     new [start,end) must NOT overlap any existing approved Showtime
- *                    in the same theatre on the same calendar date.
+ *                    in the same hall on the same calendar date.
  *   Rule B — Staged: new [start,end) must NOT overlap any already-staged slot
- *                    in the same theatre on the same calendar date.
+ *                    in the same hall on the same calendar date.
  *   Duplicate:       exact same date + exact same timeKey already staged → blocked.
  */
 (function () {
@@ -38,20 +43,20 @@
     var configEl = document.getElementById('smt-seat-data-json');
     if (!configEl) return;
 
-    var allTheatres       = JSON.parse(configEl.dataset.theatres             || '[]');
-    var existingShowtimes = JSON.parse(configEl.dataset.existingShowtimes    || '[]');
+    var allHalls          = JSON.parse(configEl.dataset.theatres          || '[]');
+    var existingShowtimes = JSON.parse(configEl.dataset.existingShowtimes || '[]');
     var mode              = configEl.dataset.preselectedMode;
-    var preTheatreId      = configEl.dataset.preselectedTheatreId  || '';
-    var preMovieId        = configEl.dataset.preselectedMovieId    || '';
-    var preRuntime        = parseInt(configEl.dataset.preselectedRuntime || '0', 10);
-    var hasRejectedProposal = configEl.dataset.hasRejectedProposal === '1';
+    var preHallId         = configEl.dataset.preselectedHallId            || '';
+    var preMovieId        = configEl.dataset.preselectedMovieId           || '';
+    var preRuntime        = parseInt(configEl.dataset.preselectedRuntime  || '0', 10);
+    var hasRejectedProposal      = configEl.dataset.hasRejectedProposal === '1';
     var rejectedReplaceConfirmed = false;
 
     /* ── Working state ─────────────────────────────────────── */
-    var selectedTheatreId = preTheatreId ? parseInt(preTheatreId, 10) : null;
-    var selectedMovieId   = preMovieId   ? parseInt(preMovieId,   10) : null;
-    var selectedRuntime   = preRuntime   || 0;
-    var selectedDates     = [];   // dates currently in the staging area (not yet committed)
+    var selectedHallId  = preHallId   ? parseInt(preHallId,   10) : null;
+    var selectedMovieId = preMovieId  ? parseInt(preMovieId,  10) : null;
+    var selectedRuntime = preRuntime  || 0;
+    var selectedDates   = [];   // dates currently in the staging area (not yet committed)
 
     var clockHour   = 7;
     var clockMinute = 0;
@@ -98,8 +103,12 @@
         return pad(endH24 % 12 || 12) + ':' + pad(endM) + ' ' + endAp;
     }
 
-    function findTheatreData(id) {
-        return allTheatres.find(function (t) { return t.id === id; });
+    /**
+     * Find the hall data object from the allHalls array by hall_id.
+     * Each item has: { id: hall_id, hall_id, theatre_id, name, seats }
+     */
+    function findHallData(hallId) {
+        return allHalls.find(function (h) { return parseInt(h.id, 10) === hallId; });
     }
 
     /* ================================================================
@@ -108,10 +117,10 @@
        Empty array = no conflicts.
 
        For each proposed date:
-         Rule A — check against existingShowtimes (DB approved, same theatre, same date)
-         Rule B — check against already-staged slots (same theatre, same date)
+         Rule A — check against existingShowtimes (DB approved, same hall, same date)
+         Rule B — check against already-staged slots (same hall, same date)
     ================================================================ */
-    function detectConflicts(theatreId, hour, minute, ampm, dates, runtime) {
+    function detectConflicts(hallId, hour, minute, ampm, dates, runtime) {
         var msgs = [];
 
         dates.forEach(function (iso) {
@@ -119,12 +128,13 @@
 
             /* ── Rule A: DB approved showtimes ───────────────── */
             existingShowtimes.forEach(function (st) {
-                // Only care about rows for the same theatre
-                if (st.theatre_id !== theatreId) return;
+                // Only compare against rows for the same hall
+                var stHallId = parseInt(st.hall_id || 0, 10);
+                if (stHallId !== hallId) return;
 
                 // st.start is a full ISO timestamp — extract the date portion
                 var exDate = st.start.substring(0, 10);   // 'YYYY-MM-DD'
-                if (exDate !== iso) return;                // different date, skip
+                if (exDate !== iso) return;               // different date, skip
 
                 var exStart = new Date(st.start).getTime();
                 var exEnd   = new Date(st.end).getTime();
@@ -133,14 +143,14 @@
                 if (t.startMs < exEnd && t.endMs > exStart) {
                     msgs.push(
                         iso + ' at ' + makeTimeKey(hour, minute, ampm) +
-                        ' overlaps an approved showtime in this theatre.'
+                        ' overlaps an approved showtime in this hall.'
                     );
                 }
             });
 
             /* ── Rule B: already-staged slots ────────────────── */
-            var entry = schedule.find(function (s) { return s.theatreId === theatreId; });
-            if (!entry) return;   // no staged slots for this theatre yet
+            var entry = schedule.find(function (s) { return s.hallId === hallId; });
+            if (!entry) return;   // no staged slots for this hall yet
 
             var currentTimeKey = makeTimeKey(hour, minute, ampm);
 
@@ -176,8 +186,8 @@
     ================================================================ */
     function addToSchedule() {
         /* ── Guards ──────────────────────────────────────────── */
-        if (!selectedTheatreId) {
-            showError(['Please select a theatre first.']); return;
+        if (!selectedHallId) {
+            showError(['Please select a hall first.']); return;
         }
         if (!selectedRuntime) {
             showError(['Please select a movie first.']); return;
@@ -188,22 +198,27 @@
 
         /* ── Conflict check ──────────────────────────────────── */
         var conflicts = detectConflicts(
-            selectedTheatreId, clockHour, clockMinute, clockAmPm,
+            selectedHallId, clockHour, clockMinute, clockAmPm,
             selectedDates, selectedRuntime
         );
         if (conflicts.length > 0) { showError(conflicts); return; }
 
         clearError();
 
-        var theatreData = findTheatreData(selectedTheatreId);
-        var theatreName = theatreData ? theatreData.name : 'Theatre ' + selectedTheatreId;
+        var hallData    = findHallData(selectedHallId);
+        var theatreName = hallData ? hallData.name : 'Hall ' + selectedHallId;
         var timeKey     = makeTimeKey(clockHour, clockMinute, clockAmPm);
         var endDisplay  = computeEndDisplay(clockHour, clockMinute, clockAmPm, selectedRuntime);
 
-        /* ── Find or create theatre entry ────────────────────── */
-        var entry = schedule.find(function (s) { return s.theatreId === selectedTheatreId; });
+        /* ── Find or create hall entry in schedule ───────────── */
+        var entry = schedule.find(function (s) { return s.hallId === selectedHallId; });
         if (!entry) {
-            entry = { theatreId: selectedTheatreId, theatreName: theatreName, slotGroups: [] };
+            entry = {
+                hallId:      selectedHallId,
+                theatreId:   hallData ? hallData.theatre_id : null,  // master theatre_id
+                theatreName: theatreName,
+                slotGroups:  []
+            };
             schedule.push(entry);
         }
 
@@ -237,8 +252,8 @@
         if (previewEl) previewEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    function removeDate(theatreId, timeKey, iso) {
-        var entry = schedule.find(function (s) { return s.theatreId === theatreId; });
+    function removeDate(hallId, timeKey, iso) {
+        var entry = schedule.find(function (s) { return s.hallId === hallId; });
         if (!entry) return;
         var sg = entry.slotGroups.find(function (g) { return g.timeKey === timeKey; });
         if (!sg) return;
@@ -247,16 +262,16 @@
         afterMutate();
     }
 
-    function removeSlotGroup(theatreId, timeKey) {
-        var entry = schedule.find(function (s) { return s.theatreId === theatreId; });
+    function removeSlotGroup(hallId, timeKey) {
+        var entry = schedule.find(function (s) { return s.hallId === hallId; });
         if (!entry) return;
         entry.slotGroups = entry.slotGroups.filter(function (g) { return g.timeKey !== timeKey; });
         pruneEmpty(entry);
         afterMutate();
     }
 
-    function removeTheatre(theatreId) {
-        schedule = schedule.filter(function (s) { return s.theatreId !== theatreId; });
+    function removeHall(hallId) {
+        schedule = schedule.filter(function (s) { return s.hallId !== hallId; });
         afterMutate();
     }
 
@@ -268,7 +283,7 @@
     function pruneEmpty(entry) {
         entry.slotGroups = entry.slotGroups.filter(function (g) { return g.dates.length > 0; });
         if (entry.slotGroups.length === 0) {
-            schedule = schedule.filter(function (s) { return s.theatreId !== entry.theatreId; });
+            schedule = schedule.filter(function (s) { return s.hallId !== entry.hallId; });
         }
     }
 
@@ -321,10 +336,10 @@
             var tRm = document.createElement('button');
             tRm.type      = 'button';
             tRm.className = 'smt-preview-remove-btn smt-preview-remove-btn--theatre';
-            tRm.textContent = '✕ Remove Theatre';
-            tRm.addEventListener('click', (function (tid) {
-                return function () { removeTheatre(tid); };
-            })(entry.theatreId));
+            tRm.textContent = '✕ Remove Hall';
+            tRm.addEventListener('click', (function (hid) {
+                return function () { removeHall(hid); };
+            })(entry.hallId));
 
             tHeader.appendChild(tName);
             tHeader.appendChild(tRm);
@@ -345,9 +360,9 @@
                 sgRm.type      = 'button';
                 sgRm.className = 'smt-preview-remove-btn smt-preview-remove-btn--slot';
                 sgRm.textContent = '✕ Remove time';
-                sgRm.addEventListener('click', (function (tid, tk) {
-                    return function () { removeSlotGroup(tid, tk); };
-                })(entry.theatreId, sg.timeKey));
+                sgRm.addEventListener('click', (function (hid, tk) {
+                    return function () { removeSlotGroup(hid, tk); };
+                })(entry.hallId, sg.timeKey));
 
                 sgHeader.appendChild(tLabel);
                 sgHeader.appendChild(sgRm);
@@ -367,9 +382,9 @@
                     rm.className   = 'smt-date-chip__remove';
                     rm.textContent = '✕';
                     rm.title = 'Remove this date';
-                    rm.addEventListener('click', (function (tid, tk, d) {
-                        return function () { removeDate(tid, tk, d); };
-                    })(entry.theatreId, sg.timeKey, iso));
+                    rm.addEventListener('click', (function (hid, tk, d) {
+                        return function () { removeDate(hid, tk, d); };
+                    })(entry.hallId, sg.timeKey, iso));
 
                     chip.appendChild(lbl);
                     chip.appendChild(rm);
@@ -431,28 +446,29 @@
     }
 
     /* ================================================================
-       THEATRE SIDEBAR (movie-first mode)
+       HALL SIDEBAR (movie-first mode)
+       Radio value = hall_id (set in blade as value="{{ $theatre->hall_id }}")
     ================================================================ */
-    function initTheatreSidebar() {
+    function initHallSidebar() {
         document.querySelectorAll('.smt-theatre-radio').forEach(function (radio) {
             radio.addEventListener('change', function () {
-                selectedTheatreId = parseInt(this.value, 10);
+                selectedHallId = parseInt(this.value, 10);
 
                 document.querySelectorAll('.smt-theatre-row').forEach(function (row) {
                     row.classList.remove('is-selected');
                 });
                 this.closest('.smt-theatre-row').classList.add('is-selected');
 
-                renderSeats(selectedTheatreId);
+                renderSeats(selectedHallId);
                 clearError();
-                // Clear pending staging when switching theatre
+                // Clear pending staging when switching hall
                 selectedDates = [];
                 renderCalendar();
                 renderDateChips();
             });
         });
 
-        if (selectedTheatreId) renderSeats(selectedTheatreId);
+        if (selectedHallId) renderSeats(selectedHallId);
     }
 
     /* ================================================================
@@ -477,26 +493,26 @@
             });
         });
 
-        if (mode === 'theatre' && selectedTheatreId) {
-            renderSeats(selectedTheatreId);
+        if (mode === 'theatre' && selectedHallId) {
+            renderSeats(selectedHallId);
         }
     }
 
     /* ================================================================
        SEAT LAYOUT RENDERER
     ================================================================ */
-    function renderSeats(theatreId) {
-        var theatre = findTheatreData(theatreId);
-        var preview = document.getElementById('smt-seat-preview');
+    function renderSeats(hallId) {
+        var hallData = findHallData(hallId);
+        var preview  = document.getElementById('smt-seat-preview');
         if (!preview) return;
         preview.innerHTML = '';
 
-        if (!theatre || !theatre.seats || theatre.seats.length === 0) {
-            preview.innerHTML = '<p class="smt-seat-preview__hint">No seats defined for this theatre.</p>';
+        if (!hallData || !hallData.seats || hallData.seats.length === 0) {
+            preview.innerHTML = '<p class="smt-seat-preview__hint">No seats defined for this hall.</p>';
             return;
         }
 
-        theatre.seats.forEach(function (rowData) {
+        hallData.seats.forEach(function (rowData) {
             var rowEl = document.createElement('div');
             rowEl.className = 'smt-row';
 
@@ -581,14 +597,14 @@
          Dates are blocked from clicking ONLY when isPast === true.
          .smt-cal-day--staged is a VISUAL hint only — the date stays
          clickable so the user can add a second (non-overlapping) showtime
-         to the same date.
+         on the same date.
     ================================================================ */
 
-    /** All dates that have at least one committed slot for the currently active theatre. */
-    function getStagedDatesForActiveTheatre() {
-        if (!selectedTheatreId) return [];
+    /** All dates that have at least one committed slot for the currently active hall. */
+    function getStagedDatesForActiveHall() {
+        if (!selectedHallId) return [];
         var result = [];
-        var entry  = schedule.find(function (s) { return s.theatreId === selectedTheatreId; });
+        var entry  = schedule.find(function (s) { return s.hallId === selectedHallId; });
         if (!entry) return result;
         entry.slotGroups.forEach(function (sg) {
             sg.dates.forEach(function (d) {
@@ -612,7 +628,7 @@
         var days  = new Date(year, month + 1, 0).getDate();
         var today = new Date(); today.setHours(0, 0, 0, 0);
 
-        var stagedDates = getStagedDatesForActiveTheatre();
+        var stagedDates = getStagedDatesForActiveHall();
 
         for (var e = 0; e < first; e++) {
             var empty = document.createElement('div');
@@ -647,19 +663,17 @@
     }
 
     function toggleDate(iso) {
-    var idx = selectedDates.indexOf(iso);
-    if (idx === -1) {
-        selectedDates.push(iso);
-        // Fetch existing showtimes for this date
-        fetchExistingShowtimes(iso);
-    } else {
-        selectedDates.splice(idx, 1);
-        // Optionally clear the panel if no date selected? Keep last fetched.
+        var idx = selectedDates.indexOf(iso);
+        if (idx === -1) {
+            selectedDates.push(iso);
+            fetchExistingShowtimes(iso);
+        } else {
+            selectedDates.splice(idx, 1);
+        }
+        selectedDates.sort();
+        renderCalendar();
+        renderDateChips();
     }
-    selectedDates.sort();
-    renderCalendar();
-    renderDateChips();
-}
 
     function renderDateChips() {
         var container = document.getElementById('smt-dates-preview');
@@ -687,54 +701,53 @@
     }
 
     /* ================================================================
-   FETCH EXISTING SHOWTIMES FOR A DATE
-=============================================================== */
-function fetchExistingShowtimes(isoDate) {
-    var container = document.getElementById('smt-existing-list');
-    if (!container) return;
+       FETCH EXISTING SHOWTIMES FOR A DATE
+    ================================================================ */
+    function fetchExistingShowtimes(isoDate) {
+        var container = document.getElementById('smt-existing-list');
+        if (!container) return;
 
-    if (!selectedTheatreId) {
-        container.innerHTML = '<p class="smt-existing-hint">Select a theatre first to see existing showtimes.</p>';
-        return;
+        if (!selectedHallId) {
+            container.innerHTML = '<p class="smt-existing-hint">Select a hall first to see existing showtimes.</p>';
+            return;
+        }
+
+        container.innerHTML = '<p class="smt-existing-hint">Loading...</p>';
+
+        fetch('/manager/showtimes/by-date?date=' + isoDate + '&hall_id=' + selectedHallId)
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    container.innerHTML = '<p class="smt-existing-hint">' + data.error + '</p>';
+                    return;
+                }
+                if (!data.showtimes || data.showtimes.length === 0) {
+                    container.innerHTML = '<p class="smt-existing-hint">No approved showtimes on this date for this hall.</p>';
+                    return;
+                }
+                var html = '';
+                data.showtimes.forEach(function (st) {
+                    html += '<div class="smt-existing-item">' +
+                        '<strong>' + escapeHtml(st.movie_name) + '</strong><br>' +
+                        st.start_time + ' → ' + st.end_time +
+                        '</div>';
+                });
+                container.innerHTML = html;
+            })
+            .catch(function () {
+                container.innerHTML = '<p class="smt-existing-hint">Failed to load existing showtimes.</p>';
+            });
     }
 
-    container.innerHTML = '<p class="smt-existing-hint">Loading...</p>';
-
-    fetch('/manager/showtimes/by-date?date=' + isoDate + '&theatre_id=' + selectedTheatreId)
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.error) {
-                container.innerHTML = '<p class="smt-existing-hint">' + data.error + '</p>';
-                return;
-            }
-            if (!data.showtimes || data.showtimes.length === 0) {
-                container.innerHTML = '<p class="smt-existing-hint">No approved showtimes on this date for this theatre.</p>';
-                return;
-            }
-            var html = '';
-            data.showtimes.forEach(function(st) {
-                html += '<div class="smt-existing-item">' +
-                    '<strong>' + escapeHtml(st.movie_name) + '</strong><br>' +
-                    st.start_time + ' → ' + st.end_time +
-                    '</div>';
-            });
-            container.innerHTML = html;
-        })
-        .catch(function() {
-            container.innerHTML = '<p class="smt-existing-hint">Failed to load existing showtimes.</p>';
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function (m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
         });
-}
-
-// Simple escape to prevent XSS
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
+    }
 
     /* ================================================================
        CALENDAR NAV
@@ -830,10 +843,10 @@ function escapeHtml(str) {
         var overlay = document.getElementById('smt-resubmit-overlay');
         if (!overlay) return;
 
-        var denyBtn = document.getElementById('smt-resubmit-deny');
-        var acceptBtn = document.getElementById('smt-resubmit-accept');
+        var denyBtn      = document.getElementById('smt-resubmit-deny');
+        var acceptBtn    = document.getElementById('smt-resubmit-accept');
         var replaceField = document.getElementById('smt-replace-rejected');
-        var form = document.getElementById('smt-form');
+        var form         = document.getElementById('smt-form');
 
         if (denyBtn) {
             denyBtn.addEventListener('click', closeRejectedReplaceModal);
@@ -858,7 +871,7 @@ function escapeHtml(str) {
        INIT
     ================================================================ */
     document.addEventListener('DOMContentLoaded', function () {
-        initTheatreSidebar();
+        initHallSidebar();
         initMovieSidebar();
         initClockButtons();
         updateClockDisplay();

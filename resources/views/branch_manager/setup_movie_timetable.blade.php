@@ -7,9 +7,9 @@
       $cinema             – Cinema model
       $movie              – Movie model (null if theatre-first entry)
       $quota              – cinema_movie_quotas row (null if theatre-first)
-      $theatres           – All Theatre models for this cinema with ->seats
+      $theatres           – Master Theatre models available in this cinema, each carrying ->hall_id and ->seats
       $assignedMovies     – All movies assigned to this cinema (for theatre-first picker)
-      $existingShowtimes  – JSON array [{theatre_id, movie_id, start, end}]
+      $existingShowtimes  – JSON array [{hall_id, theatre_id, movie_id, start, end}]
       $preselectedMode    – 'movie' | 'theatre'
       $preselectedTheatre – Theatre model (null if movie-first)
 
@@ -88,8 +88,10 @@
         class="smt-hidden"
         data-theatres='{!! json_encode(
             $theatres->map(fn($t) => [
-                "id"   => $t->theatre_id,
-                "name" => $t->theatre_name,
+                "id"         => $t->hall_id,
+                "hall_id"    => $t->hall_id,
+                "theatre_id" => $t->theatre_id,
+                "name"       => $t->theatre_name,
                 "seats" => $t->seats->groupBy("row_label")->map(fn($seats, $row) => [
                     "label" => $row,
                     "seats" => $seats->map(fn($s) => [
@@ -101,7 +103,7 @@
             ])->values()
         ) !!}'
         data-preselected-mode="{{ $preselectedMode }}"
-        data-preselected-theatre-id="{{ $preselectedTheatre?->theatre_id ?? '' }}"
+        data-preselected-hall-id="{{ $preselectedTheatre?->hall_id ?? $preselectedTheatre?->theatre_id ?? '' }}"
         data-preselected-movie-id="{{ $movie?->movie_id ?? '' }}"
         data-preselected-runtime="{{ $movie?->runtime ?? '' }}"
         data-has-rejected-proposal="{{ $rejectedProposal ? '1' : '0' }}"
@@ -161,14 +163,15 @@
                     @foreach ($theatres as $theatre)
                         <label
                             class="smt-theatre-row"
-                            for="theatre_{{ $theatre->theatre_id }}"
+                            for="hall_{{ $theatre->hall_id }}"
+                            data-hall-id="{{ $theatre->hall_id }}"
                             data-theatre-id="{{ $theatre->theatre_id }}"
                         >
                             <input
                                 type="radio"
-                                id="theatre_{{ $theatre->theatre_id }}"
+                                id="hall_{{ $theatre->hall_id }}"
                                 name="smt_theatre_pick"
-                                value="{{ $theatre->theatre_id }}"
+                                value="{{ $theatre->hall_id }}"
                                 class="smt-theatre-radio"
                             >
                             <div class="smt-theatre-info">
