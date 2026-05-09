@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cinema;
+use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Seat;
 use App\Models\Showtime;
-use App\Models\Theatre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -35,9 +35,21 @@ class BranchManagerTheatreFormationController extends Controller
 
         $cinemaId = (int) session('bm_cinema_id');
         $cinema   = Cinema::findOrFail($cinemaId);
-        $theatre  = Theatre::where('theatre_id', $theatreId)
-                           ->where('cinema_id', $cinemaId)
-                           ->firstOrFail();
+
+        $hall = Hall::with('theatre')
+            ->where('cinema_id', $cinemaId)
+            ->where('theatre_id', $theatreId)
+            ->first();
+
+        if (!$hall) {
+            $hall = Hall::with('theatre')
+                ->where('cinema_id', $cinemaId)
+                ->where('hall_id', $theatreId)
+                ->firstOrFail();
+        }
+
+        $theatre = $hall->theatre;
+        $theatreId = $theatre->theatre_id;
 
         // ── Seats grouped by row_label ─────────────────────────
         $seatRows = Seat::where('theatre_id', $theatreId)
@@ -58,7 +70,7 @@ class BranchManagerTheatreFormationController extends Controller
         ];
 
         // ── All showtimes for this theatre ─────────────────────
-        $showtimes = Showtime::where('theatre_id', $theatreId)
+        $showtimes = Showtime::where('hall_id', $hall->hall_id)
             ->orderBy('start_time')
             ->get(['movie_id', 'start_time', 'end_time']);
 
@@ -94,6 +106,7 @@ class BranchManagerTheatreFormationController extends Controller
 
         return view('branch_manager.bm_theatre_formation', [
             'cinema'        => $cinema,
+            'hall'          => $hall,
             'theatre'       => $theatre,
             'seatRows'      => $seatRows,
             'seatStats'     => $seatStats,

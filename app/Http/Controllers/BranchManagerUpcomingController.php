@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Movie;
 use App\Models\Cinema;
-use App\Models\Theatre;
+use App\Models\Hall;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposalStatus;
 use Illuminate\Support\Facades\DB;
@@ -27,11 +27,11 @@ class BranchManagerUpcomingController extends Controller
         $managerId = (int) session('bm_manager_id');
         $cinema    = Cinema::findOrFail($cinemaId);
 
-        // Theatre IDs belonging to this cinema
-        $theatreIds = Theatre::where('cinema_id', $cinemaId)->pluck('theatre_id');
+        // Hall IDs belonging to this cinema.
+        $hallIds = Hall::where('cinema_id', $cinemaId)->pluck('hall_id');
 
         // Movie IDs that already have at least one APPROVED showtime
-        $activeMovieIds = Showtime::whereIn('theatre_id', $theatreIds)
+        $activeMovieIds = Showtime::whereIn('hall_id', $hallIds)
                                   ->distinct()
                                   ->pluck('movie_id');
 
