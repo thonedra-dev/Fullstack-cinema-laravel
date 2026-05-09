@@ -12,6 +12,7 @@ use App\Models\Theatre;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class AdminMovieController extends Controller
 {
@@ -231,32 +232,32 @@ class AdminMovieController extends Controller
             $ticketPriceRules
         ) {
             $movie = Movie::create([
-            'movie_name'       => $validated['movie_name'],
-            'runtime'          => $validated['runtime'],
-            'language'         => $validated['language'],
-            'production_name'  => $validated['production_name'],
-            'landscape_poster' => $landscapeFilename,
-            'portrait_poster'  => $portraitFilename,
-        ]);
-
-        // ── 6. Sync genres into movie_genres ───────────────────
-        if (!empty($validated['genres'])) {
-            $movie->genres()->sync($validated['genres']);
-        }
-
-        // ── 7. Insert CinemaMovieQuota records ─────────────────
-        foreach ($assignments as $assignment) {
-            CinemaMovieQuota::create([
-                'movie_id'         => $movie->movie_id,
-                'cinema_id'        => $assignment['cinema_id'],
-                'supervisor_id'    => $supervisor->supervisor_id,
-                'showtime_slots'   => $assignment['showtime_slots'],
-                'start_date'       => $assignment['start_date'],
-                'maximum_end_date' => $assignment['maximum_end_date'],
+                'movie_name'       => $validated['movie_name'],
+                'runtime'          => $validated['runtime'],
+                'language'         => $validated['language'],
+                'production_name'  => $validated['production_name'],
+                'landscape_poster' => $landscapeFilename,
+                'portrait_poster'  => $portraitFilename,
             ]);
-        }
 
-        // ── 8. Insert Trailer row (if URL provided) ────────────
+            // ── 6. Sync genres into movie_genres ───────────────────
+            if (!empty($validated['genres'])) {
+                $movie->genres()->sync($validated['genres']);
+            }
+
+            // ── 7. Insert CinemaMovieQuota records ─────────────────
+            foreach ($assignments as $assignment) {
+                CinemaMovieQuota::create([
+                    'movie_id'         => $movie->movie_id,
+                    'cinema_id'        => $assignment['cinema_id'],
+                    'supervisor_id'    => $supervisor->supervisor_id,
+                    'showtime_slots'   => $assignment['showtime_slots'],
+                    'start_date'       => $assignment['start_date'],
+                    'maximum_end_date' => $assignment['maximum_end_date'],
+                ]);
+            }
+
+            // ── 8. Insert Trailer and Pricing rows ─────────────────
             $now = now();
             $ticketPriceRows = [];
 
@@ -274,16 +275,53 @@ class AdminMovieController extends Controller
 
             MovieTicketPrice::insert($ticketPriceRows);
 
-        $trailerUrl = trim($validated['trailer_url'] ?? '');
-        if ($trailerUrl !== '') {
-            DB::table('trailers')->insert([
-                'movie_id'    => $movie->movie_id,
-                'youtube_url' => $trailerUrl,
-                'type'        => 'main',
-                'created_at'  => $now,
-                'updated_at'  => $now,
-            ]);
-        }
+            $trailerUrl = trim($validated['trailer_url'] ?? '');
+            if ($trailerUrl !== '') {
+                DB::table('trailers')->insert([
+                    'movie_id'    => $movie->movie_id,
+                    'youtube_url' => $trailerUrl,
+                    'type'        => 'main',
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ]);
+            }
+
+            // ── 9. Notify Branch Managers ──────────────────────────
+            $notificationRows = [];
+            
+            foreach ($assignments as $assignment) {
+                // Find all managers associated with this specific cinema
+                $managerIds = DB::table('branch_managers')
+                    ->where('cinema_id', $assignment['cinema_id'])
+                    ->pluck('manager_id');
+
+                if ($managerIds->isNotEmpty()) {
+                    // Format dates beautifully for the notification
+                    $startFormat = Carbon::parse($assignment['start_date'])->format('d M Y');
+                    $endFormat   = Carbon::parse($assignment['maximum_end_date'])->format('d M Y');
+                    
+                    // Construct the message
+                    $message = "A new movie '{$movie->movie_name}' has been assigned to your cinema branch. You have {$assignment['showtime_slots']} daily showtime slots available between {$startFormat} and {$endFormat}.";
+
+                    // Create a notification for each manager of this cinema
+                    foreach ($managerIds as $managerId) {
+                        $notificationRows[] = [
+                            'manager_id'   => $managerId,
+                            'noti_picture' => $movie->portrait_poster,
+                            'noti_message' => $message,
+                            'tag'          => 'Movie Assigned',
+                            'is_read'      => false,
+                            'created_at'   => $now,
+                            'updated_at'   => $now,
+                        ];
+                    }
+                }
+            }
+
+            // Bulk insert notifications to keep it fast
+            if (!empty($notificationRows)) {
+                DB::table('manager_notifications')->insert($notificationRows);
+            }
 
             return $movie;
         });
