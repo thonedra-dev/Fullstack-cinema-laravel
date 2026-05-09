@@ -69,4 +69,14 @@ class Cinema extends Model
             'movie_id'
         )->withPivot('supervisor_id', 'showtime_slots', 'start_date', 'maximum_end_date');
     }
+
+    public function managers()
+    {
+        return $this->belongsToMany(
+            Manager::class,
+            'branch_managers',
+            'cinema_id',
+            'manager_id'
+        );
+    }
 }
