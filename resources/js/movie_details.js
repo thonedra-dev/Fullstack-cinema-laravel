@@ -187,6 +187,7 @@
                         var url = seatRoute
                             + '?movie_id=' + encodeURIComponent(movieId)
                             + '&cinema_id=' + encodeURIComponent(activeCinema.cinema_id)
+                            + '&hall_id=' + encodeURIComponent(theatre.hall_id || '')
                             + '&theatre_name=' + encodeURIComponent(theatre.name)
                             + '&date=' + encodeURIComponent(dateGroup.date)
                             + '&time=' + encodeURIComponent(time);

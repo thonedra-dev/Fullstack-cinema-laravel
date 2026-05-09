@@ -220,3 +220,195 @@
     .vc-search { width: 100%; }
     .vc-toolbar { flex-direction: column; align-items: flex-start; }
 }
+
+/* ============================================================
+   NEW MODAL STYLES — Place at the bottom of view_cinema.css
+   ============================================================ */
+
+/* The dark blurred background overlay */
+.vc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Ensure hidden state works strictly */
+.vc-modal-overlay.vc-hidden {
+    display: none !important;
+}
+
+/* The actual Modal Window */
+.vc-modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    width: 100%;
+    max-width: 650px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    animation: modalPopIn 0.3s ease-out;
+}
+
+@keyframes modalPopIn {
+    0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.vc-modal__header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.vc-modal__title {
+    font-family: var(--font-heading);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.vc-modal__close {
+    background: transparent;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.vc-modal__close:hover {
+    color: var(--text-primary);
+}
+
+.vc-modal__hint {
+    padding: 16px 24px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Theatre Grid Inside the Modal */
+.vc-modal__grid {
+    padding: 20px 24px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 16px;
+}
+
+/* Individual Selectable Cards */
+.vc-modal__theatre-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    background: var(--bg-surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+/* Hide the actual checkbox square */
+.vc-modal__checkbox {
+    display: none;
+}
+
+/* Hover and Checked states */
+.vc-modal__theatre-card:hover {
+    border-color: rgba(91,106,240, 0.5); /* Subtle accent color */
+}
+
+.vc-modal__theatre-card.is-checked {
+    border-color: var(--accent);
+    background: var(--bg-card);
+    box-shadow: 0 4px 12px rgba(91,106,240, 0.15);
+}
+
+/* Image on top */
+.vc-modal__card-img-wrap {
+    width: 100%;
+    aspect-ratio: 4/5; /* Gives a nice tall poster look */
+    background: var(--bg-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--border);
+}
+
+.vc-modal__card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.vc-modal__card-ph {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* Name on bottom */
+.vc-modal__card-footer {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 40px;
+}
+
+.vc-modal__card-name {
+    font-family: var(--font-heading);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.3;
+}
+
+/* The little checkmark indicator that appears when selected */
+.vc-modal__check-indicator {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.7);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.vc-modal__theatre-card.is-checked .vc-modal__check-indicator {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.vc-modal__actions {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--bg-card);
+}

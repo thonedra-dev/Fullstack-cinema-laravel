@@ -188,7 +188,6 @@
         {{-- ── 04: Supervisor Confirmation ────────────────── --}}
         {{-- Ticket pricing rules --}}
         @php
-            $pricingTheatres = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
             $pricingSeats = [
                 'standard' => 'Standard',
                 'premium' => 'Premium',
@@ -199,6 +198,7 @@
                 'weekday' => 'Weekdays',
                 'weekend' => 'Weekends',
             ];
+            $pricingRuleCount = $pricingTheatres->count() * count($pricingSeats) * count($pricingDays);
         @endphp
         <div class="mc-section mc-section--pricing">
             <div class="mc-section__header">
@@ -214,18 +214,24 @@
 
             <div class="mc-pricing-intro">
                 <div>
-                    <p class="mc-pricing-intro__title">One movie price map, applied to every assigned cinema theatre.</p>
+                    <p class="mc-pricing-intro__title">One movie price map, defined by master theatre type.</p>
                     <p class="mc-pricing-intro__copy">
-                        Fill each theatre type by seat type and day type before the final movie creation submit.
+                        Fill each theatre type by seat type and day type. Cinema branches inherit availability through their halls.
                     </p>
                 </div>
-                <span class="mc-pricing-intro__badge">40 rules</span>
+                <span class="mc-pricing-intro__badge">{{ $pricingRuleCount }} rules</span>
             </div>
 
             <div id="mc-pricing-status" class="mc-pricing-status vc-hidden" role="alert"></div>
 
-            <div class="mc-pricing-grid" id="mc-pricing-grid">
-                @foreach ($pricingTheatres as $theatreName)
+            @if ($pricingTheatres->isEmpty())
+                <div class="at-alert at-alert--error" style="margin-bottom:14px;">
+                    <span class="at-alert__icon">x</span>
+                    Create at least one master theatre type before setting movie prices.
+                </div>
+            @else
+                <div class="mc-pricing-grid" id="mc-pricing-grid">
+                    @foreach ($pricingTheatres as $theatreName)
                     <div class="mc-pricing-card">
                         <div class="mc-pricing-card__top">
                             <span class="mc-pricing-card__eyebrow">Theatre</span>
@@ -262,8 +268,9 @@
                             @endforeach
                         </div>
                     </div>
-                @endforeach
-            </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         <div class="mc-section mc-section--auth">
@@ -447,6 +454,7 @@
         ])->values()
     ) !!};
     window.MC_CINEMAS_OLD = {!! json_encode(old('cinemas_json', '[]')) !!};
+    window.MC_PRICING_THEATRES = {!! json_encode($pricingTheatres->values()) !!};
 </script>
 
 @endsection

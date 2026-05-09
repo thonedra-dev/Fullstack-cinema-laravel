@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cinema;
+use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposal;
@@ -68,12 +69,25 @@ class BranchManagerShowtimeController extends Controller
     ) {
         $cinemaId = $cinema->cinema_id;
 
-        $theatres = Theatre::with(['seats' => function ($q) {
+        $halls = Hall::with(['theatre.seats' => function ($q) {
             $q->orderBy('row_label')->orderBy('seat_number');
         }])
-        ->where('cinema_id', $cinemaId)
-        ->orderBy('theatre_name')
-        ->get();
+            ->where('cinema_id', $cinemaId)
+            ->get();
+
+        $theatres = $halls
+            ->map(function ($hall) {
+                $theatre = $hall->theatre;
+
+                if ($theatre) {
+                    $theatre->setAttribute('hall_id', $hall->hall_id);
+                }
+
+                return $theatre;
+            })
+            ->filter()
+            ->sortBy('theatre_name')
+            ->values();
 
         $assignedMovies = Movie::with('genres')
             ->join('cinema_movie_quotas as cmq', 'movies.movie_id', '=', 'cmq.movie_id')
@@ -82,20 +96,19 @@ class BranchManagerShowtimeController extends Controller
             ->get();
 
         // Existing APPROVED showtimes for client-side conflict preview
-        $existingShowtimes = Showtime::whereIn(
-            'theatre_id',
-            $theatres->pluck('theatre_id')
-        )
-        ->select('showtime_id', 'theatre_id', 'movie_id', 'start_time', 'end_time')
-        ->get()
-        ->map(function ($st) {
-            return [
-                'theatre_id' => $st->theatre_id,
-                'movie_id'   => $st->movie_id,
-                'start'      => $st->start_time->toIso8601String(),
-                'end'        => $st->end_time->toIso8601String(),
-            ];
-        });
+        $existingShowtimes = Showtime::with('hall')
+            ->whereIn('hall_id', $halls->pluck('hall_id'))
+            ->select('showtime_id', 'hall_id', 'movie_id', 'start_time', 'end_time')
+            ->get()
+            ->map(function ($st) {
+                return [
+                    'hall_id'    => $st->hall_id,
+                    'theatre_id' => $st->hall?->theatre_id,
+                    'movie_id'   => $st->movie_id,
+                    'start'      => $st->start_time->toIso8601String(),
+                    'end'        => $st->end_time->toIso8601String(),
+                ];
+            });
 
         $rejectedProposal = null;
 
@@ -111,6 +124,7 @@ class BranchManagerShowtimeController extends Controller
             'cinema',
             'movie',
             'quota',
+            'halls',
             'theatres',
             'assignedMovies',
             'existingShowtimes',
@@ -159,10 +173,17 @@ class BranchManagerShowtimeController extends Controller
         $allInserts   = [];
 
         foreach ($schedule as $theatreEntry) {
+            $hallId = (int) ($theatreEntry['hallId'] ?? 0);
             $theatreId = (int) ($theatreEntry['theatreId'] ?? 0);
-            $theatre   = Theatre::find($theatreId);
 
-            if (!$theatre || (int) $theatre->cinema_id !== $cinemaId) {
+            $hallQuery = Hall::with('theatre')->where('cinema_id', $cinemaId);
+            $hall = $hallId > 0
+                ? $hallQuery->where('hall_id', $hallId)->first()
+                : $hallQuery->where('theatre_id', $theatreId)->first();
+
+            $theatre = $hall?->theatre;
+
+            if (!$hall || !$theatre) {
                 return back()->with('bm_error', 'Invalid theatre in submitted schedule.');
             }
 
@@ -194,7 +215,7 @@ class BranchManagerShowtimeController extends Controller
                     $endDatetime   = $startDatetime->copy()->addMinutes($movie->runtime);
 
                     $conflict = Showtime::with('movie')
-                        ->where('theatre_id', $theatreId)
+                        ->where('hall_id', $hall->hall_id)
                         ->where(function ($q) use ($startDatetime, $endDatetime) {
                             $q->where('start_time', '<', $endDatetime)
                               ->where('end_time',   '>', $startDatetime);
@@ -213,7 +234,8 @@ class BranchManagerShowtimeController extends Controller
                         ];
                     } else {
                         $allInserts[] = [
-                            'theatreId'      => $theatreId,
+                            'hallId'         => $hall->hall_id,
+                            'theatreId'      => $theatre->theatre_id,
                             'start_datetime' => $startDatetime,
                             'end_datetime'   => $endDatetime,
                         ];
@@ -275,7 +297,7 @@ class BranchManagerShowtimeController extends Controller
                 ShowtimeProposal::create([
                     'manager_id'     => $managerId,
                     'cinema_id'      => $cinemaId,
-                    'theatre_id'     => $slot['theatreId'],
+                    'hall_id'        => $slot['hallId'],
                     'movie_id'       => $movieId,
                     'start_datetime' => $slot['start_datetime'],
                     'end_datetime'   => $slot['end_datetime'],
@@ -335,15 +357,25 @@ public function getShowtimesByDate(Request $request)
     if ($r = $this->guard()) return $r;
 
     $cinemaId = (int) session('bm_cinema_id');
-    $date     = $request->input('date');      // YYYY-MM-DD
-    $theatreId = (int) $request->input('theatre_id');
+    $date = $request->input('date');      // YYYY-MM-DD
+    $hallId = (int) $request->input('hall_id', 0);
+    $theatreId = (int) $request->input('theatre_id', 0);
 
-    if (!$date || !$theatreId) {
-        return response()->json(['error' => 'Missing date or theatre_id'], 400);
+    if (!$date || (!$hallId && !$theatreId)) {
+        return response()->json(['error' => 'Missing date and hall_id/theatre_id'], 400);
     }
 
-    // Fetch showtimes for that theatre on that exact date
-    $showtimes = Showtime::where('theatre_id', $theatreId)
+    $hallQuery = Hall::where('cinema_id', $cinemaId);
+    $hall = $hallId > 0
+        ? $hallQuery->where('hall_id', $hallId)->first()
+        : $hallQuery->where('theatre_id', $theatreId)->first();
+
+    if (!$hall) {
+        return response()->json(['error' => 'Invalid hall for this cinema'], 404);
+    }
+
+    // Fetch showtimes for that hall on that exact date.
+    $showtimes = Showtime::where('hall_id', $hall->hall_id)
         ->whereDate('start_time', $date)
         ->with('movie')  // eager load movie relation
         ->orderBy('start_time', 'asc')

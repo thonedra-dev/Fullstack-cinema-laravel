@@ -48,12 +48,13 @@
 
 {{-- ── Pre-compute theatre groups + JSON payload ────────── --}}
 @php
-    $theatreGroups = $groupRows->groupBy('theatre_id');
+    $theatreGroups = $groupRows->groupBy('hall_id');
 
-    $theatresJson = $theatreGroups->map(function ($rows, $theatreId) {
+    $theatresJson = $theatreGroups->map(function ($rows, $hallId) {
         $theatre = $rows->first()?->theatre;
         return [
-            'theatreId'     => $theatreId,
+            'hallId'        => $hallId,
+            'theatreId'     => $theatre?->theatre_id,
             'theatreName'   => $theatre?->theatre_name ?? 'Theatre',
             'theatrePoster' => $theatre?->theatre_poster
                                 ? asset('images/theatres/' . $theatre->theatre_poster)

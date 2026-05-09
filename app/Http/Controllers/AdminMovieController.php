@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminMovieController extends Controller
 {
-    private const PRICING_THEATRES = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
     private const PRICING_SEATS = ['standard', 'premium', 'family', 'couple'];
     private const PRICING_DAYS = ['weekday', 'weekend'];
 
@@ -28,8 +27,11 @@ class AdminMovieController extends Controller
         $cinemas     = Cinema::with('city')->orderBy('cinema_name')->get();
         $supervisors = Supervisor::orderBy('supervisor_name')->get();
         $genres      = Genre::orderBy('genre_name')->get();
+        $pricingTheatres = Theatre::orderBy('theatre_name')
+            ->pluck('theatre_name')
+            ->values();
 
-        return view('admin.movie_creation', compact('cinemas', 'supervisors', 'genres'));
+        return view('admin.movie_creation', compact('cinemas', 'supervisors', 'genres', 'pricingTheatres'));
     }
 
     /**
@@ -126,8 +128,8 @@ class AdminMovieController extends Controller
                 ->withErrors(['cinemas_json' => 'Assign at least one cinema before creating the movie.']);
         }
 
-        // Ticket prices are defined once by theatre type, then applied to the
-        // matching theatre records under every assigned cinema.
+        // Ticket prices are defined once by master theatre type. Halls later
+        // decide which cinemas actually provide each theatre type.
         $ticketPriceRules = [];
         $decodedPrices = json_decode($validated['ticket_prices_json'], true);
 
@@ -136,10 +138,13 @@ class AdminMovieController extends Controller
                 ->withErrors(['ticket_prices_json' => 'Invalid ticket pricing data.']);
         }
 
-        $validTheatreMap = array_combine(
-            array_map(fn ($name) => strtolower($name), self::PRICING_THEATRES),
-            self::PRICING_THEATRES
-        );
+        $masterTheatresByName = Theatre::all()
+            ->keyBy(fn ($theatre) => strtolower(trim($theatre->theatre_name)));
+
+        if ($masterTheatresByName->isEmpty()) {
+            return back()->withInput()
+                ->withErrors(['ticket_prices_json' => 'Create at least one master theatre type before defining ticket prices.']);
+        }
 
         foreach ($decodedPrices as $index => $item) {
             $rowNum = $index + 1;
@@ -148,7 +153,9 @@ class AdminMovieController extends Controller
             $dayType = strtolower(trim((string) ($item['dayType'] ?? '')));
             $price = $item['price'] ?? null;
 
-            if (!isset($validTheatreMap[$theatreKey])) {
+            $masterTheatre = $masterTheatresByName->get($theatreKey);
+
+            if (!$masterTheatre) {
                 return back()->withInput()
                     ->withErrors(['ticket_prices_json' => "Invalid theatre type on ticket price rule #{$rowNum}."]);
             }
@@ -168,7 +175,7 @@ class AdminMovieController extends Controller
                     ->withErrors(['ticket_prices_json' => "Ticket price must be between RM0.01 and RM999999.99 on rule #{$rowNum}."]);
             }
 
-            $theatreName = $validTheatreMap[$theatreKey];
+            $theatreName = $masterTheatre->theatre_name;
             $ruleKey = "{$theatreName}|{$seatType}|{$dayType}";
 
             if (isset($ticketPriceRules[$ruleKey])) {
@@ -178,13 +185,15 @@ class AdminMovieController extends Controller
 
             $ticketPriceRules[$ruleKey] = [
                 'theatre_name' => $theatreName,
+                'theatre_id'   => $masterTheatre->theatre_id,
                 'seat_type'    => $seatType,
                 'day_type'     => $dayType,
                 'price'        => number_format((float) $price, 2, '.', ''),
             ];
         }
 
-        foreach (self::PRICING_THEATRES as $theatreName) {
+        foreach ($masterTheatresByName as $masterTheatre) {
+            $theatreName = $masterTheatre->theatre_name;
             foreach (self::PRICING_SEATS as $seatType) {
                 foreach (self::PRICING_DAYS as $dayType) {
                     $ruleKey = "{$theatreName}|{$seatType}|{$dayType}";
@@ -194,42 +203,6 @@ class AdminMovieController extends Controller
                     }
                 }
             }
-        }
-
-        $selectedCinemaIds = array_values(array_unique(array_column($assignments, 'cinema_id')));
-        $cinemaNames = Cinema::whereIn('cinema_id', $selectedCinemaIds)
-            ->pluck('cinema_name', 'cinema_id');
-        $theatres = Theatre::whereIn('cinema_id', $selectedCinemaIds)->get();
-        $theatresByCinemaAndName = [];
-
-        foreach ($theatres as $theatre) {
-            $theatreKey = strtolower(trim($theatre->theatre_name));
-            if (!isset($validTheatreMap[$theatreKey])) {
-                continue;
-            }
-
-            $mapKey = $theatre->cinema_id . '|' . $validTheatreMap[$theatreKey];
-            $theatresByCinemaAndName[$mapKey] ??= $theatre;
-        }
-
-        $missingTheatres = [];
-        foreach ($selectedCinemaIds as $cinemaId) {
-            foreach (self::PRICING_THEATRES as $theatreName) {
-                $mapKey = $cinemaId . '|' . $theatreName;
-                if (!isset($theatresByCinemaAndName[$mapKey])) {
-                    $missingTheatres[] = $theatreName . ' at ' . ($cinemaNames[$cinemaId] ?? "cinema #{$cinemaId}");
-                }
-            }
-        }
-
-        if (!empty($missingTheatres)) {
-            $shownMissing = array_slice($missingTheatres, 0, 6);
-            $suffix = count($missingTheatres) > 6 ? ' and ' . (count($missingTheatres) - 6) . ' more' : '';
-
-            return back()->withInput()
-                ->withErrors([
-                    'ticket_prices_json' => 'Missing theatre records for pricing: ' . implode(', ', $shownMissing) . $suffix . '.',
-                ]);
         }
 
         // ── 4. Handle poster uploads ───────────────────────────
@@ -255,9 +228,7 @@ class AdminMovieController extends Controller
             $portraitFilename,
             $assignments,
             $supervisor,
-            $ticketPriceRules,
-            $selectedCinemaIds,
-            $theatresByCinemaAndName
+            $ticketPriceRules
         ) {
             $movie = Movie::create([
             'movie_name'       => $validated['movie_name'],
@@ -289,21 +260,16 @@ class AdminMovieController extends Controller
             $now = now();
             $ticketPriceRows = [];
 
-            foreach ($selectedCinemaIds as $cinemaId) {
-                foreach ($ticketPriceRules as $rule) {
-                    $mapKey = $cinemaId . '|' . $rule['theatre_name'];
-                    $theatre = $theatresByCinemaAndName[$mapKey];
-
-                    $ticketPriceRows[] = [
-                        'movie_id'    => $movie->movie_id,
-                        'theatre_id'  => $theatre->theatre_id,
-                        'seat_type'   => $rule['seat_type'],
-                        'day_type'    => $rule['day_type'],
-                        'price'       => $rule['price'],
-                        'created_at'  => $now,
-                        'updated_at'  => $now,
-                    ];
-                }
+            foreach ($ticketPriceRules as $rule) {
+                $ticketPriceRows[] = [
+                    'movie_id'    => $movie->movie_id,
+                    'theatre_id'  => $rule['theatre_id'],
+                    'seat_type'   => $rule['seat_type'],
+                    'day_type'    => $rule['day_type'],
+                    'price'       => $rule['price'],
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ];
             }
 
             MovieTicketPrice::insert($ticketPriceRows);

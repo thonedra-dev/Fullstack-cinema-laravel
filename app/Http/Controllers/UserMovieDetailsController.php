@@ -24,9 +24,12 @@ class UserMovieDetailsController extends Controller
         $showtimeRows = DB::table('showtimes as s')
             ->join('cinemas as c', 's.cinema_id', '=', 'c.cinema_id')
             ->join('cities as ct', 'c.city_id', '=', 'ct.city_id')
-            ->join('theatres as t', 's.theatre_id', '=', 't.theatre_id')
+            ->join('halls as h', 's.hall_id', '=', 'h.hall_id')
+            ->join('theatres as t', 'h.theatre_id', '=', 't.theatre_id')
             ->where('s.movie_id', $movieId)
             ->select(
+                'h.hall_id',
+                't.theatre_id',
                 's.cinema_id',
                 'c.cinema_name',
                 'ct.city_name',
@@ -86,6 +89,8 @@ class UserMovieDetailsController extends Controller
 
             if ($theatreIndex === null) {
                 $theatres[] = [
+                    'hall_id' => $row->hall_id,
+                    'theatre_id' => $row->theatre_id,
                     'name' => $row->theatre_name,
                     'times' => [],
                 ];

@@ -27,12 +27,34 @@ class Cinema extends Model
         return $this->belongsTo(City::class, 'city_id', 'city_id');
     }
 
+    public function halls()
+    {
+        return $this->hasMany(Hall::class, 'cinema_id', 'cinema_id');
+    }
+
     /**
-     * A cinema has many theatres.
+     * A cinema has many theatre types through its halls.
      */
     public function theatres()
     {
-        return $this->hasMany(Theatre::class, 'cinema_id', 'cinema_id');
+        return $this->belongsToMany(
+            Theatre::class,
+            'halls',
+            'cinema_id',
+            'theatre_id'
+        )->withPivot('hall_id');
+    }
+
+    public function showtimes()
+    {
+        return $this->hasManyThrough(
+            Showtime::class,
+            Hall::class,
+            'cinema_id',
+            'hall_id',
+            'cinema_id',
+            'hall_id'
+        );
     }
 
     /**

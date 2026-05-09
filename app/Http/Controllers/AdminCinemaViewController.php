@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Cinema;
 use App\Models\Showtime;
+use App\Models\Theatre;
 
 class AdminCinemaViewController extends Controller
 {
     /**
      * Display all cinemas. Movies section only shows movies with at least
-     * one approved showtime (i.e. entries in the showtimes table for this
-     * cinema's theatres). Pending proposals do NOT appear as movie cards.
+     * one approved showtime. Pending proposals do NOT appear as movie cards.
+     *
+     * Also passes all master theatre types so the "Assign Theatre" modal
+     * in view_cinema.blade.php can filter out already-assigned ones per cinema.
      *
      * GET /admin/cinema
      */
@@ -18,28 +21,31 @@ class AdminCinemaViewController extends Controller
     {
         $cinemas = Cinema::with([
             'city',
-            'theatres',
+            'halls.theatre',
+            'theatres',          // already-assigned theatre types (via halls pivot)
             'movies.genres',
         ])
         ->orderBy('cinema_id', 'desc')
         ->get();
 
-        // For each cinema, filter its movies collection to only those
-        // that have at least one showtime in this cinema's theatres.
+        // Filter each cinema's movies to only those with at least one approved showtime
         $cinemas->each(function ($cinema) {
-            $theatreIds = $cinema->theatres->pluck('theatre_id');
+            $hallIds = $cinema->halls->pluck('hall_id');
 
-            $activeMovieIds = Showtime::whereIn('theatre_id', $theatreIds)
+            $activeMovieIds = Showtime::whereIn('hall_id', $hallIds)
                 ->distinct()
                 ->pluck('movie_id');
 
-            // Replace the relation with the filtered subset — no extra query
             $cinema->setRelation(
                 'movies',
                 $cinema->movies->whereIn('movie_id', $activeMovieIds->toArray())->values()
             );
         });
 
-        return view('admin.view_cinema', compact('cinemas'));
+        // All master theatre types — used in the "Assign Theatre" modal.
+        // The blade filters out already-assigned ones per cinema.
+        $allTheatres = Theatre::orderBy('theatre_name')->get();
+
+        return view('admin.view_cinema', compact('cinemas', 'allTheatres'));
     }
 }

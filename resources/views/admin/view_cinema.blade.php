@@ -3,7 +3,8 @@
     ───────────────────────────────────────────
     Controller: AdminCinemaViewController@index
     Data:
-      $cinemas – Cinema with eager-loaded ->city, ->theatres, ->movies.genres
+      $cinemas     – Cinema with eager-loaded ->city, ->theatres, ->halls, ->movies.genres
+      $allTheatres – All Theatre models (for the "Assign Theatre" modal)
 --}}
 @extends('admin.admin_team')
 
@@ -89,6 +90,14 @@
     </div>
 
     @foreach ($cinemas as $cinema)
+    @php
+        // Theatre IDs already assigned to this cinema (via halls)
+        $assignedTheatreIds = $cinema->theatres->pluck('theatre_id')->toArray();
+
+        // Theatres NOT yet assigned to this cinema
+        $availableTheatres = $allTheatres->whereNotIn('theatre_id', $assignedTheatreIds)->values();
+    @endphp
+
     <div class="vc-detail vc-hidden" id="vc-detail-{{ $cinema->cinema_id }}">
 
         {{-- ── LEFT PANEL ── --}}
@@ -134,15 +143,32 @@
         {{-- ── RIGHT PANEL ── --}}
         <div class="vc-detail__right">
 
-            {{-- Theatres section --}}
-            <div class="vc-detail__section-title">Theatres</div>
+            {{-- ── Theatres section ─────────────────────────── --}}
+            <div class="vc-detail__section-header" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+                <div class="vc-detail__section-title" style="padding-bottom: 0; border-bottom: none;">Theatres</div>
+
+                {{-- Assign Theatre button --}}
+                @if ($availableTheatres->isNotEmpty())
+                    <button
+                        type="button"
+                        class="ac-btn ac-btn--sm ac-btn--secondary vc-assign-theatre-btn"
+                        data-cinema-id="{{ $cinema->cinema_id }}"
+                        data-cinema-name="{{ $cinema->cinema_name }}"
+                        aria-label="Assign a theatre to {{ $cinema->cinema_name }}"
+                    >
+                        ＋ Assign Theatre
+                    </button>
+                @else
+                    <span class="vc-all-assigned-hint" style="font-size: 0.8rem; color: var(--text-muted);">All theatre types assigned ✓</span>
+                @endif
+            </div>
 
             @php $theatres = $cinema->theatres ?? collect(); @endphp
 
             @if ($theatres->isEmpty())
                 <div class="ac-empty" style="padding:30px 0 16px;">
                     <div class="ac-empty__icon">🏟</div>
-                    <p class="ac-empty__text">No theatres added yet.</p>
+                    <p class="ac-empty__text">No theatres assigned yet.</p>
                 </div>
             @else
                 <div class="vc-theatre-grid">
@@ -170,7 +196,7 @@
                 </div>
             @endif
 
-            {{-- Movies section ──────────────────────────── --}}
+            {{-- ── Movies section ────────────────────────────── --}}
             @php $movies = $cinema->movies ?? collect(); @endphp
 
             @if ($movies->isNotEmpty())
@@ -183,7 +209,6 @@
                             class="vc-movie-card"
                             aria-label="View {{ $movie->movie_name }} details"
                         >
-                            {{-- Portrait poster --}}
                             <div class="vc-movie-card__poster-wrap">
                                 @if (!empty($movie->portrait_poster))
                                     <img
@@ -196,11 +221,9 @@
                                 @endif
                             </div>
 
-                            {{-- Card info --}}
                             <div class="vc-movie-card__body">
                                 <p class="vc-movie-card__title">{{ $movie->movie_name }}</p>
 
-                                {{-- Genre chips --}}
                                 @if ($movie->genres->isNotEmpty())
                                     <div class="vc-movie-card__genres">
                                         @foreach ($movie->genres->take(3) as $genre)
@@ -214,7 +237,6 @@
                                     </div>
                                 @endif
 
-                                {{-- Runtime --}}
                                 <p class="vc-movie-card__runtime">
                                     @php
                                         $h = intdiv($movie->runtime, 60);
@@ -223,16 +245,93 @@
                                     {{ $h > 0 ? $h . 'h ' : '' }}{{ $m }}m &middot; {{ $movie->language }}
                                 </p>
                             </div>
-
                         </a>
                     @endforeach
                 </div>
             @endif
 
-            {{-- Reserved --}}
             <div class="vc-detail__reserved" style="margin-top:20px;"></div>
 
         </div>{{-- /.vc-detail__right --}}
+
+        {{-- ══ ASSIGN THEATRE MODAL ════════════════════════════ --}}
+        @if ($availableTheatres->isNotEmpty())
+        <div
+            class="vc-modal-overlay vc-hidden"
+            id="vc-assign-modal-{{ $cinema->cinema_id }}"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Assign Theatre to {{ $cinema->cinema_name }}"
+        >
+            <div class="vc-modal">
+
+                <div class="vc-modal__header">
+                    <h2 class="vc-modal__title">Assign Theatre</h2>
+                    <button
+                        type="button"
+                        class="vc-modal__close vc-assign-modal-close"
+                        data-cinema-id="{{ $cinema->cinema_id }}"
+                        aria-label="Close"
+                    >✕</button>
+                </div>
+
+                <p class="vc-modal__hint">
+                    Select the theatre types you want to assign to <strong>{{ $cinema->cinema_name }}</strong>.
+                </p>
+
+                <form action="{{ route('admin.cinema.halls.store', $cinema->cinema_id) }}" method="POST">
+                    @csrf
+                    
+                    {{-- Changed from list to grid for a better layout --}}
+                    <div class="vc-modal__grid">
+                        @foreach ($availableTheatres as $theatre)
+                            <label
+                                class="vc-modal__theatre-card"
+                                for="modal_theatre_{{ $cinema->cinema_id }}_{{ $theatre->theatre_id }}"
+                            >
+                                <input
+                                    type="checkbox"
+                                    id="modal_theatre_{{ $cinema->cinema_id }}_{{ $theatre->theatre_id }}"
+                                    name="theatre_ids[]"
+                                    value="{{ $theatre->theatre_id }}"
+                                    class="vc-modal__checkbox"
+                                >
+                                
+                                <div class="vc-modal__card-img-wrap">
+                                    @if ($theatre->theatre_poster)
+                                        <img src="{{ asset('images/theatres/' . $theatre->theatre_poster) }}" alt="{{ $theatre->theatre_name }}" class="vc-modal__card-img">
+                                    @elseif ($theatre->theatre_icon)
+                                        <img src="{{ asset('images/theatres/' . $theatre->theatre_icon) }}" alt="{{ $theatre->theatre_name }}" class="vc-modal__card-img">
+                                    @else
+                                        <div class="vc-modal__card-ph">🏟</div>
+                                    @endif
+                                </div>
+                                
+                                <div class="vc-modal__card-footer">
+                                    <span class="vc-modal__card-name">{{ $theatre->theatre_name }}</span>
+                                </div>
+                                
+                                <div class="vc-modal__check-indicator">✓</div>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="vc-modal__actions">
+                        <button
+                            type="button"
+                            class="ac-btn ac-btn--secondary vc-assign-modal-close"
+                            data-cinema-id="{{ $cinema->cinema_id }}"
+                        >Cancel</button>
+                        <button type="submit" class="ac-btn ac-btn--primary">
+                            Assign Selected
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        @endif
+
     </div>{{-- /.vc-detail --}}
     @endforeach
 

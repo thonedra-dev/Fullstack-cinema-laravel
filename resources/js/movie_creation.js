@@ -28,7 +28,9 @@
     var selectedCinemas  = [];   // confirmed assignments
     var pendingSelection = [];   // cinema IDs currently ticked but not yet assigned
 
-    var PRICING_THEATRES = ['Standard', 'Deluxe', '3D Hall', 'VIP lounge', 'IMAX'];
+    var PRICING_THEATRES = Array.isArray(window.MC_PRICING_THEATRES)
+        ? window.MC_PRICING_THEATRES
+        : [];
     var PRICING_SEATS    = ['standard', 'premium', 'family', 'couple'];
     var PRICING_DAYS     = ['weekday', 'weekend'];
 
@@ -497,6 +499,11 @@
         var inputs = Array.prototype.slice.call(document.querySelectorAll('.mc-price-input'));
         var rules = [];
         var firstInvalid = null;
+
+        if (PRICING_THEATRES.length === 0) {
+            if (showErrors) showPricingMessage('Create at least one master theatre type before setting movie prices.');
+            return null;
+        }
 
         inputs.forEach(function (input) {
             input.classList.remove('is-invalid');

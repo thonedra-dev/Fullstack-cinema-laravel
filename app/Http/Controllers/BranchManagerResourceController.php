@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cinema;
+use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Showtime;
-use App\Models\Theatre;
 use Illuminate\Support\Facades\DB;
 
 class BranchManagerResourceController extends Controller
@@ -24,16 +24,29 @@ class BranchManagerResourceController extends Controller
         $cinemaId = session('bm_cinema_id');
         $cinema   = Cinema::findOrFail($cinemaId);
 
-        // Theatres for this cinema
-        $theatres = Theatre::with('seats')
+        // Halls for this cinema; services and seats still belong to the master theatre type.
+        $halls = Hall::with('theatre.seats')
             ->where('cinema_id', $cinemaId)
-            ->orderBy('theatre_name')
             ->get();
 
-        $theatreIds = $theatres->pluck('theatre_id');
+        $theatres = $halls
+            ->map(function ($hall) {
+                $theatre = $hall->theatre;
 
-        // Movie IDs that have at least one showtime in this cinema's theatres
-        $activeMovieIds = Showtime::whereIn('theatre_id', $theatreIds)
+                if ($theatre) {
+                    $theatre->setAttribute('hall_id', $hall->hall_id);
+                }
+
+                return $theatre;
+            })
+            ->filter()
+            ->sortBy('theatre_name')
+            ->values();
+
+        $hallIds = $halls->pluck('hall_id');
+
+        // Movie IDs that have at least one showtime in this cinema's halls.
+        $activeMovieIds = Showtime::whereIn('hall_id', $hallIds)
             ->distinct()
             ->pluck('movie_id');
 
@@ -45,6 +58,6 @@ class BranchManagerResourceController extends Controller
             ->select('movies.*', 'cmq.showtime_slots', 'cmq.start_date', 'cmq.maximum_end_date')
             ->get();
 
-        return view('branch_manager.bm_resources', compact('cinema', 'theatres', 'movies'));
+        return view('branch_manager.bm_resources', compact('cinema', 'halls', 'theatres', 'movies'));
     }
 }

@@ -11,7 +11,7 @@ class UserSeatSelectionController extends Controller
 {
     /**
      * Show the seat selection page.
-     * GET /seats?movie_id=&cinema_id=&theatre_name=&date=&time=
+     * GET /seats?movie_id=&cinema_id=&hall_id=&theatre_name=&date=&time=
      *
      * Finds the theatre by name within the given cinema, then fetches
      * the real seats from the seats table ordered by row_label, seat_number.
@@ -31,6 +31,7 @@ class UserSeatSelectionController extends Controller
     {
         $movieId     = (int) $request->query('movie_id',     0);
         $cinemaId    = (int) $request->query('cinema_id',    0);
+        $hallId      = (int) $request->query('hall_id',      0);
         $theatreName = $request->query('theatre_name',       'DELUXE');
         $date        = $request->query('date',               '');
         $time        = $request->query('time',               '');
@@ -42,20 +43,39 @@ class UserSeatSelectionController extends Controller
         $cinema = DB::table('cinemas')->where('cinema_id', $cinemaId)->first();
 
         // ── Resolve Theatre by name within this cinema ────────
-        $theatre = DB::table('theatres')
-            ->where('cinema_id', $cinemaId)
-            ->whereRaw('LOWER(theatre_name) = ?', [strtolower($theatreName)])
-            ->first();
+        $hall = null;
 
-        // If not found by exact (case-insensitive) match, try partial
-        if (!$theatre) {
-            $theatre = DB::table('theatres')
-                ->where('cinema_id', $cinemaId)
-                ->where('theatre_name', 'ILIKE', '%' . $theatreName . '%')
+        if ($hallId > 0) {
+            $hall = DB::table('halls as h')
+                ->join('theatres as t', 'h.theatre_id', '=', 't.theatre_id')
+                ->where('h.hall_id', $hallId)
+                ->where('h.cinema_id', $cinemaId)
+                ->select('h.hall_id', 'h.theatre_id', 't.theatre_name')
                 ->first();
         }
 
-        $theatreId = $theatre?->theatre_id ?? null;
+        // If not found by exact (case-insensitive) match, try partial
+        if (!$hall) {
+            $hall = DB::table('halls as h')
+                ->join('theatres as t', 'h.theatre_id', '=', 't.theatre_id')
+                ->where('h.cinema_id', $cinemaId)
+                ->whereRaw('LOWER(t.theatre_name) = ?', [strtolower($theatreName)])
+                ->select('h.hall_id', 'h.theatre_id', 't.theatre_name')
+                ->first();
+        }
+
+        if (!$hall) {
+            $hall = DB::table('halls as h')
+                ->join('theatres as t', 'h.theatre_id', '=', 't.theatre_id')
+                ->where('h.cinema_id', $cinemaId)
+                ->whereRaw('LOWER(t.theatre_name) LIKE ?', ['%' . strtolower($theatreName) . '%'])
+                ->select('h.hall_id', 'h.theatre_id', 't.theatre_name')
+                ->first();
+        }
+
+        $hallId = $hall?->hall_id ?? null;
+        $theatreId = $hall?->theatre_id ?? null;
+        $theatreName = $hall?->theatre_name ?? $theatreName;
 
         // ── Fetch Real Seats ──────────────────────────────────
         // Grouped by row_label, ordered by row_label then seat_number
@@ -79,6 +99,8 @@ class UserSeatSelectionController extends Controller
         return view('users.select_seats', compact(
             'movie',
             'cinema',
+            'hall',
+            'hallId',
             'theatreName',
             'theatreId',
             'date',

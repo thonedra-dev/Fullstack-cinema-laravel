@@ -25,6 +25,7 @@ use App\Http\Controllers\UserHomepageController;
 use App\Http\Controllers\UserMovieDetailsController;
 use App\Http\Controllers\UserSeatSelectionController;
 use App\Http\Controllers\BranchManagerTheatreFormationController;
+use App\Http\Controllers\AdminHallController;
 
 /*
 |--------------------------------------------------------------------------
@@ -129,3 +130,6 @@ Route::post('/users/sign-up/start', [ManualSignupController::class, 'start'])->n
 Route::post('/users/sign-up/verify', [ManualSignupController::class, 'verify'])->name('users.signup.verify');
 Route::post('/users/sign-up/resend', [ManualSignupController::class, 'resend'])->name('users.signup.resend');
 Route::post('/users/sign-up/complete', [ManualSignupController::class, 'complete'])->name('users.signup.complete');
+
+Route::post('/admin/cinema/{cinemaId}/halls', [AdminHallController::class, 'store'])
+     ->name('admin.cinema.halls.store');
