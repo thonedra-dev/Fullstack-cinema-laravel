@@ -56,9 +56,11 @@
                 {{-- Body --}}
                 <div class="bmn-card__body">
                     <div class="bmn-card__header">
-                        <span class="bmn-card__tag bmn-card__tag--{{ $noti->tag === 'Showtime Approved' ? 'approved' : 'rejected' }}">
-                            {{ $noti->tag }} 
-                        </span>
+                        <span class="bmn-card__tag bmn-card__tag--{{ 
+    $noti->tag === 'Showtime Approved' ? 'approved' : ($noti->tag === 'Showtime Rejected' ? 'rejected' : 'assigned') 
+}}">
+    {{ $noti->tag }} 
+</span>
                         @if (!$noti->is_read)
                              <span class="bmn-card__unread-dot" title="Unread"></span>
                         @endif

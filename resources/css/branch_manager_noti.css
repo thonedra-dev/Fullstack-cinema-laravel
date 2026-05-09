@@ -116,6 +116,13 @@
     animation: bm-badge-pop 0.3s ease both;
 }
 
+/* Beautiful modern purple/indigo style for assigned movies */
+.bmn-card__tag--assigned {
+    background: rgba(155, 89, 182, 0.15);
+    color: #9b59b6;
+    border: 1px solid rgba(155, 89, 182, 0.3);
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 520px) {
     .bmn-card { gap: 12px; padding: 14px 16px; }
