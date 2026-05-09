@@ -3,15 +3,14 @@
     ───────────────────────────────────────────────
     Feature: Create a reusable master theatre type.
     Controller: AdminTheatreController@create / @store
-    Data injected by controller (logic-free blade):
-      $services     – Collection of Service models {service_id, service_name, service_icon}
-      $seatsJsonOld – old('seats_json') passed through for validation-error restore
+    Data injected by controller:
+      $services – Collection of Service models
+      $cinemas  – All Cinema models (for optional immediate hall assignment)
 --}}
 @extends('admin.admin_team')
 
 @section('page_title', 'Create Theatre')
 
-{{-- Hide the topbar title — inline heading below is sufficient --}}
 @section('hide_topbar_title') @endsection
 
 @section('head_extras')
@@ -27,7 +26,7 @@
 
     <div class="ac-page-header">
         <h1 class="ac-page-header__title">Create a <span>Theatre</span></h1>
-        <p class="ac-page-header__sub">Add a reusable theatre type, attach services and define its universal seat layout.</p>
+        <p class="ac-page-header__sub">Add a reusable theatre type, attach services, define its universal seat layout, and optionally assign it to cinema branches.</p>
     </div>
 
     <div class="ac-card">
@@ -59,7 +58,7 @@
                         id="theatre_name"
                         name="theatre_name"
                         class="ac-input @error('theatre_name') is-invalid @enderror"
-                        placeholder="e.g. Hall 3 — IMAX"
+                        placeholder="e.g. IMAX, DELUXE, 3D"
                         value="{{ old('theatre_name') }}"
                         required
                     >
@@ -151,6 +150,64 @@
                     @endif
                 </div>
 
+                {{-- ── Assign to Cinema Branches ──────────────────────── --}}
+                {{--
+                    Optional step: pick which cinema branches get this theatre type
+                    right now. Creates a hall record (cinema_id + theatre_id) per pick.
+                    Admin can always do this later from the View Cinemas page.
+                --}}
+                <div class="ac-field ac-field--full">
+                    <label>
+                        Assign to Cinema Branches
+                        <span class="optional">(optional — you can do this later from View Cinemas)</span>
+                    </label>
+
+                    @error('cinema_ids')
+                        <span class="ac-error">{{ $message }}</span>
+                    @enderror
+
+                    @if ($cinemas->isEmpty())
+                        <p class="ct-no-services">
+                            No cinema branches exist yet.
+                            <a href="{{ route('admin.cinema.create') }}">Add one first.</a>
+                        </p>
+                    @else
+                        {{-- Search filter --}}
+                        <input
+                            type="text"
+                            id="ct-cinema-search"
+                            class="ac-input ct-cinema-search"
+                            placeholder="🔍 Filter cinemas…"
+                            autocomplete="off"
+                        >
+
+                        <div class="ct-cinema-grid" id="ct-cinema-grid">
+                            @foreach ($cinemas as $cinema)
+                                <label
+                                    class="ct-cinema-chip {{ in_array($cinema->cinema_id, old('cinema_ids', [])) ? 'is-checked' : '' }}"
+                                    for="cinema_{{ $cinema->cinema_id }}"
+                                    data-name="{{ strtolower($cinema->cinema_name) }} {{ strtolower($cinema->city?->city_name ?? '') }}"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="cinema_{{ $cinema->cinema_id }}"
+                                        name="cinema_ids[]"
+                                        value="{{ $cinema->cinema_id }}"
+                                        {{ in_array($cinema->cinema_id, old('cinema_ids', [])) ? 'checked' : '' }}
+                                    >
+                                    <span class="ct-cinema-chip__name">{{ $cinema->cinema_name }}</span>
+                                    <span class="ct-cinema-chip__city">{{ $cinema->city?->city_name ?? '—' }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        {{-- Selected count badge --}}
+                        <p class="ct-cinema-hint" id="ct-cinema-count">
+                            <span id="ct-cinema-count-val">0</span> cinema(s) selected
+                        </p>
+                    @endif
+                </div>
+
                 {{-- Seat Structure summary (shown after builder is used) --}}
                 <div class="ac-field ac-field--full">
                     <label>Seat Structure <span class="optional">(optional — define rows and types)</span></label>
@@ -159,7 +216,6 @@
                         <span class="ac-error">{{ $message }}</span>
                     @enderror
 
-                    {{-- Summary strip — hidden until rows are defined --}}
                     <div id="ct-seats-summary" class="ct-seats-summary vc-hidden"></div>
 
                     <button type="button" id="ct-define-seats-btn" class="ct-select-btn">
@@ -196,13 +252,11 @@
         {{-- ── LEFT: visual preview ── --}}
         <div class="sb-preview-panel">
 
-            {{-- Screen indicator --}}
             <div class="sb-screen-wrap">
                 <div class="sb-screen"></div>
                 <span class="sb-screen-label">SCREEN</span>
             </div>
 
-            {{-- Rows render here by JS --}}
             <div id="sb-preview" class="sb-preview">
                 <p class="sb-preview__empty" id="sb-preview-empty">
                     No rows defined yet. Add a row →
@@ -216,13 +270,11 @@
 
             <div class="sb-builder-card">
 
-                {{-- Next row label badge --}}
                 <div class="sb-next-label-wrap">
                     <span class="sb-next-label-text">Next row:</span>
                     <span class="sb-next-label-badge" id="sb-next-label">A</span>
                 </div>
 
-                {{-- Seat count --}}
                 <div class="ac-field">
                     <label for="sb-seat-count">Number of Seats <span class="required">*</span></label>
                     <input
@@ -236,7 +288,6 @@
                     <span class="sb-count-hint" id="sb-count-hint"></span>
                 </div>
 
-                {{-- Seat type — styled radio cards --}}
                 <div class="ac-field">
                     <label>Seat Type <span class="required">*</span></label>
                     <div class="sb-type-grid">
@@ -277,13 +328,11 @@
                     </div>
                 </div>
 
-                {{-- Live mini-preview of the row being built --}}
                 <div class="sb-row-preview" id="sb-row-preview">
                     <span class="sb-row-preview__label">Preview</span>
                     <div class="sb-row-preview__seats" id="sb-row-preview-seats"></div>
                 </div>
 
-                {{-- Actions --}}
                 <div class="sb-builder-actions">
                     <button type="button" id="sb-add-row-btn" class="ac-btn ac-btn--primary">
                         ＋ Add Row
@@ -293,12 +342,10 @@
                     </button>
                 </div>
 
-                {{-- Error message --}}
                 <p class="sb-error vc-hidden" id="sb-error"></p>
 
             </div>{{-- /.sb-builder-card --}}
 
-            {{-- Seat type legend --}}
             <div class="sb-legend">
                 <div class="sb-legend__item">
                     <span class="sb-seat sb-seat--standard"></span> Standard
@@ -318,7 +365,6 @@
 
     </div>{{-- /.sb-layout --}}
 
-    {{-- Finalize button --}}
     <div class="sb-finalize-bar">
         <div class="sb-finalize-summary" id="sb-finalize-summary"></div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;">

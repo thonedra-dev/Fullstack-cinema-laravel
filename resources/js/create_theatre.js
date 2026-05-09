@@ -11,6 +11,7 @@
  *   6. Seat summary strip in main form
  *   7. File upload previews
  *   8. Service chip visual toggle
+ *   9. Cinema assignment chip toggle + search filter + count badge
  */
 
 (function () {
@@ -18,7 +19,6 @@
 
     /* ================================================================
        SEAT TYPE CONFIG
-       Single source of truth for type metadata used in rendering.
     ================================================================ */
     var SEAT_TYPES = {
         Standard: { cls: 'sb-seat--standard', size: 'sm', pairGap: false },
@@ -43,7 +43,7 @@
     }
 
     /* ================================================================
-       BUILD A SINGLE SEAT ICON ELEMENT
+       SEAT ICON ELEMENT
     ================================================================ */
     function makeSeatEl(type) {
         var cfg  = SEAT_TYPES[type] || SEAT_TYPES.Standard;
@@ -52,16 +52,11 @@
         return span;
     }
 
-    /* ================================================================
-       RENDER A ROW OF SEAT ICONS
-       Returns a DocumentFragment ready to append.
-    ================================================================ */
     function buildRowSeats(count, type) {
         var cfg  = SEAT_TYPES[type] || SEAT_TYPES.Standard;
         var frag = document.createDocumentFragment();
 
         if (cfg.pairGap) {
-            // Couple: render in adjacent pairs with a gap between pairs
             for (var i = 0; i < count; i++) {
                 frag.appendChild(makeSeatEl(type));
                 if ((i + 1) % 2 === 0 && i + 1 < count) {
@@ -103,18 +98,11 @@
 
         if (!openBtn) return;
 
-        var rows = []; // [{label, count, type}]
+        var rows = [];
 
-        // ── Open / close seat builder ──────────────────────────────
-        openBtn.addEventListener('click', function () {
-            switchView('ct-seat-builder-view');
-        });
+        openBtn.addEventListener('click', function () { switchView('ct-seat-builder-view'); });
+        backBtn.addEventListener('click', function ()  { switchView('ct-form-view'); });
 
-        backBtn.addEventListener('click', function () {
-            switchView('ct-form-view');
-        });
-
-        // ── Type radio card selection ──────────────────────────────
         document.querySelectorAll('.sb-type-card').forEach(function (card) {
             card.addEventListener('click', function () {
                 document.querySelectorAll('.sb-type-card').forEach(function (c) {
@@ -126,32 +114,18 @@
             });
         });
 
-        // ── Live row preview as user types count ───────────────────
         countInput.addEventListener('input', updateRowPreview);
 
-        // ── Add row ────────────────────────────────────────────────
         addBtn.addEventListener('click', function () {
             var count = parseInt(countInput.value, 10);
             var type  = getSelectedType();
 
             hide(errorEl);
 
-            if (!type) {
-                showError('Please select a seat type.');
-                return;
-            }
-            if (!count || count < 1 || count > 40) {
-                showError('Enter a seat count between 1 and 40.');
-                return;
-            }
-            if (type === 'Couple' && count % 2 !== 0) {
-                showError('Couple seats must be an even number (they come in pairs).');
-                return;
-            }
-            if (rows.length >= 26) {
-                showError('Maximum 26 rows (A–Z) allowed.');
-                return;
-            }
+            if (!type)                             { showError('Please select a seat type.');                               return; }
+            if (!count || count < 1 || count > 40) { showError('Enter a seat count between 1 and 40.');                    return; }
+            if (type === 'Couple' && count % 2 !== 0) { showError('Couple seats must be an even number (they come in pairs).'); return; }
+            if (rows.length >= 26)                 { showError('Maximum 26 rows (A–Z) allowed.');                          return; }
 
             rows.push({ label: getNextLabel(), count: count, type: type });
             countInput.value = '';
@@ -165,7 +139,6 @@
             syncHidden();
         });
 
-        // ── Undo last row ──────────────────────────────────────────
         undoBtn.addEventListener('click', function () {
             if (rows.length === 0) return;
             rows.pop();
@@ -175,7 +148,6 @@
             syncHidden();
         });
 
-        // ── Clear all ──────────────────────────────────────────────
         clearBtn.addEventListener('click', function () {
             if (rows.length === 0) return;
             if (!confirm('Clear all defined rows?')) return;
@@ -186,17 +158,15 @@
             syncHidden();
         });
 
-        // ── Finalize and return to form ────────────────────────────
         finalizeBtn.addEventListener('click', function () {
             syncHidden();
             renderSummaryStrip();
             switchView('ct-form-view');
         });
 
-        // ── Helpers ────────────────────────────────────────────────
         function getNextLabel() {
             if (rows.length === 0) return 'A';
-            return String.fromCharCode(65 + rows.length); // A=65
+            return String.fromCharCode(65 + rows.length);
         }
 
         function updateNextLabel() {
@@ -215,16 +185,12 @@
 
         function updateCountHint() {
             var type = getSelectedType();
-            if (type === 'Couple') {
-                countHint.textContent = 'Must be even — each pair counts as 2 seats.';
-            } else {
-                countHint.textContent = '';
-            }
+            countHint.textContent = (type === 'Couple')
+                ? 'Must be even — each pair counts as 2 seats.'
+                : '';
         }
 
-        // Render the full seat layout preview
         function renderPreview() {
-            // Remove all existing row elements (not the empty message)
             preview.querySelectorAll('.sb-row').forEach(function (el) { el.remove(); });
 
             if (rows.length === 0) {
@@ -256,28 +222,23 @@
                 preview.appendChild(rowEl);
             });
 
-            // Update finalize summary
             var total = rows.reduce(function (acc, r) { return acc + r.count; }, 0);
             summaryEl.textContent = rows.length + ' row(s) · ' + total + ' seat(s) defined';
         }
 
-        // Live mini-preview in builder panel
         function updateRowPreview() {
             var count = parseInt(countInput.value, 10) || 0;
             var type  = getSelectedType();
             rowPreview.innerHTML = '';
             if (count > 0 && count <= 40 && type) {
-                var frag = buildRowSeats(Math.min(count, 40), type);
-                rowPreview.appendChild(frag);
+                rowPreview.appendChild(buildRowSeats(Math.min(count, 40), type));
             }
         }
 
-        // Write rows array to hidden input
         function syncHidden() {
             if (hiddenInput) hiddenInput.value = JSON.stringify(rows);
         }
 
-        // Render the compact summary strip in the main form
         function renderSummaryStrip() {
             if (!seatsSum) return;
             if (rows.length === 0) {
@@ -304,25 +265,22 @@
             defineBtn.textContent = '✎  Edit Seat Structure';
         }
 
-        // ── Restore rows from CT_SEATS_JSON (validation error) ─────
         function restoreFromJson() {
             var raw = window.CT_SEATS_JSON || '[]';
             var parsed;
             try { parsed = JSON.parse(raw); } catch (e) { return; }
             if (!Array.isArray(parsed) || parsed.length === 0) return;
-
             rows = parsed;
             renderPreview();
             updateNextLabel();
             renderSummaryStrip();
         }
 
-        // Run restore on init
         restoreFromJson();
     }
 
     /* ================================================================
-       10. FILE UPLOAD PREVIEWS
+       FILE UPLOAD PREVIEWS
     ================================================================ */
     function initFilePreview(inputId, previewId) {
         var el = document.getElementById(inputId);
@@ -335,7 +293,7 @@
     }
 
     /* ================================================================
-       11. SERVICE CHIP TOGGLE
+       SERVICE CHIP TOGGLE
     ================================================================ */
     function initServiceChips() {
         document.querySelectorAll('.ct-service-chip').forEach(function (chip) {
@@ -350,6 +308,51 @@
     }
 
     /* ================================================================
+       CINEMA ASSIGNMENT — chip toggle + search filter + count badge
+       Mirrors the service chip pattern but also keeps a live count.
+    ================================================================ */
+    function initCinemaChips() {
+        var grid      = document.getElementById('ct-cinema-grid');
+        var search    = document.getElementById('ct-cinema-search');
+        var countVal  = document.getElementById('ct-cinema-count-val');
+
+        if (!grid) return;
+
+        // Toggle visual state when checkbox changes
+        grid.querySelectorAll('.ct-cinema-chip').forEach(function (chip) {
+            var cb = chip.querySelector('input[type="checkbox"]');
+            if (!cb) return;
+
+            chip.addEventListener('click', function () {
+                setTimeout(function () {
+                    chip.classList.toggle('is-checked', cb.checked);
+                    updateCinemaCount();
+                }, 0);
+            });
+        });
+
+        // Search filter
+        if (search) {
+            search.addEventListener('input', function () {
+                var q = this.value.toLowerCase().trim();
+                grid.querySelectorAll('.ct-cinema-chip').forEach(function (chip) {
+                    var name = (chip.dataset.name || '').toLowerCase();
+                    chip.style.display = (!q || name.includes(q)) ? '' : 'none';
+                });
+            });
+        }
+
+        // Initial count (handles old() restore on validation error)
+        updateCinemaCount();
+
+        function updateCinemaCount() {
+            if (!countVal) return;
+            var checked = grid.querySelectorAll('input[type="checkbox"]:checked').length;
+            countVal.textContent = checked;
+        }
+    }
+
+    /* ================================================================
        INIT
     ================================================================ */
     document.addEventListener('DOMContentLoaded', function () {
@@ -357,6 +360,7 @@
         initFilePreview('theatre_icon',   'theatre_icon_preview');
         initFilePreview('theatre_poster', 'theatre_poster_preview');
         initServiceChips();
+        initCinemaChips();
     });
 
 })();
