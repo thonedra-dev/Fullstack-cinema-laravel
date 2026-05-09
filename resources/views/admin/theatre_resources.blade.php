@@ -1,10 +1,10 @@
 {{--
-    resources/views/admin/edit_cinema_theatre_resources.blade.php
+    resources/views/admin/theatre_resources.blade.php
     ──────────────────────────────────────────────────────────────
-    Feature: View the seat layout of a specific theatre.
+    Feature: View the universal seat layout of a master theatre type.
     Controller: AdminTheatreResourceController@show
     Data injected by controller (logic-free blade):
-      $theatre    – Theatre model with eager-loaded ->cinema->city and ->seats
+      $theatre    – Theatre model with eager-loaded ->seats
       $seatsByRow – $theatre->seats grouped by row_label (Collection keyed by label)
 
     View-only page. No JS interaction. No editing.
@@ -26,7 +26,7 @@
     </a>
     <span class="etr-breadcrumb__sep">›</span>
     <span class="etr-breadcrumb__item etr-breadcrumb__item--cinema">
-        {{ $theatre->cinema->cinema_name ?? '—' }}
+        Master Theatre Types
     </span>
     <span class="etr-breadcrumb__sep">›</span>
     <span class="etr-breadcrumb__item etr-breadcrumb__item--current">
@@ -41,11 +41,7 @@
             {{ $theatre->theatre_name }} <span>Seat Layout</span>
         </h1>
         <p class="ac-page-header__sub">
-            {{ $theatre->cinema->cinema_name ?? '—' }}
-            @if ($theatre->cinema?->city)
-                &middot; {{ $theatre->cinema->city->city_name }},
-                {{ $theatre->cinema->city->city_state }}
-            @endif
+            Universal layout shared by every hall that uses this theatre type.
         </p>
     </div>
 
