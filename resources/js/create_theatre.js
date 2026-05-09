@@ -3,17 +3,14 @@
  * Place at: resources/js/create_theatre.js
  *
  * Responsibilities:
- *   1. Form ↔ Cinema-selection ↔ Seat-builder view switching
- *   2. Cinema card click → confirmation modal
- *   3. Modal confirm → fill cinema_id, display name
- *   4. Restore cinema name on validation error
- *   5. Seat builder — row management (add / undo / clear)
- *   6. Seat builder — live preview rendering with typed icons
- *   7. Seat builder — serialize rows to hidden seats_json input
- *   8. Restore seat rows from CT_SEATS_JSON on validation error
- *   9. Seat summary strip in main form
- *  10. File upload previews
- *  11. Service chip visual toggle
+ *   1. Form <-> Seat-builder view switching
+ *   2. Seat builder - row management (add / undo / clear)
+ *   3. Seat builder - live preview rendering with typed icons
+ *   4. Seat builder - serialize rows to hidden seats_json input
+ *   5. Restore seat rows from CT_SEATS_JSON on validation error
+ *   6. Seat summary strip in main form
+ *   7. File upload previews
+ *   8. Service chip visual toggle
  */
 
 (function () {
@@ -37,7 +34,7 @@
     function hide(el) { if (el) el.classList.add('vc-hidden');    }
 
     function switchView(showId) {
-        ['ct-form-view', 'ct-selection-view', 'ct-seat-builder-view'].forEach(function (id) {
+        ['ct-form-view', 'ct-seat-builder-view'].forEach(function (id) {
             var el = document.getElementById(id);
             if (!el) return;
             id === showId ? show(el) : hide(el);
@@ -83,114 +80,7 @@
     }
 
     /* ================================================================
-       1. VIEW SWITCHING — CINEMA SELECTION
-    ================================================================ */
-    function initCinemaSelection() {
-        var selectBtn    = document.getElementById('ct-select-cinema-btn');
-        var backBtn      = document.getElementById('ct-selection-back');
-        var modal        = document.getElementById('ct-confirm-modal');
-        var modalImg     = document.getElementById('ct-modal-img');
-        var modalImgPH   = document.getElementById('ct-modal-img-placeholder');
-        var modalName    = document.getElementById('ct-modal-name');
-        var modalConfirm = document.getElementById('ct-modal-confirm');
-        var modalCancel  = document.getElementById('ct-modal-cancel');
-        var idInput      = document.getElementById('ct-cinema-id-input');
-        var display      = document.getElementById('ct-selected-cinema-display');
-        var displayName  = document.getElementById('ct-selected-cinema-name');
-
-        if (!selectBtn) return;
-
-        var pendingId   = null;
-        var pendingName = null;
-
-        selectBtn.addEventListener('click', function () {
-            switchView('ct-selection-view');
-        });
-
-        backBtn.addEventListener('click', function () {
-            switchView('ct-form-view');
-        });
-
-        // Delegate: cinema card click in selection view
-        var selView = document.getElementById('ct-selection-view');
-        selView.addEventListener('click', function (e) {
-            var card = e.target.closest('.ct-selectable-card');
-            if (!card) return;
-            pendingId   = card.dataset.cinemaId;
-            pendingName = card.dataset.cinemaName;
-            populateModal(pendingName, card.dataset.cinemaImg);
-            show(modal);
-        });
-
-        selView.addEventListener('keydown', function (e) {
-            if (e.key !== 'Enter' && e.key !== ' ') return;
-            var card = e.target.closest('.ct-selectable-card');
-            if (!card) return;
-            e.preventDefault();
-            pendingId   = card.dataset.cinemaId;
-            pendingName = card.dataset.cinemaName;
-            populateModal(pendingName, card.dataset.cinemaImg);
-            show(modal);
-        });
-
-        modalConfirm.addEventListener('click', function () {
-            idInput.value        = pendingId;
-            displayName.textContent = pendingName;
-            show(display);
-            selectBtn.textContent = '✎  Change Cinema';
-            closeModal();
-            switchView('ct-form-view');
-        });
-
-        modalCancel.addEventListener('click', closeModal);
-        modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !modal.classList.contains('vc-hidden')) closeModal();
-        });
-
-        function populateModal(name, imgSrc) {
-            modalName.textContent = name;
-            if (imgSrc) {
-                modalImg.src = imgSrc;
-                modalImg.alt = name;
-                show(modalImg);
-                hide(modalImgPH);
-            } else {
-                hide(modalImg);
-                show(modalImgPH);
-            }
-        }
-
-        function closeModal() {
-            hide(modal);
-            pendingId = pendingName = null;
-        }
-    }
-
-    /* ================================================================
-       4. RESTORE CINEMA DISPLAY ON VALIDATION ERROR
-    ================================================================ */
-    function restoreCinemaDisplay() {
-        var idInput     = document.getElementById('ct-cinema-id-input');
-        var display     = document.getElementById('ct-selected-cinema-display');
-        var displayName = document.getElementById('ct-selected-cinema-name');
-        var selectBtn   = document.getElementById('ct-select-cinema-btn');
-
-        if (!idInput || !idInput.value) return;
-
-        var match = (window.CT_CINEMAS || []).find(function (c) {
-            return String(c.id) === String(idInput.value);
-        });
-
-        if (match) {
-            displayName.textContent = match.name;
-            show(display);
-            if (selectBtn) selectBtn.textContent = '✎  Change Cinema';
-        }
-    }
-
-    /* ================================================================
-       5–9. SEAT BUILDER
+       SEAT BUILDER
     ================================================================ */
     function initSeatBuilder() {
         var openBtn     = document.getElementById('ct-define-seats-btn');
@@ -463,8 +353,6 @@
        INIT
     ================================================================ */
     document.addEventListener('DOMContentLoaded', function () {
-        initCinemaSelection();
-        restoreCinemaDisplay();
         initSeatBuilder();
         initFilePreview('theatre_icon',   'theatre_icon_preview');
         initFilePreview('theatre_poster', 'theatre_poster_preview');

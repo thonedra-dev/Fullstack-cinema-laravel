@@ -1,10 +1,9 @@
 {{--
     resources/views/admin/create_theatre.blade.php
     ───────────────────────────────────────────────
-    Feature: Create a new theatre inside an existing cinema.
+    Feature: Create a reusable master theatre type.
     Controller: AdminTheatreController@create / @store
     Data injected by controller (logic-free blade):
-      $cinemas      – Collection of Cinema models {cinema_id, cinema_name, cinema_picture, ->city}
       $services     – Collection of Service models {service_id, service_name, service_icon}
       $seatsJsonOld – old('seats_json') passed through for validation-error restore
 --}}
@@ -28,7 +27,7 @@
 
     <div class="ac-page-header">
         <h1 class="ac-page-header__title">Create a <span>Theatre</span></h1>
-        <p class="ac-page-header__sub">Add a new screen/hall, attach services and define its seat layout.</p>
+        <p class="ac-page-header__sub">Add a reusable theatre type, attach services and define its universal seat layout.</p>
     </div>
 
     <div class="ac-card">
@@ -65,34 +64,6 @@
                         required
                     >
                     @error('theatre_name')
-                        <span class="ac-error">{{ $message }}</span>
-                    @enderror
-                </div>
-
-                {{-- Cinema selector --}}
-                <div class="ac-field ac-field--full">
-                    <label>Cinema <span class="required">*</span></label>
-
-                    <input
-                        type="hidden"
-                        id="ct-cinema-id-input"
-                        name="cinema_id"
-                        value="{{ old('cinema_id') }}"
-                    >
-
-                    <div
-                        id="ct-selected-cinema-display"
-                        class="ct-selected-display {{ old('cinema_id') ? '' : 'vc-hidden' }}"
-                    >
-                        <span class="ct-selected-display__name" id="ct-selected-cinema-name"></span>
-                        <span class="ct-selected-display__hint">Selected cinema</span>
-                    </div>
-
-                    <button type="button" id="ct-select-cinema-btn" class="ct-select-btn">
-                        🎬 Select Cinema
-                    </button>
-
-                    @error('cinema_id')
                         <span class="ac-error">{{ $message }}</span>
                     @enderror
                 </div>
@@ -211,60 +182,7 @@
 
 
 {{-- ══════════════════════════════════════════════════════════
-     VIEW 2 — CINEMA SELECTION  (hidden by default)
-══════════════════════════════════════════════════════════ --}}
-<div id="ct-selection-view" class="vc-hidden">
-
-    <div class="vc-detail-header">
-        <button class="vc-back-btn" id="ct-selection-back" type="button">← Back to Form</button>
-        <span class="ct-selection-title">Choose a Cinema</span>
-    </div>
-
-    @if ($cinemas->isEmpty())
-        <div class="ac-empty">
-            <div class="ac-empty__icon">🎬</div>
-            <p class="ac-empty__text">
-                No cinemas available.
-                <a href="{{ route('admin.cinema.create') }}">Add one first.</a>
-            </p>
-        </div>
-    @else
-        <div class="vc-card-grid">
-            @foreach ($cinemas as $cinema)
-                <div
-                    class="vc-card ct-selectable-card"
-                    data-cinema-id="{{ $cinema->cinema_id }}"
-                    data-cinema-name="{{ $cinema->cinema_name }}"
-                    data-cinema-img="{{ $cinema->cinema_picture ? asset('images/cinemas/' . $cinema->cinema_picture) : '' }}"
-                    tabindex="0"
-                    role="button"
-                    aria-label="Select {{ $cinema->cinema_name }}"
-                >
-                    <div class="vc-card__img-wrap">
-                        @if ($cinema->cinema_picture)
-                            <img src="{{ asset('images/cinemas/' . $cinema->cinema_picture) }}"
-                                 alt="{{ $cinema->cinema_name }}" class="vc-card__img">
-                        @else
-                            <div class="vc-card__img-placeholder">🎬</div>
-                        @endif
-                    </div>
-                    <div class="vc-card__body">
-                        <span class="vc-card__name">{{ $cinema->cinema_name }}</span>
-                        <div class="vc-card__location">
-                            <span class="vc-card__city">{{ $cinema->city?->city_name ?? '—' }}</span>
-                            <span class="vc-card__state">{{ $cinema->city?->city_state ?? '—' }}</span>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @endif
-
-</div>{{-- /#ct-selection-view --}}
-
-
-{{-- ══════════════════════════════════════════════════════════
-     VIEW 3 — SEAT BUILDER  (hidden by default)
+     VIEW 2 — SEAT BUILDER  (hidden by default)
 ══════════════════════════════════════════════════════════ --}}
 <div id="ct-seat-builder-view" class="vc-hidden">
 
@@ -414,33 +332,8 @@
 </div>{{-- /#ct-seat-builder-view --}}
 
 
-{{-- ══════════════════════════════════════════════════════════
-     CONFIRMATION MODAL
-══════════════════════════════════════════════════════════ --}}
-<div id="ct-confirm-modal" class="ct-modal-overlay vc-hidden"
-     role="dialog" aria-modal="true" aria-labelledby="ct-modal-title">
-    <div class="ct-modal">
-        <img id="ct-modal-img" class="ct-modal__img vc-hidden" alt="">
-        <div id="ct-modal-img-placeholder" class="ct-modal__img-placeholder">🎬</div>
-        <p class="ct-modal__question" id="ct-modal-title">
-            Use <strong id="ct-modal-name"></strong>?
-        </p>
-        <div class="ct-modal__actions">
-            <button type="button" id="ct-modal-confirm" class="ac-btn ac-btn--primary">
-                Yes, use this
-            </button>
-            <button type="button" id="ct-modal-cancel" class="ct-modal__cancel">
-                No, go back
-            </button>
-        </div>
-    </div>
-</div>
-
 {{-- Inline JSON for JS restore on validation error --}}
 <script>
-    window.CT_CINEMAS    = {!! json_encode(
-        $cinemas->map(fn($c) => ['id' => $c->cinema_id, 'name' => $c->cinema_name])->values()
-    ) !!};
     window.CT_SEATS_JSON = {!! json_encode(old('seats_json', '[]')) !!};
 </script>
 
