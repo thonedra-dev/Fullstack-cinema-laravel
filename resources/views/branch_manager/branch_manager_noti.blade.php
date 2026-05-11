@@ -4,15 +4,14 @@
     Branch manager notification centre.
     Controller: BranchManagerNotificationController@index
     Data:
-      $notifications – Collection of manager_notifications rows
-                       (noti_id, manager_id, noti_picture, noti_message, tag, created_at)
+      $notifications – Collection of manager_notifications rows with eager-loaded movie_id
 --}}
 @extends('branch_manager.branch_manager_layout')
 
 @section('bm_page_title', 'Notifications')
 
 @section('bm_head_extras')
-    @vite(['resources/css/branch_manager_noti.css'])
+    @vite(['resources/css/branch_manager_noti.css', 'resources/js/branch_manager_noti.js'])
 @endsection
 
 @section('bm_content')
@@ -38,9 +37,11 @@
 
     <div class="bmn-list">
         @foreach ($notifications as $noti)
-            <div class="bmn-card">
-
-                {{-- Poster thumbnail --}}
+            <div class="bmn-card" 
+                 data-movie-id="{{ $noti->movie_id }}" 
+                 data-tag="{{ $noti->tag }}">
+                
+                {{-- Picture --}}
                 <div class="bmn-card__thumb">
                     @if (!empty($noti->noti_picture))
                         <img
@@ -57,10 +58,10 @@
                 <div class="bmn-card__body">
                     <div class="bmn-card__header">
                         <span class="bmn-card__tag bmn-card__tag--{{ 
-    $noti->tag === 'Showtime Approved' ? 'approved' : ($noti->tag === 'Showtime Rejected' ? 'rejected' : 'assigned') 
-}}">
-    {{ $noti->tag }} 
-</span>
+                            $noti->tag === 'Showtime Approved' ? 'approved' : ($noti->tag === 'Showtime Rejected' ? 'rejected' : 'assigned') 
+                        }}">
+                            {{ $noti->tag }} 
+                        </span>
                         @if (!$noti->is_read)
                              <span class="bmn-card__unread-dot" title="Unread"></span>
                         @endif
