@@ -1,112 +1,130 @@
 {{--
     resources/views/branch_manager/manager_login.blade.php
     ───────────────────────────────────────────────────────
-    Branch Manager login page. Standalone — no layout shell.
+    Branch Manager login. Standalone — no layout shell.
+    Full-page split: slideshow left / form right.
     Controller: BranchManagerAuthController@showLogin / @login
+    Data: $slides – array of absolute image URLs (landscape movie posters)
 --}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Branch Manager Login</title>
-    @vite(['resources/css/branch_manager.css'])
-    <style>
-        /* Login-specific centering — not needed in shared layout */
-        .bm-login-wrap {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px;
-        }
-
-        .bm-login-card {
-            width: 100%;
-            max-width: 380px;
-            padding: 36px 32px;
-        }
-
-        .bm-login-brand {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .bm-login-brand__icon { font-size: 2.4rem; line-height: 1; }
-
-        .bm-login-brand__title {
-            font-family: var(--bm-font-head);
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--bm-text);
-            margin-top: 10px;
-            letter-spacing: -0.02em;
-        }
-
-        .bm-login-brand__sub {
-            font-size: 0.78rem;
-            color: var(--bm-text-muted);
-            margin-top: 4px;
-        }
-    </style>
+    <title>Branch Manager Login | CinemaX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    @vite(['resources/css/manager_login.css', 'resources/js/manager_login.js'])
 </head>
-<body class="bm-body">
+<body class="ml-body">
 
-<div class="bm-login-wrap">
-    <div class="bm-card bm-login-card">
+{{-- ── Particles ───────────────────────────────────────── --}}
+<div class="ml-particles" id="ml-particles" aria-hidden="true"></div>
 
-        {{-- Brand --}}
-        <div class="bm-login-brand">
-            <div class="bm-login-brand__icon">🏢</div>
-            <p class="bm-login-brand__title">Branch Manager</p>
-            <p class="bm-login-brand__sub">Cinema Management Portal</p>
-        </div>
+<main class="ml-shell">
+    <section class="ml-card" aria-label="Branch Manager login">
 
-        {{-- Error --}}
-        @if (session('bm_login_error'))
-            <div class="bm-alert bm-alert--error" style="margin-bottom:20px;">
-                <span>✕</span> {{ session('bm_login_error') }}
-            </div>
-        @endif
+        {{-- ══ LEFT — slideshow panel ══════════════════════════ --}}
+        <div class="ml-cinema-strip">
 
-        {{-- Login form --}}
-        <form action="{{ route('manager.login.post') }}" method="POST" novalidate>
-            @csrf
-
-            <div class="bm-field">
-                <label for="manager_email">Email <span class="required">*</span></label>
-                <input
-                    type="email"
-                    id="manager_email"
-                    name="manager_email"
-                    class="bm-input"
-                    placeholder="you@example.com"
-                    value="{{ old('manager_email') }}"
-                    required
-                    autocomplete="email"
-                >
+            {{-- Slides --}}
+            <div class="ml-slides" id="ml-slides">
+                @forelse ($slides as $index => $slide)
+                    <img
+                        src="{{ $slide }}"
+                        alt=""
+                        class="ml-slide {{ $index === 0 ? 'ml-slide--active' : '' }}"
+                        loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                    >
+                @empty
+                    <div class="ml-slide-fallback">
+                        <span class="ml-slide-fallback__mark"></span>
+                    </div>
+                @endforelse
             </div>
 
-            <div class="bm-field" style="margin-bottom:24px;">
-                <label for="password">Password <span class="required">*</span></label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="bm-input"
-                    placeholder="Your password"
-                    required
-                    autocomplete="current-password"
-                >
+            {{-- Scan line FX --}}
+            <div class="ml-slide-scan" id="ml-slide-scan"></div>
+
+            {{-- Brand — pinned top-left, always visible over slides --}}
+            <div class="ml-strip-brand">
+                <div class="ml-strip-brand__icon">🎬</div>
+                <div>
+                    <p class="ml-strip-brand__name">Branch Manager</p>
+                    <p class="ml-strip-brand__sub">Cinema Management Portal</p>
+                </div>
             </div>
 
-            <button type="submit" class="bm-btn bm-btn--primary">
-                🔑 Sign In
-            </button>
-        </form>
+            {{-- Caption — bottom-left --}}
+            <div class="ml-strip-caption">
+                <span>Tonight's reel</span>
+                <strong>Changes frame by frame</strong>
+            </div>
 
-    </div>
-</div>
+        </div>{{-- /.ml-cinema-strip --}}
+
+        {{-- ══ RIGHT — form panel ══════════════════════════════ --}}
+        <div class="ml-form-panel">
+
+            {{-- CinemaX branding above the form --}}
+            <div class="ml-form-brand">
+                <span class="ml-form-brand__mark"></span>
+                <span class="ml-form-brand__name">CinemaX</span>
+            </div>
+
+            <p class="ml-eyebrow">Management Portal</p>
+            <h1 class="ml-heading">Sign In</h1>
+            <p class="ml-subtitle">
+                Access your cinema branch tools, manage showtimes,
+                and stay on top of your schedule.
+            </p>
+
+            {{-- Error --}}
+            @if (session('bm_login_error'))
+                <div class="ml-alert ml-alert--error">
+                    {{ session('bm_login_error') }}
+                </div>
+            @endif
+
+            {{-- Login form --}}
+            <form action="{{ route('manager.login.post') }}" method="POST" class="ml-form" novalidate>
+                @csrf
+
+                <label class="ml-field" for="manager_email">
+                    <span>Email address</span>
+                    <input
+                        type="email"
+                        id="manager_email"
+                        name="manager_email"
+                        value="{{ old('manager_email') }}"
+                        placeholder="you@cinemabranch.com"
+                        autocomplete="email"
+                        required
+                    >
+                </label>
+
+                <label class="ml-field" for="password">
+                    <span>Password</span>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </label>
+
+                <button type="submit" class="ml-primary">
+                    Sign In
+                </button>
+
+            </form>
+
+        </div>{{-- /.ml-form-panel --}}
+
+    </section>
+</main>
 
 </body>
 </html>

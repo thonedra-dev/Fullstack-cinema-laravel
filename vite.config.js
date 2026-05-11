@@ -21,6 +21,8 @@ export default defineConfig({
                 'resources/js/setup_timetable.js',
                 'resources/css/movie_proposals.css',
                 'resources/js/movie_proposals.js',
+                'resources/css/manager_login.css',
+                'resources/js/manager_login.js',
             ],
             refresh: true,
         }),
