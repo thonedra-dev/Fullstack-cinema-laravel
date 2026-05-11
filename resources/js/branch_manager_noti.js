@@ -1,42 +1,76 @@
 /**
  * resources/js/branch_manager_noti.js
  * ──────────────────────────────────────────────
- * Handles navigation clicking on notification cards
+ * Handles click navigation on notification cards.
+ *
+ * TAG → ACTION MAP:
+ *
+ *   "Showtime Approved"
+ *     → always navigate to /manager/movie/:id  (movie formation page)
+ *
+ *   "Movie Assigned"
+ *     → if proposal_status is empty (not yet submitted)
+ *         → navigate to /manager/setup/movie/:id
+ *     → if proposal_status is set (pending / approved / rejected)
+ *         → show inline "already submitted" message; do NOT navigate
+ *           (user should use the rejection card to resubmit if needed)
+ *
+ *   "Movie Rejection By Admin"
+ *     → always navigate to /manager/setup/movie/:id
+ *       (setup page handles the replace-rejected flow internally)
  */
 
 (function () {
     'use strict';
 
     document.addEventListener('DOMContentLoaded', function () {
-        const notiCards = document.querySelectorAll('.bmn-card[data-movie-id]');
+        var notiCards = document.querySelectorAll('.bmn-card[data-movie-id]');
 
-        notiCards.forEach(card => {
-            // Style card as pointer to indicate clickability
+        notiCards.forEach(function (card) {
             card.style.cursor = 'pointer';
 
             card.addEventListener('click', function (e) {
-                // Prevent navigation if the user is clicking on an active button or link inside the card (if any exist)
-                if (e.target.closest('a') || e.target.closest('button')) {
-                    return;
-                }
+                // Don't hijack clicks on real links or buttons inside the card
+                if (e.target.closest('a') || e.target.closest('button')) return;
 
-                const movieId = this.dataset.movieId;
-                const tag = this.dataset.tag;
+                var movieId        = this.dataset.movieId;
+                var tag            = this.dataset.tag;
+                var proposalStatus = this.dataset.proposalStatus; // '' | 'pending' | 'approved' | 'rejected'
 
                 if (!movieId) return;
 
-                let targetUrl = '';
-
+                /* ── Showtime Approved ─────────────────────────────── */
                 if (tag === 'Showtime Approved') {
-                    // Navigate to movie details/exploration page
-                    targetUrl = `/manager/movie/${movieId}`;
-                } else if (tag === 'Movie Assigned' || tag === 'Showtime Rejected') {
-                    // Navigate to setup/resubmit page
-                    targetUrl = `/manager/setup/movie/${movieId}`;
+                    window.location.href = '/manager/movie/' + movieId;
+                    return;
                 }
 
-                if (targetUrl) {
-                    window.location.href = targetUrl;
+                /* ── Movie Rejection By Admin ─────────────────────── */
+                if (tag === 'Movie Rejection By Admin') {
+                    // Always let the manager go back to setup to resubmit.
+                    // The setup_timetable JS will detect the existing rejected
+                    // proposal and prompt before replacing it.
+                    window.location.href = '/manager/setup/movie/' + movieId;
+                    return;
+                }
+
+                /* ── Movie Assigned ───────────────────────────────── */
+                if (tag === 'Movie Assigned') {
+                    if (proposalStatus === 'pending') {
+    // Only pending blocks navigation — show click message
+    var msgEl = card.querySelector('.bmn-card__already-submitted');
+    if (msgEl) {
+        msgEl.style.display = 'block';
+        setTimeout(function () { msgEl.style.display = 'none'; }, 4000);
+    }
+} else if (proposalStatus === 'approved') {
+    // Already approved — go see the movie's schedule
+    window.location.href = '/manager/movie/' + movieId;
+} else {
+    // null (not submitted yet) OR rejected — go to setup
+    window.location.href = '/manager/setup/movie/' + movieId;
+}
+                    return;
                 }
             });
         });

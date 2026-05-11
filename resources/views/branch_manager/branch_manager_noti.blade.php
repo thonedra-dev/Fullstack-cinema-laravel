@@ -4,7 +4,22 @@
     Branch manager notification centre.
     Controller: BranchManagerNotificationController@index
     Data:
-      $notifications – Collection of manager_notifications rows with eager-loaded movie_id
+      $notifications – Collection of manager_notifications rows, each with:
+          ->movie_id        (from left join on movies)
+          ->proposal_status (null | 'pending' | 'approved' | 'rejected')
+                             — attached by controller from showtime_proposal_status
+
+    Card behaviour (handled in branch_manager_noti.js):
+      "Movie Assigned"          → clickable only if proposal_status is null
+                                  (not yet submitted) → setup_movie_timetable
+      "Movie Rejection By Admin"→ always clickable → setup_movie_timetable (resubmit)
+      "Showtime Approved"       → always clickable → bm_movie_formation
+
+    Visual:
+      If proposal_status === 'rejected' OR tag === 'Movie Rejection By Admin':
+        card gets .bmn-card--rejected (bright red tint + border)
+      This colours BOTH the original "Movie Assigned" card AND the
+      "Movie Rejection By Admin" card for the same movie.
 --}}
 @extends('branch_manager.branch_manager_layout')
 
@@ -37,11 +52,38 @@
 
     <div class="bmn-list">
         @foreach ($notifications as $noti)
-            <div class="bmn-card" 
-                 data-movie-id="{{ $noti->movie_id }}" 
-                 data-tag="{{ $noti->tag }}">
-                
-                {{-- Picture --}}
+            @php
+                /*
+                 * Determine tag CSS modifier.
+                 *   approved  → green
+                 *   rejected  → bright red (new class)
+                 *   assigned  → purple (default)
+                 */
+                $tagClass = match($noti->tag) {
+                    'Showtime Approved'        => 'approved',
+                    'Movie Rejection By Admin' => 'rejected',
+                    default                    => 'assigned',
+                };
+
+                /*
+                 * A card gets the "rejected" red highlight when:
+                 *   a) it IS the rejection notification itself, OR
+                 *   b) it is a "Movie Assigned" card for a movie whose
+                 *      proposal was subsequently rejected by admin —
+                 *      no point going back to that assignment card anymore.
+                 */
+                $isRejectedContext = $noti->tag === 'Movie Rejection By Admin'
+                    || $noti->proposal_status === 'rejected';
+            @endphp
+
+            <div
+                class="bmn-card {{ $isRejectedContext ? 'bmn-card--rejected' : '' }}"
+                data-movie-id="{{ $noti->movie_id }}"
+                data-tag="{{ $noti->tag }}"
+                data-proposal-status="{{ $noti->proposal_status ?? '' }}"
+            >
+
+                {{-- Thumbnail --}}
                 <div class="bmn-card__thumb">
                     @if (!empty($noti->noti_picture))
                         <img
@@ -57,20 +99,24 @@
                 {{-- Body --}}
                 <div class="bmn-card__body">
                     <div class="bmn-card__header">
-                        <span class="bmn-card__tag bmn-card__tag--{{ 
-                            $noti->tag === 'Showtime Approved' ? 'approved' : ($noti->tag === 'Showtime Rejected' ? 'rejected' : 'assigned') 
-                        }}">
-                            {{ $noti->tag }} 
+                        <span class="bmn-card__tag bmn-card__tag--{{ $tagClass }}">
+                            {{ $noti->tag }}
                         </span>
                         @if (!$noti->is_read)
-                             <span class="bmn-card__unread-dot" title="Unread"></span>
+                            <span class="bmn-card__unread-dot" title="Unread"></span>
                         @endif
-                        
                         <span class="bmn-card__time">
                             {{ \Carbon\Carbon::parse($noti->created_at)->diffForHumans() }}
                         </span>
                     </div>
+
                     <p class="bmn-card__message">{{ $noti->noti_message }}</p>
+
+                    {{-- Inline JS feedback message (shown when clicking a stale "Movie Assigned" card) --}}
+                   <p class="bmn-card__already-submitted" style="display:none;">
+                       ⏳ Your proposal for this movie is currently pending admin review.
+                   </p>
+
                     <p class="bmn-card__date">
                         {{ \Carbon\Carbon::parse($noti->created_at)->format('d M Y, h:i A') }}
                     </p>
