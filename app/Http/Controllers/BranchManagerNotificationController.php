@@ -19,10 +19,12 @@ class BranchManagerNotificationController extends Controller
         $managerId = (int) session('bm_manager_id');
 
         $notifications = DB::table('manager_notifications')
-            ->where('manager_id', $managerId)
-            ->orderBy('created_at', 'desc')
+            ->leftJoin('movies', 'manager_notifications.noti_picture', '=', 'movies.portrait_poster')
+            ->where('manager_notifications.manager_id', $managerId)
+            ->select('manager_notifications.*', 'movies.movie_id')
+            ->orderBy('manager_notifications.created_at', 'desc')
             ->get();
-
+            
         // Mark all unread as read now that the manager is viewing the page
         DB::table('manager_notifications')
             ->where('manager_id', $managerId)
