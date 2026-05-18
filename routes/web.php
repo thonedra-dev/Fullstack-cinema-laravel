@@ -133,3 +133,25 @@ Route::post('/users/sign-up/complete', [ManualSignupController::class, 'complete
 
 Route::post('/admin/cinema/{cinemaId}/halls', [AdminHallController::class, 'store'])
      ->name('admin.cinema.halls.store');
+
+/*
+|--------------------------------------------------------------------------
+| Booking & Payment Routes (customer auth required)
+|--------------------------------------------------------------------------
+*/
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\PaymentController;
+
+Route::middleware(['auth:customer'])->group(function () {
+    Route::post('/booking/cart',          [BookingController::class,  'store'])         ->name('booking.cart');
+    Route::get('/booking/fnb',            [BookingController::class,  'fnb'])           ->name('booking.fnb');
+    Route::get('/booking/back-to-seats',  [BookingController::class,  'cancelAndBack']) ->name('booking.back-to-seats');
+
+    Route::get('/booking/payment',        [PaymentController::class,  'show'])          ->name('booking.payment');
+    Route::post('/booking/payment/intent',[PaymentController::class,  'createIntent'])  ->name('booking.payment.intent');
+    Route::post('/booking/payment/confirm',[PaymentController::class, 'confirm'])       ->name('booking.payment.confirm');
+    Route::get('/booking/confirmed/{bookingId}', [PaymentController::class, 'confirmed'])->name('booking.confirmed');
+});
+
+// Stripe webhook — CSRF exempt (add '/booking/stripe/webhook' to VerifyCsrfToken::$except)
+Route::post('/booking/stripe/webhook', [PaymentController::class, 'webhook'])->name('booking.stripe.webhook');
