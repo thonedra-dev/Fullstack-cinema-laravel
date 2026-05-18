@@ -172,32 +172,32 @@
                 hint.textContent = 'No times available.';
                 pillsWrap.appendChild(hint);
             } else {
-                theatre.times.forEach(function (time) {
-                    var pill = document.createElement('button');
-                    pill.type = 'button';
-                    pill.className = 'md-time-pill';
-                    pill.textContent = time;
+                theatre.times.forEach(function (timeObj) {
+    var pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'md-time-pill';
+    pill.textContent = timeObj.time;
 
-                    pill.addEventListener('click', function () {
-                        var seatRoute = document.body.dataset.seatRoute;
-                        var movieId = document.body.dataset.movieId;
+    pill.addEventListener('click', function () {
+        var seatRoute = document.body.dataset.seatRoute;
+        var movieId   = document.body.dataset.movieId;
 
-                        if (!seatRoute || !movieId || !activeCinema) return;
+        var url = seatRoute
+            + '?movie_id='     + encodeURIComponent(movieId)
+            + '&cinema_id='    + encodeURIComponent(activeCinema.cinema_id)
+            + '&hall_id='      + encodeURIComponent(theatre.hall_id || '')
+            + '&showtime_id='  + encodeURIComponent(timeObj.showtime_id || '')
+            + '&theatre_name=' + encodeURIComponent(theatre.name)
+            + '&date='         + encodeURIComponent(dateGroup.date)
+            + '&time='         + encodeURIComponent(timeObj.time);
 
-                        var url = seatRoute
-                            + '?movie_id=' + encodeURIComponent(movieId)
-                            + '&cinema_id=' + encodeURIComponent(activeCinema.cinema_id)
-                            + '&hall_id=' + encodeURIComponent(theatre.hall_id || '')
-                            + '&theatre_name=' + encodeURIComponent(theatre.name)
-                            + '&date=' + encodeURIComponent(dateGroup.date)
-                            + '&time=' + encodeURIComponent(time);
+        window.location.href = url;
+    });
 
-                        window.location.href = url;
-                    });
-
-                    pillsWrap.appendChild(pill);
-                });
-            }
+    pillsWrap.appendChild(pill);
+});
+           
+                    }
 
             block.appendChild(pillsWrap);
             showtimeSect.appendChild(block);

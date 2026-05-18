@@ -27,16 +27,10 @@ class UserMovieDetailsController extends Controller
             ->join('halls as h', 's.hall_id', '=', 'h.hall_id')
             ->join('theatres as t', 'h.theatre_id', '=', 't.theatre_id')
             ->where('s.movie_id', $movieId)
-            ->select(
-                'h.hall_id',
-                't.theatre_id',
-                's.cinema_id',
-                'c.cinema_name',
-                'ct.city_name',
-                'ct.city_state',
-                's.start_time',
-                't.theatre_name'
-            )
+            
+            ->select('s.showtime_id', 'h.hall_id', 't.theatre_id', 
+                     's.cinema_id', 'c.cinema_name', 'ct.city_name', 
+                     'ct.city_state', 's.start_time', 't.theatre_name')
             ->orderBy('ct.city_state')
             ->orderBy('c.cinema_name')
             ->orderBy('s.start_time')
@@ -97,9 +91,17 @@ class UserMovieDetailsController extends Controller
                 $theatreIndex = array_key_last($theatres);
             }
 
-            if (!in_array($timeLabel, $theatres[$theatreIndex]['times'], true)) {
-                $theatres[$theatreIndex]['times'][] = $timeLabel;
-            }
+           // Times array push — now stores object not plain string:
+$alreadyAdded = false;
+foreach ($theatres[$theatreIndex]['times'] as $t) {
+    if ($t['time'] === $timeLabel) { $alreadyAdded = true; break; }
+}
+if (!$alreadyAdded) {
+    $theatres[$theatreIndex]['times'][] = [
+        'showtime_id' => $row->showtime_id,
+        'time'        => $timeLabel,
+    ];
+}
 
             unset($theatres);
         }
