@@ -1,16 +1,6 @@
 {{--
     resources/views/users/select_seats.blade.php
-    ─────────────────────────────────────────────
-    Seat selection page — cyberpunk cinema aesthetic.
     Controller: UserSeatSelectionController@index
-    Data:
-      $movie        – Movie model (movie_name, landscape_poster)
-      $cinema       – cinema row (cinema_name)
-      $theatreName  – string
-      $theatreId    – int|null
-      $date         – string Y-m-d
-      $time         – string "07:00 PM"
-      $seatRows     – Collection keyed by row_label (each row = Collection of seat objects)
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -21,25 +11,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     @vite(['resources/css/select_seats.css', 'resources/js/select_seats.js'])
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
-<body class="ss-body">
+<body class="ss-body"
+      data-auth="{{ auth('customer')->check() ? 'true' : 'false' }}"
+      data-login-url="{{ route('users.login') }}"
+      data-movie-id="{{ $movie?->movie_id ?? '' }}"
+      data-cinema-id="{{ $cinema?->cinema_id ?? '' }}"
+      data-hall-id="{{ $hallId ?? '' }}"
+      data-showtime-id="{{ $showtimeId ?? '' }}"
+      data-date="{{ $date }}"
+      data-time="{{ $time }}"
+      data-cart-url="{{ route('booking.cart') }}"
+      data-current-url="{{ url()->full() }}"
+>
 
-{{-- ══════════════════════════════════════════════════════════
-     TOP DIVISION: Landscape Poster Hero + Movie Info
-══════════════════════════════════════════════════════════ --}}
+{{-- ══ Hero ═══════════════════════════════════════════════════ --}}
 <div class="ss-hero"
      style="background-image: url('{{ $movie && $movie->landscape_poster ? asset('images/movies/' . $movie->landscape_poster) : '' }}');">
     <div class="ss-hero-overlay"></div>
-
     <div class="ss-hero-content">
-        {{-- 3-step progress --}}
         <div class="ss-steps">
             <div class="ss-step ss-step--active">
                 <span class="ss-step-num">1</span>
                 <span class="ss-step-text">Select Seats</span>
             </div>
             <div class="ss-step-divider"></div>
-            <div class="ss-step">
+            <div class="ss-step ss-step--inactive">
                 <span class="ss-step-num">2</span>
                 <span class="ss-step-text">F&amp;B Add-ons</span>
             </div>
@@ -52,7 +50,6 @@
 
         <h1 class="ss-movie-title">{{ $movie?->movie_name ?? 'Unknown Movie' }}</h1>
 
-        {{-- Session info banner --}}
         <div class="ss-info-banner">
             <div class="ss-info-item">
                 <span class="ss-info-icon">📍</span>
@@ -77,58 +74,32 @@
     </div>
 </div>
 
-{{-- ══════════════════════════════════════════════════════════
-     SECOND DIVISION: Seat Selection
-══════════════════════════════════════════════════════════ --}}
+{{-- ══ Seat Map ════════════════════════════════════════════════ --}}
 <div class="ss-main">
 
-    {{-- Legend ──────────────────────────────────────────── --}}
     <div class="ss-legend">
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-standard"></div>
-            <span>Standard</span>
-        </div>
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-couple"></div>
-            <span>Couple</span>
-        </div>
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-premium"></div>
-            <span>Premium</span>
-        </div>
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-family"></div>
-            <span>Family</span>
-        </div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-standard"></div><span>Standard</span></div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-couple"></div><span>Couple</span></div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-premium"></div><span>Premium</span></div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-family"></div><span>Family</span></div>
         <div class="ss-legend-sep"></div>
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-selected"></div>
-            <span>Selected</span>
-        </div>
-        <div class="ss-legend-item">
-            <div class="ss-legend-seat ss-t-sold"></div>
-            <span>Sold</span>
-        </div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-selected"></div><span>Selected</span></div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-sold"></div><span>Sold</span></div>
     </div>
 
-    {{-- Screen ───────────────────────────────────────────── --}}
     <div class="ss-screen-wrap">
         <div class="ss-screen-glow"></div>
         <div class="ss-screen"></div>
         <p class="ss-screen-label">SCREEN</p>
     </div>
 
-    {{-- Seat map ─────────────────────────────────────────── --}}
     @if ($seatRows->isEmpty())
-        <div class="ss-no-seats">
-            <span>No seat data found for this theatre.</span>
-        </div>
+        <div class="ss-no-seats"><span>No seat data found for this theatre.</span></div>
     @else
         <div class="ss-seat-map">
             @foreach ($seatRows as $rowLabel => $seats)
                 <div class="ss-seat-row">
                     <div class="ss-row-label">{{ $rowLabel }}</div>
-
                     <div class="ss-row-seats">
                         @php
                             $seatList = $seats->values();
@@ -138,13 +109,12 @@
 
                         @while ($i < $total)
                             @php
-                                $seat = $seatList[$i];
-                                $type = strtolower($seat->seat_type); // standard|couple|premium|family
+                                $seat   = $seatList[$i];
+                                $type   = strtolower($seat->seat_type);
                                 $isSold = $seat->status === 'sold';
                             @endphp
 
                             @if ($type === 'couple' && $i + 1 < $total && strtolower($seatList[$i + 1]->seat_type) === 'couple')
-                                {{-- Couple seats: render as a pair --}}
                                 @php $seat2 = $seatList[$i + 1]; $isSold2 = $seat2->status === 'sold'; @endphp
                                 <div class="ss-couple-pair">
                                     @if ($isSold)
@@ -152,6 +122,7 @@
                                     @else
                                         <div class="ss-seat ss-seat--couple ss-seat--available"
                                              data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
+                                             data-seat-id="{{ $seat->seat_id }}"
                                              data-type="couple">{{ $seat->seat_number }}</div>
                                     @endif
                                     @if ($isSold2)
@@ -159,6 +130,7 @@
                                     @else
                                         <div class="ss-seat ss-seat--couple ss-seat--available"
                                              data-seat="{{ $rowLabel }}{{ $seat2->seat_number }}"
+                                             data-seat-id="{{ $seat2->seat_id }}"
                                              data-type="couple">{{ $seat2->seat_number }}</div>
                                     @endif
                                 </div>
@@ -169,6 +141,7 @@
                                 @else
                                     <div class="ss-seat ss-seat--premium ss-seat--lg ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
+                                         data-seat-id="{{ $seat->seat_id }}"
                                          data-type="premium">{{ $seat->seat_number }}</div>
                                 @endif
                                 @php $i++; @endphp
@@ -178,42 +151,64 @@
                                 @else
                                     <div class="ss-seat ss-seat--family ss-seat--lg ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
+                                         data-seat-id="{{ $seat->seat_id }}"
                                          data-type="family">{{ $seat->seat_number }}</div>
                                 @endif
                                 @php $i++; @endphp
                             @else
-                                {{-- Standard --}}
                                 @if ($isSold)
                                     <div class="ss-seat ss-seat--standard ss-seat--sold">✕</div>
                                 @else
                                     <div class="ss-seat ss-seat--standard ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
+                                         data-seat-id="{{ $seat->seat_id }}"
                                          data-type="standard">{{ $seat->seat_number }}</div>
                                 @endif
                                 @php $i++; @endphp
                             @endif
                         @endwhile
                     </div>
-
                     <div class="ss-row-label">{{ $rowLabel }}</div>
                 </div>
             @endforeach
         </div>
     @endif
+</div>
 
-</div>{{-- /.ss-main --}}
+{{-- ══ Hidden booking form (submitted by JS) ════════════════ --}}
+<form id="ss-booking-form" action="{{ route('booking.cart') }}" method="POST" style="display:none;">
+    @csrf
+    <input type="hidden" name="movie_id"          value="{{ $movie?->movie_id ?? '' }}">
+    <input type="hidden" name="cinema_id"          value="{{ $cinema?->cinema_id ?? '' }}">
+    <input type="hidden" name="hall_id"            value="{{ $hallId ?? '' }}">
+    <input type="hidden" name="showtime_id"        value="{{ $showtimeId ?? '' }}">
+    <input type="hidden" name="seat_selection_url" value="{{ url()->full() }}">
+    {{-- seat_ids[] injected dynamically by JS before submit --}}
+</form>
 
-{{-- ══════════════════════════════════════════════════════════
-     FLOATING BOTTOM BAR
-══════════════════════════════════════════════════════════ --}}
+{{-- ══ Floating bottom bar ════════════════════════════════════ --}}
 <div class="ss-bottom-bar">
     <div class="ss-bottom-info">
-        <span class="ss-bottom-count"><span id="ss-selected-count">0</span> seat(s) selected</span>
+        <span class="ss-bottom-count">
+            <span id="ss-selected-count">0</span> seat(s) selected
+        </span>
         <span class="ss-bottom-seats" id="ss-selected-list">—</span>
     </div>
     <button class="ss-btn-next" id="ss-btn-next" disabled>
         Proceed to Add-ons <span class="ss-btn-arrow">→</span>
     </button>
+</div>
+
+{{-- ══ Auth gate modal ════════════════════════════════════════ --}}
+<div id="ss-auth-modal" class="ss-auth-modal" style="display:none;">
+    <div class="ss-auth-modal__box">
+        <p class="ss-auth-modal__title">Sign in required</p>
+        <p class="ss-auth-modal__sub">
+            Your seat selection will be saved. Sign in to continue booking.
+        </p>
+        <button id="ss-auth-confirm" class="ss-auth-modal__confirm">SIGN IN</button>
+        <button id="ss-auth-cancel"  class="ss-auth-modal__cancel">Cancel</button>
+    </div>
 </div>
 
 </body>
