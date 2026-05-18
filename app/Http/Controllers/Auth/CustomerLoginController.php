@@ -12,12 +12,17 @@ use Illuminate\Validation\ValidationException;
 
 class CustomerLoginController extends Controller
 {
-    public function showLogin()
-    {
-        return view('users.login', [
-            'slides' => $this->cinematicSlides(),
-        ]);
+    public function showLogin(Request $request)
+{
+    // Store intended URL so redirect()->intended() picks it up after login
+    if ($request->query('redirect_url')) {
+        session()->put('url.intended', $request->query('redirect_url'));
     }
+    return view('users.login', [
+        'slides'       => $this->cinematicSlides(),
+        'redirect_url' => $request->query('redirect_url', ''),
+    ]);
+}
 
     public function login(Request $request)
     {
@@ -52,7 +57,11 @@ class CustomerLoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('home');
+
+        if ($request->input('redirect_url')) {
+    session()->put('url.intended', $request->input('redirect_url'));
+}
+        return redirect()->intended(route('home'));
     }
 
     public function logout(Request $request)

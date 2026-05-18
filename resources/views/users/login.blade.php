@@ -66,7 +66,10 @@
             <div class="ul-divider"><span>or use email</span></div>
 
             <form action="{{ route('users.login.post') }}" method="POST" class="ul-form">
-                @csrf
+                    @csrf
+                    @if(!empty($redirect_url))
+                        <input type="hidden" name="redirect_url" value="{{ $redirect_url }}">
+                    @endif
 
                 <label class="ul-field" for="email_address">
                     <span>Email address</span>
