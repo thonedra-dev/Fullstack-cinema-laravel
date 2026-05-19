@@ -2,11 +2,11 @@
  * resources/js/select_seats.js
  *
  * Responsibilities:
- *  1. Seat toggle + bottom bar update
- *  2. Restore previously selected seats from sessionStorage (after login redirect)
- *  3. Auth gate: if not signed in, save selections to sessionStorage and
- *     redirect to login; on return, auto-restore selections
- *  4. On "Proceed": inject seat_ids into hidden form and submit → BookingController
+ * 1. Seat toggle + bottom bar update
+ * 2. Restore previously selected seats from sessionStorage (after login redirect)
+ * 3. Auth gate: if not signed in, save selections to sessionStorage and
+ * redirect to login; on return, auto-restore selections
+ * 4. On "Proceed": inject seat_ids into hidden form and submit → BookingController
  */
 (function () {
     'use strict';
@@ -143,6 +143,25 @@
 
             form.submit();
         }
+
+        /* ── Pending seat tooltip ───────────────────────────── */
+        var tooltip = document.getElementById('ss-tooltip');
+
+        document.querySelectorAll('.ss-seat--pending').forEach(function (seat) {
+            seat.addEventListener('mouseenter', function (e) {
+                if (!tooltip) return;
+                tooltip.textContent = seat.dataset.tooltip || 'Held by another customer · Check back in a few minutes';
+                tooltip.style.display = 'block';
+            });
+            seat.addEventListener('mousemove', function (e) {
+                if (!tooltip) return;
+                tooltip.style.left = (e.clientX + 14) + 'px';
+                tooltip.style.top  = (e.clientY - 36) + 'px';
+            });
+            seat.addEventListener('mouseleave', function () {
+                if (tooltip) tooltip.style.display = 'none';
+            });
+        });
 
     }); // end DOMContentLoaded
 
