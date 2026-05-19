@@ -70,12 +70,13 @@ class BookingController extends Controller
 
         /* ── Create pending Booking ─────────────────────────── */
         $booking = Booking::create([
-            'user_id'                  => auth('customer')->id(),
-            'cinema_id'                => $cinemaId,
-            'booking_status'           => 'pending',
-            'total_amount'             => 0,
-            'stripe_payment_intent_id' => null,
-        ]);
+    'user_id'                  => auth('customer')->id(),
+    'cinema_id'                => $cinemaId,
+    'booking_status'           => 'pending',
+    'total_amount'             => 0,
+    'stripe_payment_intent_id' => null,
+    'expires_at'               => now()->addMinutes(5),
+]);
 
         $totalAmount = 0.0;
 
