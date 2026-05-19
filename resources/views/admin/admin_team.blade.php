@@ -68,6 +68,12 @@
             <span class="at-nav__text">Add Service</span>
         </a>
 
+        <a href="{{ route('admin.food_drink.create') }}"
+           class="at-nav__link {{ request()->routeIs('admin.food_drink.*') ? 'is-active' : '' }}">
+            <span class="at-nav__icon">🍿</span>
+            <span class="at-nav__text">Food & Drinks</span>
+        </a>
+
         <a href="{{ route('admin.movie.create') }}"
            class="at-nav__link {{ request()->routeIs('admin.movie.create') ? 'is-active' : '' }}">
             <span class="at-nav__icon">🎬</span>

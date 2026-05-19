@@ -89,6 +89,15 @@
                 <p class="ap-card__desc">Review & approve</p>
             </div>
         </a>
+
+        <a href="{{ route('admin.food_drink.create') }}" class="ap-card">
+            <div class="ap-card__icon-wrap"><i class="fas fa-hamburger ap-card__icon"></i></div>
+            <div class="ap-card__content">
+                <h2 class="ap-card__title">Food & Drinks</h2>
+                <p class="ap-card__desc">Global menu catalog</p>
+           </div>
+        </a>
+        
     </main>
 
     <footer class="ap-footer">
