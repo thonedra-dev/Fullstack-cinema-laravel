@@ -17,7 +17,6 @@ class BookingController extends Controller
 {
     /* ══════════════════════════════════════════════════════════
        POST /booking/cart
-       Validates availability, creates pending Booking + Tickets.
     ══════════════════════════════════════════════════════════ */
     public function store(Request $request)
     {
@@ -46,7 +45,13 @@ class BookingController extends Controller
             ->join('bookings as b', 't.booking_id', '=', 'b.booking_id')
             ->where('t.showtime_id', $showtimeId)
             ->whereIn('t.seat_id', $seatIds)
-            ->whereIn('b.booking_status', ['confirmed', 'pending'])
+            ->where(function ($q) {
+                $q->where('b.booking_status', 'confirmed')
+                  ->orWhere(function ($q2) {
+                      $q2->where('b.booking_status', 'pending')
+                         ->where('b.expires_at', '>', now());
+                  });
+            })
             ->count();
 
         if ($takenCount > 0) {
@@ -68,15 +73,15 @@ class BookingController extends Controller
         $dayType   = in_array($startTime->dayOfWeek, [Carbon::SATURDAY, Carbon::SUNDAY])
             ? 'weekend' : 'weekday';
 
-        /* ── Create pending Booking ─────────────────────────── */
+        /* ── Create pending Booking with 5-min expiry ───────── */
         $booking = Booking::create([
-    'user_id'                  => auth('customer')->id(),
-    'cinema_id'                => $cinemaId,
-    'booking_status'           => 'pending',
-    'total_amount'             => 0,
-    'stripe_payment_intent_id' => null,
-    'expires_at'               => now()->addMinutes(5),
-]);
+            'user_id'                  => auth('customer')->id(),
+            'cinema_id'                => $cinemaId,
+            'booking_status'           => 'pending',
+            'total_amount'             => 0,
+            'stripe_payment_intent_id' => null,
+            'expires_at'               => now()->addMinutes(5),
+        ]);
 
         $totalAmount = 0.0;
 
@@ -91,7 +96,6 @@ class BookingController extends Controller
                 ->first();
 
             if (! $ticketPrice) {
-                // Roll back
                 Ticket::where('booking_id', $booking->booking_id)->delete();
                 $booking->delete();
                 return back()->withErrors([
@@ -145,6 +149,18 @@ class BookingController extends Controller
             return redirect()->route('home');
         }
 
+        // If already expired, clean up and redirect
+        if ($booking->booking_status === 'pending'
+            && $booking->expires_at
+            && now()->gt($booking->expires_at)
+        ) {
+            Ticket::where('booking_id', $booking->booking_id)->delete();
+            $booking->delete();
+            session()->forget(['current_booking_id', 'seat_selection_url']);
+            return redirect(session('seat_selection_url', route('home')))
+                ->with('error', 'Your session expired. Please re-select your seats.');
+        }
+
         $firstTicket = $booking->tickets->first();
         $showtime    = $firstTicket?->showtime;
         $movie       = $showtime ? Movie::find($showtime->movie_id) : null;
@@ -152,17 +168,19 @@ class BookingController extends Controller
         $theatre     = $hall
             ? DB::table('theatres')->where('theatre_id', $hall->theatre_id)->first()
             : null;
-        $cinema  = DB::table('cinemas')->where('cinema_id', $booking->cinema_id)->first();
-        $backUrl = session('seat_selection_url', route('home'));
+        $cinema    = DB::table('cinemas')->where('cinema_id', $booking->cinema_id)->first();
+        $customer  = auth('customer')->user();
+        $backUrl   = session('seat_selection_url', route('home'));
+        $expiresAt = $booking->expires_at?->toIso8601String();
 
         return view('users.fnb', compact(
-            'booking', 'movie', 'cinema', 'showtime', 'theatre', 'backUrl'
+            'booking', 'movie', 'cinema', 'showtime', 'theatre',
+            'customer', 'backUrl', 'expiresAt'
         ));
     }
 
     /* ══════════════════════════════════════════════════════════
        GET /booking/back-to-seats
-       Deletes pending booking so seats free up, then redirects.
     ══════════════════════════════════════════════════════════ */
     public function cancelAndBack()
     {

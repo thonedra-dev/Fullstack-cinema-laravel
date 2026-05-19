@@ -61,14 +61,19 @@ class PaymentController extends Controller
             : null;
         $cinema = DB::table('cinemas')->where('cinema_id', $booking->cinema_id)->first();
 
-        return view('users.payment', [
-            'booking'   => $booking,
-            'movie'     => $movie,
-            'cinema'    => $cinema,
-            'showtime'  => $showtime,
-            'theatre'   => $theatre,
-            'stripeKey' => config('services.stripe.key'),
-        ]);
+        $customer  = auth('customer')->user();
+        $expiresAt = $booking->expires_at?->toIso8601String();
+
+return view('users.payment', [
+    'booking'   => $booking,
+    'movie'     => $movie,
+    'cinema'    => $cinema,
+    'showtime'  => $showtime,
+    'theatre'   => $theatre,
+    'customer'  => $customer,
+    'expiresAt' => $expiresAt,
+    'stripeKey' => config('services.stripe.key'),
+]);
     }
 
     /* ══════════════════════════════════════════════════════════
