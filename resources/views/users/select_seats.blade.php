@@ -47,9 +47,7 @@
                 <span class="ss-step-text">Payment</span>
             </div>
         </div>
-
         <h1 class="ss-movie-title">{{ $movie?->movie_name ?? 'Unknown Movie' }}</h1>
-
         <div class="ss-info-banner">
             <div class="ss-info-item">
                 <span class="ss-info-icon">📍</span>
@@ -77,6 +75,18 @@
 {{-- ══ Seat Map ════════════════════════════════════════════════ --}}
 <div class="ss-main">
 
+    {{-- Pending seats notice banner (shown only when relevant) --}}
+    @if ($hasPendingSeats)
+        <div class="ss-pending-notice">
+            <span class="ss-pending-notice__dot"></span>
+            <span>
+                Some seats are temporarily held by other customers.
+                They will be released automatically if not purchased within 5 minutes.
+            </span>
+        </div>
+    @endif
+
+    {{-- Legend --}}
     <div class="ss-legend">
         <div class="ss-legend-item"><div class="ss-legend-seat ss-t-standard"></div><span>Standard</span></div>
         <div class="ss-legend-item"><div class="ss-legend-seat ss-t-couple"></div><span>Couple</span></div>
@@ -84,9 +94,11 @@
         <div class="ss-legend-item"><div class="ss-legend-seat ss-t-family"></div><span>Family</span></div>
         <div class="ss-legend-sep"></div>
         <div class="ss-legend-item"><div class="ss-legend-seat ss-t-selected"></div><span>Selected</span></div>
+        <div class="ss-legend-item"><div class="ss-legend-seat ss-t-pending"></div><span>Held</span></div>
         <div class="ss-legend-item"><div class="ss-legend-seat ss-t-sold"></div><span>Sold</span></div>
     </div>
 
+    {{-- Screen --}}
     <div class="ss-screen-wrap">
         <div class="ss-screen-glow"></div>
         <div class="ss-screen"></div>
@@ -103,30 +115,43 @@
                     <div class="ss-row-seats">
                         @php
                             $seatList = $seats->values();
-                            $i = 0;
-                            $total = $seatList->count();
+                            $i        = 0;
+                            $total    = $seatList->count();
                         @endphp
 
                         @while ($i < $total)
                             @php
-                                $seat   = $seatList[$i];
-                                $type   = strtolower($seat->seat_type);
-                                $isSold = $seat->status === 'sold';
+                                $seat      = $seatList[$i];
+                                $type      = strtolower($seat->seat_type);
+                                $isSold    = $seat->status === 'sold';
+                                $isPending = $seat->status === 'pending';
                             @endphp
 
+                            {{-- ── COUPLE ── --}}
                             @if ($type === 'couple' && $i + 1 < $total && strtolower($seatList[$i + 1]->seat_type) === 'couple')
-                                @php $seat2 = $seatList[$i + 1]; $isSold2 = $seat2->status === 'sold'; @endphp
+                                @php
+                                    $seat2      = $seatList[$i + 1];
+                                    $isSold2    = $seat2->status === 'sold';
+                                    $isPending2 = $seat2->status === 'pending';
+                                @endphp
                                 <div class="ss-couple-pair">
                                     @if ($isSold)
                                         <div class="ss-seat ss-seat--couple ss-seat--sold">✕</div>
+                                    @elseif ($isPending)
+                                        <div class="ss-seat ss-seat--couple ss-seat--pending"
+                                             data-tooltip="Held by another customer">⏳</div>
                                     @else
                                         <div class="ss-seat ss-seat--couple ss-seat--available"
                                              data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
                                              data-seat-id="{{ $seat->seat_id }}"
                                              data-type="couple">{{ $seat->seat_number }}</div>
                                     @endif
+
                                     @if ($isSold2)
                                         <div class="ss-seat ss-seat--couple ss-seat--sold">✕</div>
+                                    @elseif ($isPending2)
+                                        <div class="ss-seat ss-seat--couple ss-seat--pending"
+                                             data-tooltip="Held by another customer">⏳</div>
                                     @else
                                         <div class="ss-seat ss-seat--couple ss-seat--available"
                                              data-seat="{{ $rowLabel }}{{ $seat2->seat_number }}"
@@ -135,9 +160,14 @@
                                     @endif
                                 </div>
                                 @php $i += 2; @endphp
+
+                            {{-- ── PREMIUM ── --}}
                             @elseif ($type === 'premium')
                                 @if ($isSold)
                                     <div class="ss-seat ss-seat--premium ss-seat--lg ss-seat--sold">✕</div>
+                                @elseif ($isPending)
+                                    <div class="ss-seat ss-seat--premium ss-seat--lg ss-seat--pending"
+                                         data-tooltip="Held by another customer">⏳</div>
                                 @else
                                     <div class="ss-seat ss-seat--premium ss-seat--lg ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
@@ -145,9 +175,14 @@
                                          data-type="premium">{{ $seat->seat_number }}</div>
                                 @endif
                                 @php $i++; @endphp
+
+                            {{-- ── FAMILY ── --}}
                             @elseif ($type === 'family')
                                 @if ($isSold)
                                     <div class="ss-seat ss-seat--family ss-seat--lg ss-seat--sold">✕</div>
+                                @elseif ($isPending)
+                                    <div class="ss-seat ss-seat--family ss-seat--lg ss-seat--pending"
+                                         data-tooltip="Held by another customer">⏳</div>
                                 @else
                                     <div class="ss-seat ss-seat--family ss-seat--lg ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
@@ -155,9 +190,14 @@
                                          data-type="family">{{ $seat->seat_number }}</div>
                                 @endif
                                 @php $i++; @endphp
+
+                            {{-- ── STANDARD ── --}}
                             @else
                                 @if ($isSold)
                                     <div class="ss-seat ss-seat--standard ss-seat--sold">✕</div>
+                                @elseif ($isPending)
+                                    <div class="ss-seat ss-seat--standard ss-seat--pending"
+                                         data-tooltip="Held by another customer">⏳</div>
                                 @else
                                     <div class="ss-seat ss-seat--standard ss-seat--available"
                                          data-seat="{{ $rowLabel }}{{ $seat->seat_number }}"
@@ -183,7 +223,6 @@
     <input type="hidden" name="hall_id"            value="{{ $hallId ?? '' }}">
     <input type="hidden" name="showtime_id"        value="{{ $showtimeId ?? '' }}">
     <input type="hidden" name="seat_selection_url" value="{{ url()->full() }}">
-    {{-- seat_ids[] injected dynamically by JS before submit --}}
 </form>
 
 {{-- ══ Floating bottom bar ════════════════════════════════════ --}}
@@ -210,6 +249,9 @@
         <button id="ss-auth-cancel"  class="ss-auth-modal__cancel">Cancel</button>
     </div>
 </div>
+
+{{-- Pending seat tooltip (moved by JS on hover) --}}
+<div id="ss-tooltip" class="ss-tooltip" style="display:none;"></div>
 
 </body>
 </html>
