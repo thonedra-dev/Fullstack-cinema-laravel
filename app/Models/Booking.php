@@ -10,17 +10,14 @@ class Booking extends Model
     protected $primaryKey = 'booking_id';
     public    $timestamps = true;
 
-    protected $fillable = [
-        'user_id',
-        'cinema_id',
-        'booking_status',           // pending | confirmed | cancelled
-        'total_amount',
-        'stripe_payment_intent_id', // nullable until payment
-    ];
-
-    protected $casts = [
-        'total_amount' => 'decimal:2',
-    ];
+   protected $fillable = [
+    'user_id', 'cinema_id', 'booking_status',
+    'total_amount', 'stripe_payment_intent_id', 'expires_at',
+];
+protected $casts = [
+    'total_amount' => 'decimal:2',
+    'expires_at'   => 'datetime',
+];
 
     /* ── Relationships ─────────────────────────────────── */
 
