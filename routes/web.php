@@ -26,6 +26,7 @@ use App\Http\Controllers\UserMovieDetailsController;
 use App\Http\Controllers\UserSeatSelectionController;
 use App\Http\Controllers\BranchManagerTheatreFormationController;
 use App\Http\Controllers\AdminHallController;
+use App\Http\Controllers\FoodDrinkController;
 
 /*
 |--------------------------------------------------------------------------
@@ -155,3 +156,12 @@ Route::middleware(['auth:customer'])->group(function () {
 
 // Stripe webhook — CSRF exempt (add '/booking/stripe/webhook' to VerifyCsrfToken::$except)
 Route::post('/booking/stripe/webhook', [PaymentController::class, 'webhook'])->name('booking.stripe.webhook');
+
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    // Form Creation Route
+    Route::get('/food-drink/create', [FoodDrinkController::class, 'create'])->name('food_drink.create');
+    
+    // Database Submission Route
+    Route::post('/food-drink/store', [FoodDrinkController::class, 'store'])->name('food_drink.store');
+});
