@@ -8,7 +8,7 @@ use App\Models\Movie;
 use App\Models\Showtime;
 use Carbon\Carbon;
 
-class BranchManagerMovieFormationController extends Controller
+class BranchManagerMovieDetailsController extends Controller
 {
     /**
      * Show the TGV-style movie formation page for the branch manager.
@@ -89,7 +89,7 @@ class BranchManagerMovieFormationController extends Controller
             ->values()
             ->all();
 
-        return view('branch_manager.bm_movie_formation', compact(
+        return view('branch_manager.bm_movie_details', compact(
             'movie',
             'cinema',
             'hasApprovedShowtimes',

@@ -8,7 +8,7 @@ use App\Models\Movie;
 use App\Models\Showtime;
 use Carbon\Carbon;
 
-class AdminMovieFormationController extends Controller
+class AdminMovieDetailsController extends Controller
 {
     /**
      * Show the TGV-style movie detail in context of a cinema for Admin.
@@ -66,7 +66,7 @@ class AdminMovieFormationController extends Controller
             ->values()
             ->all();
 
-        return view('admin.movie_cinema_formation', compact(
+        return view('admin.admin_movie_details', compact(
             'movie',
             'cinema',
             'hasApprovedShowtimes',
