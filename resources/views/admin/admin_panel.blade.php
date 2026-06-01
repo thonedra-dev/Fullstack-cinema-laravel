@@ -1,6 +1,8 @@
 {{--
     resources/views/admin/admin_panel.blade.php
-    Lean Admin Launchpad – centered brand, compact cards.
+    Cinema Admin Launchpad – Time‑based greeting pop‑up,
+    comic side‑by‑side layout, playful female character.
+    Original card grid untouched.
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -18,13 +20,53 @@
 
 <div class="ap-wrapper">
 
-    {{-- Header – centered brand, greeting only --}}
+    {{-- Header – brand only (greeting moved to pop‑up) --}}
     <header class="ap-header">
-        <h2 class="ap-header__title" id="greeting-title">
-            {{-- JS fills dynamic greeting --}}
-        </h2>
+        <div class="ap-header__brand">
+            <i class="fas fa-film ap-header__logo"></i>
+            <span class="ap-header__name">CINEMA ADMIN</span>
+        </div>
     </header>
-    {{-- Compact card grid --}}
+
+    {{-- Greeting pop‑up overlay (hidden by default, JS will reveal) --}}
+    <div id="greeting-overlay" class="ap-greeting-overlay" style="display: none;">
+        <div id="greeting-popup" class="ap-greeting-popup">
+            <button id="greeting-close" class="ap-greeting-close" aria-label="Close greeting">×</button>
+
+            {{-- Side‑by‑side comic container --}}
+            <div class="greeting-content">
+
+                {{-- Female character (modern playful girl) --}}
+                <div id="character-container" class="character-container">
+                    <div class="character-head">
+                        <div class="character-hair"></div>
+                        <div class="eyes">
+                            <div class="eye left"></div>
+                            <div class="eye right"></div>
+                        </div>
+                        <div class="mouth"></div>
+                    </div>
+                    <div class="character-body">
+                        <div class="arm left"></div>
+                        <div class="arm right"></div>
+                    </div>
+                    <div class="character-skirt"></div>
+                    <div class="props">
+                        <div class="prop-item prop-coffee">☕</div>
+                        <div class="prop-item prop-sun">🌅</div>
+                        <div class="prop-item prop-clapper">🎬</div>
+                        <div class="prop-item prop-popcorn">🍿</div>
+                        <div class="prop-item prop-ticket">🎟️</div>
+                    </div>
+                </div>
+
+                {{-- Speech bubble with greeting message --}}
+                <div id="greeting-message" class="speech-bubble"></div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Compact card grid – exactly as before --}}
     <main class="ap-grid">
         <a href="{{ route('admin.cinema.create') }}" class="ap-card">
             <div class="ap-card__icon-wrap"><i class="fas fa-building ap-card__icon"></i></div>
@@ -97,28 +139,12 @@
                 <p class="ap-card__desc">Global menu catalog</p>
            </div>
         </a>
-        
     </main>
 
     <footer class="ap-footer">
         <i class="fas fa-film"></i> Admin Panel &copy; {{ date('Y') }}
     </footer>
 </div>
-
-<script>
-    (function() {
-        const hour = new Date().getHours();
-        let greeting = '';
-        if (hour < 12) greeting = 'Good morning,';
-        else if (hour < 18) greeting = 'Good afternoon,';
-        else greeting = 'Good evening,';
-
-        const titleEl = document.getElementById('greeting-title');
-        if (titleEl) {
-            titleEl.innerHTML = `${greeting} <span style="background: linear-gradient(135deg, #fff, #7b87f5); background-clip: text; -webkit-background-clip: text; color: transparent;">Admin.</span>`;
-        }
-    })();
-</script>
 
 </body>
 </html>
