@@ -15,7 +15,7 @@
 @section('hide_topbar_title') @endsection
 
 @section('head_extras')
-    @vite(['resources/css/movie_cinema_formation.css', 'resources/js/movie_cinema_formation.js'])
+    @vite(['resources/css/admin_movie_details.css', 'resources/js/admin_movie_details.js'])
 @endsection
 
 @section('content')

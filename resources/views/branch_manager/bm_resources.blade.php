@@ -85,7 +85,7 @@
     <div class="bm-movie-grid">
         @foreach ($movies as $movie)
             <a
-                href="{{ route('manager.movie.formation', $movie->movie_id) }}"
+                href="{{ route('manager.movie.details', $movie->movie_id) }}"
                 class="bm-movie-card"
                 aria-label="View {{ $movie->movie_name }} details"
             >

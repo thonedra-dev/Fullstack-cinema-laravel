@@ -14,7 +14,7 @@
 @section('bm_page_title', $movie->movie_name)
 
 @section('bm_head_extras')
-    @vite(['resources/css/bm_movie_formation.css', 'resources/js/bm_movie_formation.js'])
+    @vite(['resources/css/bm_movie_details.css', 'resources/js/bm_movie_details.js'])
 @endsection
 
 @section('bm_content')
