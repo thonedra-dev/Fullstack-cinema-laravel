@@ -8,14 +8,14 @@ use App\Http\Controllers\AdminCinemaViewController;
 use App\Http\Controllers\AdminCityController;
 use App\Http\Controllers\AdminManagerController;
 use App\Http\Controllers\AdminMovieController;
-use App\Http\Controllers\AdminMovieFormationController;
+use App\Http\Controllers\AdminMovieDetailsController;
 use App\Http\Controllers\AdminMovieProposalController;
 use App\Http\Controllers\AdminServiceController;
 use App\Http\Controllers\AdminTheatreController;
 use App\Http\Controllers\AdminTheatreResourceController;
 use App\Http\Controllers\BranchManagerAuthController;
 use App\Http\Controllers\BranchManagerDashboardController;
-use App\Http\Controllers\BranchManagerMovieFormationController;
+use App\Http\Controllers\BranchManagerMovieDetailsController;
 use App\Http\Controllers\BranchManagerResourceController;
 use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
@@ -53,8 +53,8 @@ Route::get('/admin/theatre/{id}/resources', [AdminTheatreResourceController::cla
 Route::get('/admin/movie/create', [AdminMovieController::class, 'create'])->name('admin.movie.create');
 Route::post('/admin/movie',       [AdminMovieController::class, 'store'])->name('admin.movie.store');
 
-Route::get('/admin/movie/{movieId}/cinema/{cinemaId}', [AdminMovieFormationController::class, 'show'])
-    ->name('admin.movie.formation')
+Route::get('/admin/movie/{movieId}/cinema/{cinemaId}', [AdminMovieDetailsController::class, 'show'])
+    ->name('admin.movie.details')
     ->where(['movieId' => '[0-9]+', 'cinemaId' => '[0-9]+']);
 
 Route::get('/admin/managers',           [AdminManagerController::class, 'index'])->name('admin.managers.index');
@@ -90,8 +90,8 @@ Route::post('/manager/showtimes', [BranchManagerShowtimeController::class, 'stor
     ->name('manager.showtimes.store');
 
 // Movie formation page (BM version)
-Route::get('/manager/movie/{movieId}', [BranchManagerMovieFormationController::class, 'show'])
-    ->name('manager.movie.formation')->where('movieId', '[0-9]+');
+Route::get('/manager/movie/{movieId}', [BranchManagerMovieDetailsController::class, 'show'])
+    ->name('manager.movie.details')->where('movieId', '[0-9]+');
 
 Route::post('/proposals/{movieId}/rearrange', [BranchManagerShowtimeController::class, 'rearrange'])
      ->name('manager.proposals.rearrange');
