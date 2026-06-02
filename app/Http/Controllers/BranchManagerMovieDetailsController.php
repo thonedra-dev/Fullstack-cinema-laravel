@@ -7,6 +7,7 @@ use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Showtime;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerMovieDetailsController extends Controller
 {
@@ -32,7 +33,7 @@ class BranchManagerMovieDetailsController extends Controller
      */
     public function show(int $movieId)
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+        if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
 
@@ -76,10 +77,15 @@ class BranchManagerMovieDetailsController extends Controller
                                 'hall_id' => (int) $hallId,
                                 'name'  => $hall?->theatre?->theatre_name ?? ('Hall ' . $hallId),
                                 'times' => $tShowtimes
-                                    ->sortBy('start_time')
-                                    ->map(fn($s) => $s->start_time->format('h:i A'))
-                                    ->values()
-                                    ->all(),
+                                  ->sortBy('start_time')
+                                  ->map(function ($s) {
+                                  return [
+                                       'showtime_id' => $s->showtime_id,
+                                       'time'        => $s->start_time->format('h:i A'),
+                                  ];
+                                })
+                            ->values()
+                            ->all(),
                             ];
                         })
                         ->values()

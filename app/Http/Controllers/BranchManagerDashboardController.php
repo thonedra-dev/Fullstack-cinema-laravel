@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Cinema;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth; // 👈 Added the Auth Facade
 
 class BranchManagerDashboardController extends Controller
 {
@@ -12,7 +13,8 @@ class BranchManagerDashboardController extends Controller
      */
     private function guardOrRedirect()
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+        // ✨ FIXED: Check the native guard instead of the old raw session key
+        if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
         return null;

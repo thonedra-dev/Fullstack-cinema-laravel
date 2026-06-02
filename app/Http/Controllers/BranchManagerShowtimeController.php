@@ -12,6 +12,7 @@ use App\Models\Theatre;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerShowtimeController extends Controller
 {
@@ -20,7 +21,7 @@ class BranchManagerShowtimeController extends Controller
     ───────────────────────────────────────────────────────────── */
     private function guard()
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+        if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
         return null;

@@ -9,6 +9,7 @@ use App\Models\Seat;
 use App\Models\Showtime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerTheatreFormationController extends Controller
 {
@@ -29,7 +30,7 @@ class BranchManagerTheatreFormationController extends Controller
      */
     public function show(int $theatreId)
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+        if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
 

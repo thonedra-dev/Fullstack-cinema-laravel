@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;    
 
 class BranchManagerNotificationController extends Controller
 {
@@ -23,7 +24,7 @@ class BranchManagerNotificationController extends Controller
      */
     public function index()
     {
-        if (!session('bm_manager_id')) {
+        if (!Auth::guard('manager')->check()) {
             return redirect()->route('manager.login');
         }
 

@@ -8,6 +8,7 @@ use App\Models\Cinema;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerAuthController extends Controller
 {
@@ -18,9 +19,9 @@ class BranchManagerAuthController extends Controller
     public function showLogin()
     {
         // Redirect to home if already authenticated
-        if (session('bm_manager_id')) {
-            return redirect()->route('manager.home');
-        }
+        if (Auth::guard('manager')->check()) {
+        return redirect()->route('manager.home');
+    }
 
         // Read images dynamically from the local cinematic directory
         $directory = public_path('images/branch_manager_login/');
@@ -66,10 +67,11 @@ class BranchManagerAuthController extends Controller
 
         $cinema = Cinema::with('city')->find($assignment->cinema_id);
 
-        $request->session()->put('bm_manager_id',   $manager->manager_id);
+        Auth::guard('manager')->login($manager);
         $request->session()->put('bm_cinema_id',    $assignment->cinema_id);
         $request->session()->put('bm_manager_name', $manager->manager_name);
         $request->session()->put('bm_cinema_name',  $cinema?->cinema_name ?? 'Cinema');
+        $request->session()->regenerate();
 
         return redirect()->route('manager.home');
     }
@@ -79,14 +81,14 @@ class BranchManagerAuthController extends Controller
      * POST /manager/logout
      */
     public function logout(Request $request)
-    {
-        $request->session()->forget([
-            'bm_manager_id',
-            'bm_cinema_id',
-            'bm_manager_name',
-            'bm_cinema_name',
-        ]);
+{
+    // 1. Log out from the manager guard
+    Auth::guard('manager')->logout();
 
-        return redirect()->route('manager.login');
-    }
+    // 2. Invalidate the session and clear out the token and metadata
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect()->route('manager.login');
+}
 }

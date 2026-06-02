@@ -8,6 +8,7 @@ use App\Models\Hall;
 use App\Models\Showtime;
 use App\Models\ShowtimeProposalStatus;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerUpcomingController extends Controller
 {
@@ -19,7 +20,7 @@ class BranchManagerUpcomingController extends Controller
      */
     public function index()
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+       if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
 

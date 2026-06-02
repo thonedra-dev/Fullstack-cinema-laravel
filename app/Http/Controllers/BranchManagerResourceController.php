@@ -7,6 +7,7 @@ use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Showtime;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class BranchManagerResourceController extends Controller
 {
@@ -17,7 +18,7 @@ class BranchManagerResourceController extends Controller
      */
     public function index()
     {
-        if (!session('bm_manager_id') || !session('bm_cinema_id')) {
+        if (!Auth::guard('manager')->check() || !session('bm_cinema_id')) {
             return redirect()->route('manager.login');
         }
 
