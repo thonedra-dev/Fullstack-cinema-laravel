@@ -2,6 +2,8 @@
 
 use App\Models\Employee;
 use App\Models\Customer;
+use App\Models\Supervisor;
+use App\Models\Manager;
 
 return [
 
@@ -34,6 +36,16 @@ return [
             'driver' => 'session',
             'provider' => 'customers',
         ],
+
+        'supervisor' => [
+            'driver' => 'session',
+            'provider' => 'supervisors',
+        ],
+
+        'manager' => [
+            'driver' => 'session',
+            'provider' => 'managers',
+        ],
     ],
 
     /*
@@ -53,6 +65,16 @@ return [
         'customers' => [
             'driver' => 'eloquent',
             'model' => Customer::class,
+        ],
+
+        'supervisors' => [
+            'driver' => 'eloquent',
+            'model' => Supervisor::class,
+        ],
+
+        'managers' => [
+            'driver' => 'eloquent',
+            'model' => Manager::class,
         ],
     ],
 
