@@ -2,25 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Manager extends Model
+class Manager extends Authenticatable
 {
     protected $table      = 'managers';
     protected $primaryKey = 'manager_id';
     public    $timestamps = true;
 
-    protected $hidden   = ['password'];
+    // Hide password from array/JSON serialization
+    protected $hidden  = ['password'];
 
+    // Safely allow mass-assignment for these specific columns
     protected $fillable = [
         'manager_name',
         'manager_email',
-        'manager_passport_pic',
         'password',
     ];
 
     /**
-     * A manager can be assigned to many cinemas (via branch_managers pivot).
+     * A manager can be assigned to multiple cinemas via the branch_managers pivot.
      */
     public function cinemas()
     {
@@ -29,6 +30,6 @@ class Manager extends Model
             'branch_managers',
             'manager_id',
             'cinema_id'
-        );
+        )->using(BranchManager::class);
     }
 }

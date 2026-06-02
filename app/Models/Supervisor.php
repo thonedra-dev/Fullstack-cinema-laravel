@@ -2,17 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+// Change this import:
+use Illuminate\Foundation\Auth\User as Authenticatable; 
 
-class Supervisor extends Model
+// Extend Authenticatable instead of Model
+class Supervisor extends Authenticatable 
 {
     protected $table      = 'supervisors';
     protected $primaryKey = 'supervisor_id';
     public    $timestamps = true;
 
-    /**
-     * Columns that should never be mass-assigned or returned in JSON.
-     */
     protected $guarded  = ['supervisor_id'];
     protected $hidden   = ['password'];
 
@@ -22,9 +21,6 @@ class Supervisor extends Model
         'password',
     ];
 
-    /**
-     * A supervisor has approved many cinema movie quotas.
-     */
     public function quotas()
     {
         return $this->hasMany(CinemaMovieQuota::class, 'supervisor_id', 'supervisor_id');
