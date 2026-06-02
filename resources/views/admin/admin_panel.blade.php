@@ -1,17 +1,10 @@
-{{--
-    resources/views/admin/admin_panel.blade.php
-    Cinema Admin Launchpad – Time‑based greeting pop‑up,
-    comic side‑by‑side layout, playful female character.
-    Original card grid untouched.
---}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Launchpad | Cinema Manager</title>
+    <title>NEXUS CONTROL | Cinema Admin</title>
 
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     @vite(['resources/css/admin_panel.css', 'resources/js/admin_panel.js'])
@@ -20,129 +13,125 @@
 
 <div class="ap-wrapper">
 
-    {{-- Header – brand only (greeting moved to pop‑up) --}}
+    {{-- Header with Global Auth State --}}
     <header class="ap-header">
         <div class="ap-header__brand">
-            <i class="fas fa-film ap-header__logo"></i>
-            <span class="ap-header__name">CINEMA ADMIN</span>
+            <i class="fas fa-network-wired ap-header__logo"></i>
+            <span class="ap-header__name">NEXUS // ADMIN</span>
+        </div>
+        
+        <div class="ap-header__auth">
+            {{-- Pulling the Supervisor Name from the Auth Session --}}
+            <span class="auth-name">
+                <i class="fas fa-user-astronaut"></i> 
+                {{ auth('supervisor')->user()->supervisor_name ?? 'SYS.ADMIN' }}
+            </span>
+            
+            <form method="POST" action="{{ route('admin.logout') }}" class="logout-form">
+                @csrf
+                <button type="submit" class="logout-btn"><i class="fas fa-power-off"></i></button>
+            </form>
         </div>
     </header>
 
-    {{-- Greeting pop‑up overlay (hidden by default, JS will reveal) --}}
+    {{-- Holographic Boot Pop-up --}}
     <div id="greeting-overlay" class="ap-greeting-overlay" style="display: none;">
-        <div id="greeting-popup" class="ap-greeting-popup">
+        <div id="greeting-popup" class="ap-greeting-popup cyber-boot">
+            <div class="scanline"></div>
             <button id="greeting-close" class="ap-greeting-close" aria-label="Close greeting">×</button>
 
-            {{-- Side‑by‑side comic container --}}
             <div class="greeting-content">
-
-                {{-- Female character (modern playful girl) --}}
-                <div id="character-container" class="character-container">
-                    <div class="character-head">
-                        <div class="character-hair"></div>
-                        <div class="eyes">
-                            <div class="eye left"></div>
-                            <div class="eye right"></div>
-                        </div>
-                        <div class="mouth"></div>
-                    </div>
-                    <div class="character-body">
-                        <div class="arm left"></div>
-                        <div class="arm right"></div>
-                    </div>
-                    <div class="character-skirt"></div>
-                    <div class="props">
-                        <div class="prop-item prop-coffee">☕</div>
-                        <div class="prop-item prop-sun">🌅</div>
-                        <div class="prop-item prop-clapper">🎬</div>
-                        <div class="prop-item prop-popcorn">🍿</div>
-                        <div class="prop-item prop-ticket">🎟️</div>
-                    </div>
+                <div class="hologram-container">
+                    <i class="fas fa-fingerprint hologram-icon"></i>
                 </div>
 
-                {{-- Speech bubble with greeting message --}}
-                <div id="greeting-message" class="speech-bubble"></div>
+                <div class="terminal-bubble">
+                    <p class="sys-text">> SYSTEM_BOOT_SEQUENCE_INITIATED...</p>
+                    <p class="sys-text">> AUTH_CONFIRMED: <span class="highlight">{{ auth('supervisor')->user()->supervisor_name ?? 'SYS.ADMIN' }}</span></p>
+                    <div id="greeting-message" class="message-text"></div>
+                    <p class="sys-text blink">> AWAITING_COMMAND_</p>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- Compact card grid – exactly as before --}}
+    {{-- Cyberpunk Card Grid --}}
     <main class="ap-grid">
-        <a href="{{ route('admin.cinema.create') }}" class="ap-card">
+        <a href="{{ route('admin.cinema.create') }}" class="ap-card cyber-edge">
             <div class="ap-card__icon-wrap"><i class="fas fa-building ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Add Cinema</h2>
-                <p class="ap-card__desc">Register a new branch</p>
+                <h2 class="ap-card__title">ADD CINEMA</h2>
+                <p class="ap-card__desc">Register new sector</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.cinema.index') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-eye ap-card__icon"></i></div>
+        <a href="{{ route('admin.cinema.index') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-satellite-dish ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">View Cinemas</h2>
-                <p class="ap-card__desc">Manage all branches</p>
+                <h2 class="ap-card__title">VIEW CINEMAS</h2>
+                <p class="ap-card__desc">Scan all sectors</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.city.create') }}" class="ap-card">
+        <a href="{{ route('admin.city.create') }}" class="ap-card cyber-edge">
             <div class="ap-card__icon-wrap"><i class="fas fa-city ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Add City</h2>
-                <p class="ap-card__desc">Expand to new locations</p>
+                <h2 class="ap-card__title">ADD CITY</h2>
+                <p class="ap-card__desc">Expand grid territory</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.theatre.create') }}" class="ap-card">
+        <a href="{{ route('admin.theatre.create') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-vr-cardboard ap-card__icon"></i></div>
+            <div class="ap-card__content">
+                <h2 class="ap-card__title">CREATE THEATRE</h2>
+                <p class="ap-card__desc">Configure sim rooms</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.service.create') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-microchip ap-card__icon"></i></div>
+            <div class="ap-card__content">
+                <h2 class="ap-card__title">ADD SERVICE</h2>
+                <p class="ap-card__desc">Hardware & amenities</p>
+            </div>
+        </a>
+
+        <a href="{{ route('admin.movie.create') }}" class="ap-card cyber-edge">
             <div class="ap-card__icon-wrap"><i class="fas fa-film ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Create Theatre</h2>
-                <p class="ap-card__desc">Set up screening rooms</p>
+                <h2 class="ap-card__title">CREATE MOVIE</h2>
+                <p class="ap-card__desc">Upload data streams</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.service.create') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-concierge-bell ap-card__icon"></i></div>
+        <a href="{{ route('admin.managers.index') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-users-cog ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Add Service</h2>
-                <p class="ap-card__desc">Amenities & extras</p>
+                <h2 class="ap-card__title">MANAGERS</h2>
+                <p class="ap-card__desc">Node operators</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.movie.create') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-clapperboard ap-card__icon"></i></div>
+        <a href="{{ route('admin.proposals.index') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-file-code ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Create Movie</h2>
-                <p class="ap-card__desc">Add new films</p>
+                <h2 class="ap-card__title">PROPOSALS</h2>
+                <p class="ap-card__desc">Review incoming logs</p>
             </div>
         </a>
 
-        <a href="{{ route('admin.managers.index') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-users ap-card__icon"></i></div>
+        <a href="{{ route('admin.food_drink.create') }}" class="ap-card cyber-edge">
+            <div class="ap-card__icon-wrap"><i class="fas fa-flask ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">Managers</h2>
-                <p class="ap-card__desc">Staff & roles</p>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.proposals.index') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-envelope-open-text ap-card__icon"></i></div>
-            <div class="ap-card__content">
-                <h2 class="ap-card__title">Proposals</h2>
-                <p class="ap-card__desc">Review & approve</p>
-            </div>
-        </a>
-
-        <a href="{{ route('admin.food_drink.create') }}" class="ap-card">
-            <div class="ap-card__icon-wrap"><i class="fas fa-hamburger ap-card__icon"></i></div>
-            <div class="ap-card__content">
-                <h2 class="ap-card__title">Food & Drinks</h2>
-                <p class="ap-card__desc">Global menu catalog</p>
+                <h2 class="ap-card__title">FOOD & DRINKS</h2>
+                <p class="ap-card__desc">Synthesized rations</p>
            </div>
         </a>
     </main>
 
     <footer class="ap-footer">
-        <i class="fas fa-film"></i> Admin Panel &copy; {{ date('Y') }}
+        <i class="fas fa-terminal"></i> NEXUS CONTROL &copy; {{ date('Y') }} // END OF LINE
     </footer>
 </div>
 

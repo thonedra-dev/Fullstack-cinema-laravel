@@ -94,7 +94,7 @@
     </nav>
 
     <div class="at-sidebar__footer">
-        <span class="at-sidebar__footer-text">v1.0 · Admin</span>
+        <span class="at-sidebar__footer-text">v1.0 · {{ auth('supervisor')->user()->supervisor_name ?? 'Admin' }}</span>
     </div>
 </aside>
 

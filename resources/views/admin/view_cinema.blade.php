@@ -205,7 +205,7 @@
                 <div class="vc-movie-grid">
                     @foreach ($movies as $movie)
                         <a
-                            href="{{ route('admin.movie.formation', [$movie->movie_id, $cinema->cinema_id]) }}"
+                            href="{{ route('admin.movie.details', [$movie->movie_id, $cinema->cinema_id]) }}"
                             class="vc-movie-card"
                             aria-label="View {{ $movie->movie_name }} details"
                         >

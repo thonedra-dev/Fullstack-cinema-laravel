@@ -73,12 +73,13 @@
 
 @else
 
-    {{-- Hidden data bridge for JS --}}
-    <div
-        id="mcf-data"
-        class="mcf-hidden"
-        data-dates='{!! json_encode($dateGroups) !!}'
-    ></div>
+   {{-- Inside admin_movie_details.blade.php --}}
+<div
+    id="mcf-data"
+    class="mcf-hidden"
+    data-movie-id="{{ $movie->movie_id }}"  {{-- 👈 This allows JS to see the movie context --}}
+    data-dates='{!! json_encode($dateGroups) !!}'
+></div>
 
     {{-- ── Date strip ────────────────────────────────────── --}}
     <div class="mcf-date-strip-wrap">
