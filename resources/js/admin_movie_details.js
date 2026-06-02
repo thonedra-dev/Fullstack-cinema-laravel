@@ -89,17 +89,33 @@
                 hint.textContent   = 'No times available.';
                 pillsWrap.appendChild(hint);
             } else {
-                theatre.times.forEach(function (time) {
-                    var pill = document.createElement('button');
-                    pill.type        = 'button';
-                    pill.className   = 'mcf-time-pill';
-                    pill.textContent = time;
-                    // Placeholder click
-                    pill.addEventListener('click', function () {
-                        // future logic
-                    });
-                    pillsWrap.appendChild(pill);
-                });
+                /**
+ * Inside admin_movie_details.js
+ * This handles the Admin time pill clicks!
+ */
+theatre.times.forEach(function (timeObj) {
+    var pill = document.createElement('button');
+    pill.type        = 'button';
+    pill.className   = 'mcf-time-pill';
+    pill.textContent = timeObj.time; // This displays the readable string (e.g. "07:00 PM")
+
+    // Wire up the live redirect path
+    pill.addEventListener('click', function () {
+        // Read the movie id directly from the data element we modified in Step 2
+        var movieId = dataEl.dataset.movieId; 
+
+        // Construct the staff view-seats destination route using standard URL parameters
+        var url = '/staff/view-seats'
+            + '?movie_id='    + encodeURIComponent(movieId || '')
+            + '&showtime_id=' + encodeURIComponent(timeObj.showtime_id)
+            + '&hall_id='     + encodeURIComponent(theatre.hall_id || '');
+
+        // Redirect the Admin browser cleanly to the shared read-only floor plan
+        window.location.href = url;
+    });
+
+    pillsWrap.appendChild(pill);
+});
             }
 
             block.appendChild(pillsWrap);

@@ -108,14 +108,18 @@
                 hint.textContent   = 'No times available.';
                 pillsWrap.appendChild(hint);
             } else {
-                theatre.times.forEach(function (time) {
+                theatre.times.forEach(function (timeObj) {
                     var pill = document.createElement('button');
                     pill.type      = 'button';
                     pill.className = 'bmf-time-pill';
-                    pill.textContent = time;
-                    // Placeholder click — no action yet
+                    pill.textContent = timeObj.time; // Pulls from object key
+                   
                     pill.addEventListener('click', function () {
-                        // future: trigger seat selection or booking
+                        var url = '/staff/view-seats'
+                            + '?movie_id='    + encodeURIComponent(dataEl.dataset.movieId || '')
+                            + '&showtime_id=' + encodeURIComponent(timeObj.showtime_id)
+                            + '&hall_id='     + encodeURIComponent(theatre.hall_id);
+                        window.location.href = url;
                     });
                     pillsWrap.appendChild(pill);
                 });

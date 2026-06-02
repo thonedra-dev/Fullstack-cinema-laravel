@@ -63,12 +63,13 @@
 
 @else
 
-    {{-- Hidden data bridge for JS --}}
-    <div
-        id="bmf-data"
-        class="bmf-hidden"
-        data-dates='{!! json_encode($dateGroups) !!}'
-    ></div>
+    {{-- Update your data bridge element inside bm_movie_details.blade.php --}}
+<div
+    id="bmf-data"
+    class="bmf-hidden"
+    data-movie-id="{{ $movie->movie_id }}" {{-- 👈 Add this here so your script can read it --}}
+    data-dates='{!! json_encode($dateGroups) !!}'
+></div>
 
     {{-- ── Date strip ────────────────────────────────────── --}}
     <div class="bmf-date-strip-wrap">

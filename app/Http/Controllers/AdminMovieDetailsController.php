@@ -46,21 +46,29 @@ class AdminMovieDetailsController extends Controller
                     'label_day'   => $dt->isToday() ? 'Today' : $dt->format('D'),
                     'label_num'   => $dt->format('j'),
                     'label_month' => $dt->format('M'),
+                    // Inside AdminMovieDetailsController.php -> map callback block
                     'theatres'    => $dayShowtimes
-                        ->groupBy('hall_id')
-                        ->map(function ($tShowtimes, $hallId) use ($hallMap) {
-                            $hall = $hallMap->get((int) $hallId);
-                            return [
-                                'name'  => $hall?->theatre?->theatre_name ?? ('Hall ' . $hallId),
-                                'times' => $tShowtimes
-                                    ->sortBy('start_time')
-                                    ->map(fn($s) => $s->start_time->format('h:i A'))
-                                    ->values()
-                                    ->all(),
-                            ];
+                       ->groupBy('hall_id')
+                       ->map(function ($tShowtimes, $hallId) use ($hallMap) {
+                       $hall = $hallMap->get((int) $hallId);
+                       return [
+                           'hall_id' => (int) $hallId, // Added hall_id reference cleanly
+                           'name'    => $hall?->theatre?->theatre_name ?? ('Hall ' . $hallId),
+                           'times'   => $tShowtimes
+                        ->sortBy('start_time')
+                        ->map(function ($s) {
+                        return [
+                           'showtime_id' => $s->showtime_id,
+                           'time'        => $s->start_time->format('h:i A'),
+                              ];
                         })
-                        ->values()
-                        ->all(),
+                        
+                ->values()
+                ->all(),
+        ];
+    })
+    ->values()
+    ->all(),
                 ];
             })
             ->values()
