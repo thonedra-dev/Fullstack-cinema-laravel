@@ -1,101 +1,88 @@
-/* ============================================================
-   admin_panel.css  —  Cinema Admin Launchpad
-   ★ Comic‑style greeting pop‑up, side‑by‑side layout,
-     female character in modern outfit, celestial backgrounds.
-   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
-/* ---------- Design tokens ---------- */
 :root {
-    --bg-base:        #0e0f13;
-    --bg-surface:     #16181f;
-    --bg-card:        #1c1e27;
-    --border:         #2a2d3a;
-    --accent:         #5b6af0;
-    --accent-light:   #7b87f5;
-    --accent-glow:    rgba(91,106,240,0.18);
-    --text-primary:   #e8eaf6;
-    --text-secondary: #8b90a7;
-    --text-muted:     #555870;
-    --radius-sm:      6px;
-    --radius-md:      10px;
-    --radius-lg:      16px;
-    --shadow-card:    0 4px 20px rgba(0,0,0,0.3);
-    --shadow-hover:   0 12px 24px rgba(91,106,240,0.15);
-    --font-ui:        'DM Sans', sans-serif;
-    --font-heading:   'Space Grotesk', sans-serif;
-    --transition:     0.2s ease;
+    --bg-base: #050505;
+    --bg-surface: rgba(15, 15, 20, 0.8);
+    --bg-card: rgba(10, 10, 15, 0.9);
+    --border: rgba(0, 240, 255, 0.2);
+    --accent-cyan: #00f0ff;
+    --accent-pink: #ff007f;
+    --text-primary: #e0e0e0;
+    --text-muted: #555870;
+    --font-ui: 'Share Tech Mono', monospace;
+    --font-heading: 'Space Grotesk', sans-serif;
 }
 
-/* ---------- Reset & base ---------- */
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background: var(--bg-base);
+    background-image: 
+        radial-gradient(circle at 50% -20%, rgba(122, 4, 235, 0.15), transparent 60%),
+        linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
     color: var(--text-primary);
     font-family: var(--font-ui);
-    font-size: 14px;
-    line-height: 1.5;
     min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     padding: 32px 24px;
-    background-image: radial-gradient(circle at 10% 20%, rgba(91,106,240,0.05) 0%, transparent 70%);
 }
 
-.ap-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    animation: fadeSlideUp 0.4s ease-out;
-}
+.ap-wrapper { max-width: 1200px; margin: 0 auto; }
 
-@keyframes fadeSlideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ---------- Header (brand only) ---------- */
+/* Header with Auth */
 .ap-header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
 }
 
 .ap-header__brand {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
-    background: var(--bg-surface);
-    padding: 6px 20px;
-    border-radius: 40px;
-    border: 1px solid var(--border);
-    backdrop-filter: blur(2px);
 }
 
-.ap-header__logo {
-    font-size: 1rem;
-    color: var(--accent-light);
-}
-
-.ap-header__name {
+.ap-header__logo, .ap-header__name {
+    color: var(--accent-cyan);
     font-family: var(--font-heading);
     font-weight: 700;
-    letter-spacing: 0.1em;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    color: var(--accent-light);
+    text-shadow: 0 0 8px var(--accent-cyan);
 }
 
-/* ---------- Card grid (unchanged) ---------- */
+.ap-header__auth {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.auth-name {
+    color: var(--accent-pink);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid var(--accent-pink);
+    color: var(--accent-pink);
+    width: 35px;
+    height: 35px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: var(--accent-pink);
+    color: #fff;
+    box-shadow: 0 0 10px var(--accent-pink);
+}
+
+/* Card Grid */
 .ap-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -106,633 +93,115 @@ body {
 .ap-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px 16px 18px;
+    padding: 24px;
     text-decoration: none;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transition: all var(--transition);
+    transition: 0.3s;
     position: relative;
-    overflow: hidden;
-    height: 100%;
-}
-
-.ap-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent-light));
-    transform: scaleX(0);
-    transition: transform 0.2s ease;
-    transform-origin: left;
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
 }
 
 .ap-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-    box-shadow: var(--shadow-hover);
-    background: #212433;
-}
-
-.ap-card:hover::before {
-    transform: scaleX(1);
+    border-color: var(--accent-cyan);
+    background: rgba(0, 240, 255, 0.05);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 240, 255, 0.1);
 }
 
 .ap-card__icon-wrap {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: var(--bg-surface);
-    border: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
-    transition: all var(--transition);
-}
-
-.ap-card:hover .ap-card__icon-wrap {
-    background: var(--accent-glow);
-    border-color: var(--accent);
-    transform: scale(1.03);
+    margin-bottom: 15px;
 }
 
 .ap-card__icon {
-    font-size: 1.4rem;
-    color: var(--accent-light);
+    font-size: 2rem;
+    color: var(--accent-cyan);
 }
 
-.ap-card__content { width: 100%; }
+.ap-card:hover .ap-card__icon {
+    color: var(--accent-pink);
+    text-shadow: 0 0 10px var(--accent-pink);
+}
 
 .ap-card__title {
     font-family: var(--font-heading);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-    letter-spacing: -0.01em;
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
 }
 
 .ap-card__desc {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-    opacity: 0.9;
-}
-
-.ap-footer {
-    text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     color: var(--text-muted);
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    margin-top: 16px;
 }
 
-/* ============================================================
-   GREETING POP‑UP  (overlay + side‑by‑side layout)
-   ============================================================ */
+/* Hologram Pop-up */
 .ap-greeting-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(6px);
-    animation: overlayFadeIn 0.5s ease;
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
 }
 
-@keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-}
-
-.ap-greeting-popup {
+.cyber-boot {
+    background: rgba(5, 5, 10, 0.95);
+    border: 1px solid var(--accent-cyan);
+    border-top: 4px solid var(--accent-cyan);
+    width: 600px;
+    padding: 30px;
     position: relative;
-    width: min(92vw, 680px);
-    border-radius: 32px;
-    padding: 36px 30px 30px;
+    box-shadow: 0 0 30px rgba(0, 240, 255, 0.2);
     overflow: hidden;
-    animation: popupBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-    display: flex;
-    flex-direction: column;
 }
 
-@keyframes popupBounce {
-    0%   { opacity: 0; transform: scale(0.7) translateY(30px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+.scanline {
+    position: absolute; width: 100%; height: 5px;
+    background: rgba(0, 240, 255, 0.3);
+    top: -5px; left: 0;
+    animation: scan 3s linear infinite;
+    pointer-events: none;
 }
 
-/* --- Comic side‑by‑side content wrapper --- */
-.greeting-content {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex: 1;
+@keyframes scan {
+    0% { top: -5px; } 100% { top: 100%; }
 }
 
-/* --- Close button --- */
 .ap-greeting-close {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    background: rgba(255,255,255,0.1);
-    border: none;
-    color: var(--text-primary);
-    font-size: 1.3rem;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-    z-index: 10;
+    position: absolute; top: 10px; right: 15px;
+    background: none; border: none;
+    color: var(--accent-cyan); font-size: 1.5rem; cursor: pointer;
 }
 
-.ap-greeting-close:hover {
-    background: rgba(255,255,255,0.25);
-}
+.greeting-content { display: flex; align-items: center; gap: 30px; }
 
-/* ============================================================
-   TIME‑BASED ATMOSPHERES & CELESTIAL BACKGROUNDS
-   ============================================================ */
-
-/* ---------- Midnight: full moon + bright stars, dark sky ---------- */
-.atmo-midnight {
-    background: linear-gradient(160deg, #070b14 0%, #0e1324 100%);
-    border: 1px solid #2f3855;
-}
-
-.atmo-midnight::before {
-    /* Full moon */
-    content: '';
-    position: absolute;
-    width: 70px; height: 70px;
-    background: radial-gradient(circle at 30% 30%, #ffffff, #e6e0d2);
-    border-radius: 50%;
-    top: 25px; right: 50px;
-    box-shadow: 0 0 35px rgba(255,255,240,0.8), 0 0 70px rgba(255,255,220,0.4);
-    z-index: 0;
-}
-
-.atmo-midnight::after {
-    /* Stars (many tiny dots) */
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(1px 1px at 10% 15%, #ffffff, transparent),
-        radial-gradient(1px 1px at 25% 30%, #ffffff, transparent),
-        radial-gradient(1.5px 1.5px at 40% 10%, #ffffff, transparent),
-        radial-gradient(1px 1px at 60% 25%, #ffffff, transparent),
-        radial-gradient(2px 2px at 75% 8%, #ffffff, transparent),
-        radial-gradient(1px 1px at 85% 35%, #ffffff, transparent),
-        radial-gradient(1.5px 1.5px at 15% 70%, #ffffff, transparent),
-        radial-gradient(1px 1px at 35% 60%, #ffffff, transparent),
-        radial-gradient(2px 2px at 55% 75%, #ffffff, transparent),
-        radial-gradient(1px 1px at 70% 80%, #ffffff, transparent),
-        radial-gradient(1.5px 1.5px at 90% 65%, #ffffff, transparent);
-    z-index: 0;
-}
-
-/* ---------- Night City (early night): crescent moon, purple sky ---------- */
-.atmo-nightcity {
-    background: linear-gradient(160deg, #1a1a3a 0%, #2d1b4a 70%, #4a2c5c 100%);
-    border: 1px solid #5a4a8a;
-}
-
-.atmo-nightcity::before {
-    /* Crescent moon – achieved with a circle and a shadow circle that overlaps */
-    content: '';
-    position: absolute;
-    width: 60px; height: 60px;
-    background: radial-gradient(circle at 40% 40%, #ffe9c7, #f0d9a0);
-    border-radius: 50%;
-    top: 30px; right: 60px;
-    box-shadow: 0 0 20px rgba(255, 240, 180, 0.7);
-    z-index: 0;
-}
-
-.atmo-nightcity::after {
-    /* Dark disc that covers part of moon to make crescent */
-    content: '';
-    position: absolute;
-    width: 58px; height: 58px;
-    background: #2d1b4a;  /* same as sky base */
-    border-radius: 50%;
-    top: 32px; right: 56px;
-    z-index: 0;
-    box-shadow: 0 0 0 2px #2d1b4a;
-}
-
-/* ---------- Morning: soft sunrise, pale sky ---------- */
-.atmo-morning {
-    background: linear-gradient(160deg, #2b3b5c 0%, #4d6385 50%, #8fa1c7 100%);
-    border: 1px solid #5f739c;
-}
-
-.atmo-morning::before {
-    /* Rising sun */
-    content: '';
-    position: absolute;
+.hologram-container {
     width: 80px; height: 80px;
-    background: radial-gradient(circle at 40% 40%, #ffd6a5, #f9a66c);
+    border: 2px dashed var(--accent-cyan);
     border-radius: 50%;
-    bottom: -20px; left: 40px;
-    box-shadow: 0 0 45px rgba(255,180,100,0.7);
-    z-index: 0;
+    display: flex; align-items: center; justify-content: center;
+    animation: spin 10s linear infinite;
 }
 
-/* ---------- Forenoon: bright, clear, subtle glow ---------- */
-.atmo-forenoon {
-    background: linear-gradient(160deg, #3a4b66 0%, #5c6f8a 100%);
-    border: 1px solid #7d8daa;
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.hologram-icon {
+    font-size: 2.5rem; color: var(--accent-cyan);
+    animation: pulseGlow 2s infinite alternate;
 }
 
-.atmo-forenoon::before {
-    /* Sun high up */
-    content: '';
-    position: absolute;
-    width: 60px; height: 60px;
-    background: radial-gradient(circle at 40% 40%, #fffbe6, #ffe08a);
-    border-radius: 50%;
-    top: 20px; right: 70px;
-    box-shadow: 0 0 40px rgba(255,255,200,0.7);
-    z-index: 0;
+@keyframes pulseGlow {
+    0% { text-shadow: 0 0 5px var(--accent-cyan); }
+    100% { text-shadow: 0 0 20px var(--accent-cyan), 0 0 30px var(--accent-cyan); }
 }
 
-/* ---------- Evening: warm dusk, low sun ---------- */
-.atmo-evening {
-    background: linear-gradient(160deg, #5c3e4a 0%, #3a2e3c 100%);
-    border: 1px solid #7a5b6e;
+.terminal-bubble .sys-text {
+    color: #0f0; margin-bottom: 5px; font-size: 0.9rem;
 }
 
-.atmo-evening::before {
-    /* Setting sun */
-    content: '';
-    position: absolute;
-    width: 90px; height: 90px;
-    background: radial-gradient(circle at 40% 40%, #ffaf7a, #d96e4c);
-    border-radius: 50%;
-    bottom: -30px; right: 30px;
-    box-shadow: 0 0 50px rgba(255,140,70,0.6);
-    z-index: 0;
-}
-
-/* ============================================================
-   FEMALE CHARACTER – Modern playful girl (hoodie + skirt)
-   ============================================================ */
-.character-container {
-    position: relative;
-    width: 150px;
-    height: 220px;
-    flex-shrink: 0;
-    z-index: 2;
-    animation: characterFloat 3s ease-in-out infinite;
-}
-
-@keyframes characterFloat {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-5px); }
-}
-
-/* Head */
-.character-head {
-    width: 72px;
-    height: 72px;
-    background: #fcd2b6;
-    border-radius: 50%;
-    position: relative;
-    margin: 0 auto;
-    z-index: 3;
-    box-shadow: inset 0 -4px 6px rgba(0,0,0,0.08);
-}
-
-/* Hair – modern bob with bangs */
-.character-hair {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    background: #2b1a12;
-    border-radius: 50% 50% 45% 45%;
-    top: -14px;
-    left: -4px;
-    z-index: 1;
-}
-
-.character-hair::after {
-    content: '';
-    position: absolute;
-    width: 22px;
-    height: 30px;
-    background: #2b1a12;
-    border-radius: 0 0 50% 50%;
-    bottom: -22px;
-    left: 18px;
-    transform: rotate(12deg);
-}
-
-/* Eyes */
-.eyes {
-    position: absolute;
-    top: 28px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 14px;
-    z-index: 4;
-}
-
-.eye {
-    width: 14px;
-    height: 14px;
-    background: #1f1f1f;
-    border-radius: 50%;
-    position: relative;
-    transition: all 0.3s;
-}
-
-.eye::after {
-    content: '';
-    position: absolute;
-    width: 5px;
-    height: 5px;
-    background: white;
-    border-radius: 50%;
-    top: 2px;
-    left: 2px;
-}
-
-/* Mouth */
-.mouth {
-    position: absolute;
-    bottom: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 18px;
-    height: 6px;
-    border-radius: 0 0 50% 50%;
-    background: #c45a5a;
-    z-index: 4;
-    transition: all 0.3s;
-}
-
-/* Blush */
-.character-head::before,
-.character-head::after {
-    content: '';
-    position: absolute;
-    width: 12px; height: 6px;
-    background: rgba(255, 150, 150, 0.5);
-    border-radius: 50%;
-    top: 36px;
-    z-index: 4;
-}
-
-.character-head::before { left: 8px; }
-.character-head::after  { right: 8px; }
-
-/* Body – hoodie */
-.character-body {
-    position: relative;
-    width: 70px;
-    height: 80px;
-    margin: -10px auto 0;
-    background: #2e3b4e;  /* dark teal hoodie */
-    border-radius: 30% 30% 20% 20%;
-    z-index: 2;
-    box-shadow: inset 0 -10px 10px rgba(0,0,0,0.15);
-}
-
-/* Hoodie strings */
-.character-body::before {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 10px;
-    height: 16px;
-    background: #1f2a3a;
-    border-radius: 3px;
-    z-index: 5;
-}
-
-.character-body::after {
-    content: '';
-    position: absolute;
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    background: #a0b0c0;
-    border-radius: 50%;
-    z-index: 5;
-}
-
-/* Skirt */
-.character-skirt {
-    width: 80px;
-    height: 30px;
-    background: #4a3b5c;
-    border-radius: 0 0 50% 50%;
-    margin: -6px auto 0;
-    position: relative;
-    z-index: 1;
-}
-
-/* Arms */
-.arm {
-    position: absolute;
-    width: 16px;
-    height: 50px;
-    background: #fcd2b6;
-    border-radius: 20px;
-    top: 5px;
-    z-index: 1;
-}
-
-.arm.left {
-    left: -20px;
-    transform: rotate(22deg);
-}
-
-.arm.right {
-    right: -20px;
-    transform: rotate(-22deg);
-}
-
-/* Props (icon) container */
-.props {
-    position: absolute;
-    bottom: 25px;
-    z-index: 6;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.prop-item {
-    display: none;
-    font-size: 2.3rem;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-}
-
-/* Show the right prop based on period class */
-.period-midnight .prop-coffee,
-.period-morning .prop-sun,
-.period-forenoon .prop-clapper,
-.period-evening .prop-popcorn,
-.period-nightcity .prop-ticket {
-    display: block;
-}
-
-/* ---------- Expression variations per period ---------- */
-/* Midnight: sleepy, half‑closed eyes */
-.period-midnight .eye {
-    height: 7px;
-    border-radius: 50%;
-    background: #1f1f1f;
-    box-shadow: 0 4px 0 #1f1f1f;
-}
-.period-midnight .mouth {
-    width: 10px;
-    height: 4px;
-    background: #9e7a7a;
-}
-
-/* Morning: peaceful smile */
-.period-morning .eye {
-    border-radius: 50% 50% 0 0;
-    height: 12px;
-}
-.period-morning .mouth {
-    width: 14px;
-    height: 6px;
-    background: #e2a0a0;
-    border-radius: 50%;
-}
-
-/* Forenoon: cheerful */
-.period-forenoon .eye {
-    border-radius: 50%;
-    height: 14px;
-}
-.period-forenoon .mouth {
-    width: 20px;
-    height: 8px;
-    background: #d88585;
-    border-radius: 0 0 50% 50%;
-}
-
-/* Evening: relaxed */
-.period-evening .eye {
-    border-radius: 50%;
-    height: 12px;
-}
-.period-evening .mouth {
-    width: 16px;
-    height: 6px;
-    background: #c45a5a;
-    border-radius: 0 0 50% 50%;
-}
-
-/* Night city: energetic, sparkle */
-.period-nightcity .eye {
-    border-radius: 50%;
-    height: 14px;
-    animation: eyeSparkle 1s infinite alternate;
-}
-@keyframes eyeSparkle {
-    0% { box-shadow: 0 0 2px #fff; }
-    100% { box-shadow: 0 0 8px #fff, 0 0 12px var(--accent-light); }
-}
-.period-nightcity .mouth {
-    width: 22px;
-    height: 9px;
-    background: #e07b7b;
-    border-radius: 0 0 50% 50%;
-}
-
-/* ============================================================
-   SPEECH BUBBLE (comic style, next to character)
-   ============================================================ */
-.speech-bubble {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 22px;
-    padding: 20px 24px;
-    flex: 1;
-    color: var(--text-primary);
-    font-family: var(--font-heading);
-    font-size: 1.1rem;
-    font-weight: 500;
-    line-height: 1.5;
-    position: relative;
-    z-index: 1;
-}
-
-/* Comic tail pointing left towards character */
-.speech-bubble::before {
-    content: '';
-    position: absolute;
-    left: -14px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    border-left: 1px solid rgba(255,255,255,0.2);
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-    clip-path: polygon(100% 0, 0 50%, 100% 100%);
-}
-
-/* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-    .ap-grid { gap: 16px; }
-    .greeting-content { gap: 16px; }
-}
-
-@media (max-width: 750px) {
-    .ap-grid { grid-template-columns: repeat(2, 1fr); }
-    .greeting-content {
-        flex-direction: column;
-        text-align: center;
-    }
-    .speech-bubble::before {
-        display: none;
-    }
-    .ap-greeting-popup { padding: 24px 20px; }
-    .character-container { width: 120px; height: 180px; }
-    .character-head { width: 58px; height: 58px; }
-    .character-hair { width: 66px; height: 66px; top: -12px; left: -3px; }
-    .eyes { top: 22px; gap: 10px; }
-    .eye { width: 12px; height: 12px; }
-    .mouth { bottom: 10px; width: 14px; height: 5px; }
-    .speech-bubble { font-size: 0.95rem; }
-}
-
-@media (max-width: 550px) {
-    .ap-grid { grid-template-columns: 1fr; gap: 14px; }
-    body { padding: 20px 16px; }
-    .ap-card { padding: 16px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .ap-card, .ap-card__icon-wrap, .ap-wrapper,
-    .character-container, .ap-greeting-popup {
-        transition: none;
-        animation: none;
-    }
-    .ap-card::before { display: none; }
-}
+.terminal-bubble .highlight { color: var(--accent-pink); }
+.message-text { color: #fff; font-family: var(--font-heading); font-size: 1.2rem; margin: 15px 0; }
+.blink { animation: blinker 1s linear infinite; }
+@keyframes blinker { 50% { opacity: 0; } }
