@@ -1,0 +1,353 @@
+/* ══ ROLE-DRIVEN ACCENT PROFILE ATTRIBUTE HOOKS ══════════ */
+body[data-role="manager"] {
+    --staff-accent: #22c55e;
+    --staff-accent-rgb: 34, 197, 94;
+    --staff-glow: 0 0 25px rgba(34, 197, 94, 0.45);
+    --staff-border: rgba(34, 197, 94, 0.24);
+    --staff-gradient: linear-gradient(135deg, #22c55e, #15803d);
+}
+
+body[data-role="supervisor"] {
+    --staff-accent: #00f0ff;
+    --staff-accent-rgb: 0, 240, 255;
+    --staff-glow: 0 0 25px rgba(0, 240, 255, 0.45);
+    --staff-border: rgba(0, 240, 255, 0.24);
+    --staff-gradient: linear-gradient(135deg, #00f0ff, #0088cc);
+}
+
+:root {
+    --bg-dark: #09090b;
+    --panel-dark: #121214;
+    --panel-card: #18181b;
+    --border-dim: rgba(255, 255, 255, 0.06);
+    --text-muted: #a1a1aa;
+}
+
+/* ══ SYSTEM BASE SETUP ═══════════════════════════════════ */
+.sm-body {
+    background-color: var(--bg-dark);
+    color: #f4f4f5;
+    font-family: 'DM Sans', sans-serif;
+    margin: 0;
+    padding: 24px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* ══ HEADER MATRIX CONSOLE ═══════════════════════════════ */
+.sm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+}
+.sm-live-indicator {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    color: var(--staff-accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(var(--staff-accent-rgb), 0.08);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--staff-border);
+}
+.sm-ping-dot {
+    width: 6px;
+    height: 6px;
+    background-color: var(--staff-accent);
+    border-radius: 50%;
+    box-shadow: var(--staff-glow);
+    animation: smPulse 2s infinite;
+}
+@keyframes smPulse {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px var(--staff-accent); }
+    100% { transform: scale(0.9); opacity: 0.6; }
+}
+.sm-movie-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 8px 0 4px 0;
+    letter-spacing: -0.5px;
+}
+.sm-cinema-subtext {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+.sm-header-right {
+    display: flex;
+    gap: 12px;
+}
+.sm-meta-badge {
+    background: var(--panel-dark);
+    border: 1px solid var(--border-dim);
+    padding: 10px 16px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+.sm-meta-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+.sm-meta-val {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* ══ COUNTERS METRICS BANNER ═════════════════════════════ */
+.sm-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.sm-stat-card {
+    background: var(--panel-card);
+    border: 1px solid var(--border-dim);
+    padding: 16px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.sm-stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 6px;
+}
+.sm-stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ══ OPERATIONAL VISUAL SPATIAL GRID ═════════════════════ */
+.sm-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.sm-console-box {
+    background: var(--panel-dark);
+    border: 1px solid var(--border-dim);
+    border-radius: 16px;
+    padding: 40px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+}
+.sm-screen-container {
+    width: 80%;
+    max-width: 700px;
+    text-align: center;
+    margin-bottom: 40px;
+}
+.sm-screen-projection {
+    height: 6px;
+    background: var(--staff-gradient);
+    border-radius: 50% / 100% 100% 0 0;
+    box-shadow: var(--staff-glow);
+    margin-bottom: 8px;
+}
+.sm-screen-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 4px;
+    text-indent: 4px;
+    opacity: 0.5;
+}
+
+/* ══ THEATRE LEGEND BAR ══════════════════════════════════ */
+.sm-legend-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: rgba(255,255,255,0.02);
+    padding: 12px 24px;
+    border-radius: 30px;
+    border: 1px solid var(--border-dim);
+    margin-bottom: 45px;
+}
+.sm-legend-node {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #e4e4e7;
+}
+.sm-legend-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+.sm-legend-divider {
+    width: 1px;
+    height: 16px;
+    background: var(--border-dim);
+    margin: 0 4px;
+}
+
+/* SEAT TYPE LEGEND INJECTIONS */
+.sm-t-standard { border: 1.5px solid #a1a1aa; background: transparent; }
+.sm-t-couple   { border: 1.5px solid #f43f5e; background: rgba(244, 63, 94, 0.1); border-radius: 3px 3px 0 0; }
+.sm-t-premium  { border: 1.5px solid #fbbf24; background: rgba(251, 191, 36, 0.1); }
+.sm-t-family   { border: 1.5px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
+
+/* SEAT STATUS LEGEND INJECTIONS */
+.sm-st-available { background: #27272a; border: 1px solid rgba(255,255,255,0.15); }
+.sm-st-pending   { background: #f59e0b; border-color: #f59e0b; color: #000; }
+.sm-st-sold      { background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; }
+
+/* ══ SPATIAL TELEMETRY MATRIX CANVAS ═════════════════════ */
+.sm-grid-canvas {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    overflow-x: auto;
+    padding: 10px 0;
+}
+.sm-grid-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    min-width: max-content;
+}
+.sm-row-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 24px;
+    text-align: center;
+    opacity: 0.6;
+}
+.sm-seats-row-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ══ COMPONENT CONSOLE SEAT GEOMETRIES ═══════════════════ */
+.sm-seat {
+    width: 32px;
+    height: 30px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transition: transform 0.15s ease;
+    user-select: none;
+    cursor: default;
+}
+
+/* SEAT STRUCTURAL SUB-TYPES */
+.sm-seat--standard {
+    border: 1.5px solid #71717a;
+    background: rgba(113, 113, 122, 0.05);
+}
+.sm-seat--premium {
+    border: 1.5px solid #fbbf24;
+    background: rgba(251, 191, 36, 0.08);
+    height: 33px;
+    width: 34px;
+}
+.sm-seat--family {
+    border: 1.5px solid #3b82f6;
+    background: rgba(59, 130, 246, 0.08);
+    height: 33px;
+    width: 38px;
+}
+
+/* DOUBLE COMPOSITE PAIRS */
+.sm-couple-pair-container {
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    border: 1.5px dashed rgba(244, 63, 94, 0.4);
+    border-radius: 6px;
+    background: rgba(244, 63, 94, 0.02);
+}
+.sm-seat--couple {
+    border: 1.5px solid #f43f5e;
+    background: rgba(244, 63, 94, 0.08);
+    border-radius: 4px 4px 0 0;
+}
+
+/* SEAT REAL-TIME STATE MODIFIERS */
+.sm-seat--available {
+    color: rgba(255, 255, 255, 0.8);
+}
+.sm-seat--pending {
+    background: #f59e0b !important;
+    border-color: #d97706 !important;
+    color: #09090b !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+.sm-seat--sold {
+    background: rgba(39, 39, 42, 0.6) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    color: #ef4444 !important;
+    text-shadow: none;
+    opacity: 0.4;
+}
+
+/* DECORATION ELEMENTS */
+.sm-empty-grid-notice {
+    text-align: center; 
+    color: rgba(240,238,255,0.4); 
+    padding: 40px 0;
+}
+.sm-border-decoration {
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.sm-decoration-badge {
+    background: var(--panel-dark);
+    border: 1px solid var(--border-dim);
+    border-bottom: none;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 6px 6px 0 0;
+}
+
+/* ══ SYSTEM FOOTER CONTAINER TERMINAL ════════════════════ */
+.sm-footer {
+    margin-top: 24px;
+    border-top: 1px solid var(--border-dim);
+    padding-top: 16px;
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-muted);
+    opacity: 0.5;
+    letter-spacing: 0.5px;
+}
