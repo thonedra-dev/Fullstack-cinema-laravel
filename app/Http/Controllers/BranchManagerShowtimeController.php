@@ -114,7 +114,7 @@ class BranchManagerShowtimeController extends Controller
         $rejectedProposal = null;
 
         if ($movie) {
-            $rejectedProposal = ShowtimeProposalStatus::where('manager_id', (int) session('bm_manager_id'))
+            $rejectedProposal = ShowtimeProposalStatus::where('manager_id', Auth::guard('manager')->id())
                 ->where('cinema_id', $cinemaId)
                 ->where('movie_id', $movie->movie_id)
                 ->where('status', 'rejected')
@@ -144,7 +144,7 @@ class BranchManagerShowtimeController extends Controller
         if ($r = $this->guard()) return $r;
 
         $cinemaId  = (int) session('bm_cinema_id');
-        $managerId = (int) session('bm_manager_id');
+        $managerId = Auth::guard('manager')->id();
 
         $request->validate([
             'movie_id'      => 'required|integer|exists:movies,movie_id',
@@ -327,7 +327,7 @@ class BranchManagerShowtimeController extends Controller
         if ($r = $this->guard()) return $r;
 
         $cinemaId  = (int) session('bm_cinema_id');
-        $managerId = (int) session('bm_manager_id');
+        $managerId = Auth::guard('manager')->id();
 
         // Fetch the status record — only allow rearrange when rejected
         $statusRecord = ShowtimeProposalStatus::where('movie_id',   $movieId)
