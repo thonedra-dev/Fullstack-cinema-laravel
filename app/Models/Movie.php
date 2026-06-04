@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Movie extends Model
 {
@@ -64,5 +65,29 @@ class Movie extends Model
     public function ticketPrices()
     {
         return $this->hasMany(MovieTicketPrice::class, 'movie_id', 'movie_id');
+    }
+
+    // =========================================================================
+    //  SCOPE: nowShowing
+    // =========================================================================
+    /**
+     * Restrict the query to movies that are still actively showing.
+     *
+     * A movie is considered "now showing" when at least ONE of its
+     * cinema_movie_quotas has a maximum_end_date >= today.
+     *
+     * Because the same movie_id can appear in multiple quota rows
+     * (one per cinema), we use a whereHas() existence sub-query so
+     * Eloquent generates a single EXISTS(...) clause — far cheaper
+     * than a JOIN that would fan out rows and require DISTINCT.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNowShowing($query)
+    {
+        return $query->whereHas('quotas', function ($q) {
+            $q->whereDate('maximum_end_date', '>=', now()->toDateString());
+        });
     }
 }
