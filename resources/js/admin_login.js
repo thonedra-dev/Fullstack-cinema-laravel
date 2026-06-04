@@ -399,91 +399,299 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ---------------------------------------------------------
-    //  FLOATING ASTRONAUT (simple silhouette paths)
+    //  SPACE SOLDIER — armoured, armed, roaming patrol
     // ---------------------------------------------------------
-    class Astronaut {
+    class SpaceSoldier {
         constructor(cfg) {
-            this.cx    = cfg.cx;
-            this.cy    = cfg.cy;
-            this.speed = cfg.speed;
-            this.phase = cfg.phase;
-            this.scale = cfg.scale || 1;
-            this.drift = cfg.drift || 0.012;
+            // World position (pixels), set on first buildScene
+            this.x      = cfg.startX * (W || 800);
+            this.y      = cfg.startY * (H || 600);
+            this.scale  = cfg.scale  || 1.0;
+            this.phase  = cfg.phase  || 0;
+            this.accentCol = cfg.accent || [80, 200, 255];  // visor / weapon glow colour
+
+            // Patrol waypoints in normalised coords — soldier walks between them
+            this.waypoints  = cfg.waypoints;
+            this.wpIndex    = 0;
+            this.speed      = cfg.speed || 28;   // px/s
+            this.facing     = 1;                  // +1 right, -1 left
+            this.walkCycle  = 0;
+
+            // Idle-scan state
+            this.scanTimer  = 0;
+            this.scanning   = false;
+            this.scanAngle  = 0;
+
+            // Weapon muzzle flash
+            this.flashTimer = 0;
         }
+
+        _nextWaypoint() {
+            this.wpIndex = (this.wpIndex + 1) % this.waypoints.length;
+        }
+
+        update(dt) {
+            const wp  = this.waypoints[this.wpIndex];
+            const tx  = wp[0] * W;
+            const ty  = wp[1] * H;
+            const dx  = tx - this.x;
+            const dy  = ty - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 6) {
+                // Reached waypoint — pause briefly then move on
+                this.scanning  = true;
+                this.scanTimer += dt;
+                this.walkCycle  = 0;
+                if (this.scanTimer > 1.4) {
+                    this.scanTimer = 0;
+                    this.scanning  = false;
+                    this._nextWaypoint();
+                    // occasional muzzle flash when moving off
+                    if (Math.random() < 0.3) this.flashTimer = 0.12;
+                }
+            } else {
+                this.scanning  = false;
+                this.scanTimer = 0;
+                const spd = this.speed * Math.min(W, H) / 600;
+                this.x   += (dx / dist) * spd * dt;
+                this.y   += (dy / dist) * spd * dt;
+                this.facing    = dx > 0 ? 1 : -1;
+                this.walkCycle += dt * 6.5;
+            }
+
+            if (this.flashTimer > 0) this.flashTimer -= dt;
+        }
+
         draw() {
-            const bobY  = Math.sin(t * this.drift * 60 + this.phase) * H * 0.018;
-            const bobRot = Math.sin(t * this.drift * 40 + this.phase) * 0.08;
-            const cx = (this.cx + Math.sin(t * this.speed + this.phase) * 0.04) * W;
-            const cy = this.cy * H + bobY;
-            const s  = this.scale * Math.min(W, H) * 0.028;
+            const { x, y, scale, phase, accentCol, facing, walkCycle, scanning } = this;
+            const s  = scale * Math.min(W, H) * 0.032;
+            const ac = `rgb(${accentCol[0]},${accentCol[1]},${accentCol[2]})`;
+            const acA = (a) => `rgba(${accentCol[0]},${accentCol[1]},${accentCol[2]},${a})`;
+
+            // Leg walk swing
+            const legSwing  = scanning ? 0 : Math.sin(walkCycle) * 0.38;
+            // Arm walk swing (opposite to leg)
+            const armSwing  = scanning ? Math.sin(t * 1.8 + phase) * 0.25 : -Math.sin(walkCycle) * 0.22;
+            // Scan head tilt
+            const headTilt  = scanning ? Math.sin(t * 1.2 + phase) * 0.35 : 0;
+            // Visor scan pulse
+            const visorPulse = 0.6 + 0.4 * Math.sin(t * 2.5 + phase);
 
             ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(bobRot);
-            ctx.scale(s, s);
+            ctx.translate(x, y);
+            ctx.scale(facing * s, s);  // flip on facing direction
 
-            // Suit body
+            // ── Jetpack / backpack ──
+            ctx.fillStyle = 'rgba(60,70,90,0.90)';
             ctx.beginPath();
-            ctx.ellipse(0, 1.2, 1.0, 1.3, 0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(215,225,240,0.88)';
+            ctx.roundRect(facing > 0 ? -1.9 : 0.5, -0.8, 1.2, 2.2, 0.3);
+            ctx.fill();
+            // jetpack nozzles
+            ctx.fillStyle = 'rgba(100,120,150,0.8)';
+            ctx.beginPath();
+            ctx.rect(facing > 0 ? -1.9 : 0.5, 1.0, 0.45, 0.55);
+            ctx.rect(facing > 0 ? -1.35 : 1.05, 1.0, 0.45, 0.55);
+            ctx.fill();
+            // faint thruster glow (always-on idle burn)
+            const thrustA = 0.18 + 0.12 * Math.sin(t * 8 + phase);
+            const tg = ctx.createRadialGradient(facing > 0 ? -1.55 : 0.8, 1.7, 0, facing > 0 ? -1.55 : 0.8, 1.7, 0.8);
+            tg.addColorStop(0, acA(thrustA * 2));
+            tg.addColorStop(1, acA(0));
+            ctx.beginPath();
+            ctx.arc(facing > 0 ? -1.55 : 0.8, 1.7, 0.8, 0, Math.PI * 2);
+            ctx.fillStyle = tg;
             ctx.fill();
 
-            // Helmet
+            // ── Torso (armoured chest plate) ──
+            ctx.fillStyle = 'rgba(80,95,120,0.92)';
             ctx.beginPath();
-            ctx.arc(0, -1.0, 1.0, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(200,215,240,0.9)';
+            ctx.roundRect(-0.85, -0.5, 1.7, 2.0, 0.25);
+            ctx.fill();
+            // chest plate detail stripe
+            ctx.fillStyle = acA(0.35);
+            ctx.beginPath();
+            ctx.roundRect(-0.55, -0.3, 1.1, 0.35, 0.1);
+            ctx.fill();
+            // shoulder pad L
+            ctx.fillStyle = 'rgba(100,115,145,0.90)';
+            ctx.beginPath();
+            ctx.ellipse(-1.0, -0.35, 0.42, 0.3, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            // shoulder pad R
+            ctx.beginPath();
+            ctx.ellipse(1.0, -0.35, 0.42, 0.3, 0.2, 0, Math.PI * 2);
             ctx.fill();
 
-            // Visor
-            ctx.beginPath();
-            ctx.arc(0.1, -1.05, 0.55, Math.PI * 0.15, Math.PI * 0.85);
-            ctx.fillStyle = 'rgba(255,190,60,0.75)';
-            ctx.fill();
-
-            // Left arm
+            // ── Left leg ──
             ctx.save();
-            ctx.rotate(-0.4 + Math.sin(t * this.drift * 55 + this.phase) * 0.2);
+            ctx.translate(-0.38, 1.5);
+            ctx.rotate(legSwing * 0.8);
+            ctx.fillStyle = 'rgba(70,85,110,0.90)';
             ctx.beginPath();
-            ctx.ellipse(-1.15, 0.5, 0.38, 0.9, 0.3, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(200,215,235,0.85)';
+            ctx.roundRect(-0.3, 0, 0.6, 1.1, 0.2);
+            ctx.fill();
+            // knee armour
+            ctx.fillStyle = 'rgba(110,130,165,0.85)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0.55, 0.28, 0.22, 0, 0, Math.PI * 2);
+            ctx.fill();
+            // boot
+            ctx.fillStyle = 'rgba(50,60,80,0.95)';
+            ctx.beginPath();
+            ctx.roundRect(-0.32, 1.05, 0.64, 0.4, 0.15);
             ctx.fill();
             ctx.restore();
 
-            // Right arm
+            // ── Right leg ──
             ctx.save();
-            ctx.rotate(0.4 - Math.sin(t * this.drift * 55 + this.phase + 0.5) * 0.2);
+            ctx.translate(0.38, 1.5);
+            ctx.rotate(-legSwing * 0.8);
+            ctx.fillStyle = 'rgba(70,85,110,0.90)';
             ctx.beginPath();
-            ctx.ellipse(1.15, 0.5, 0.38, 0.9, -0.3, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(200,215,235,0.85)';
+            ctx.roundRect(-0.3, 0, 0.6, 1.1, 0.2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(110,130,165,0.85)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0.55, 0.28, 0.22, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(50,60,80,0.95)';
+            ctx.beginPath();
+            ctx.roundRect(-0.32, 1.05, 0.64, 0.4, 0.15);
             ctx.fill();
             ctx.restore();
 
-            // Legs
+            // ── Left arm (raised, holds weapon) ──
+            ctx.save();
+            ctx.translate(-0.9, 0.1);
+            ctx.rotate(-0.55 + armSwing);
+            ctx.fillStyle = 'rgba(75,90,115,0.90)';
             ctx.beginPath();
-            ctx.ellipse(-0.45, 2.6, 0.38, 0.85, 0.1, 0, Math.PI * 2);
-            ctx.ellipse(0.45,  2.6, 0.38, 0.85, -0.1, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(200,215,235,0.82)';
+            ctx.roundRect(-0.28, 0, 0.56, 1.05, 0.2);
             ctx.fill();
-
-            // Suit highlight
+            // glove
+            ctx.fillStyle = 'rgba(50,60,80,0.92)';
             ctx.beginPath();
-            ctx.arc(-0.3, 0.6, 0.22, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255,255,255,0.18)';
+            ctx.ellipse(0, 1.1, 0.26, 0.2, 0, 0, Math.PI * 2);
             ctx.fill();
-
             ctx.restore();
 
-            // Tether line
+            // ── Right arm + WEAPON ──
+            ctx.save();
+            ctx.translate(0.9, 0.0);
+            const weaponAim = scanning
+                ? -0.55 + Math.sin(t * 1.2 + phase) * 0.3   // slow scan sweep
+                : -0.45 + armSwing;
+            ctx.rotate(weaponAim);
+            // arm
+            ctx.fillStyle = 'rgba(75,90,115,0.90)';
             ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            const tx = (this.cx + 0.22) * W;
-            const ty = (this.cy + 0.06) * H;
-            const mid1x = cx + (tx - cx) * 0.3 + Math.sin(t * 0.6 + this.phase) * 8;
-            const mid1y = cy + (ty - cy) * 0.5 + Math.cos(t * 0.5 + this.phase) * 6;
-            ctx.quadraticCurveTo(mid1x, mid1y, tx, ty);
-            ctx.strokeStyle = 'rgba(200,215,255,0.25)';
-            ctx.lineWidth = 0.8;
+            ctx.roundRect(-0.28, 0, 0.56, 1.0, 0.2);
+            ctx.fill();
+            // glove
+            ctx.fillStyle = 'rgba(50,60,80,0.92)';
+            ctx.beginPath();
+            ctx.ellipse(0, 1.05, 0.26, 0.2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ── Weapon body (sci-fi rifle) ──
+            ctx.save();
+            ctx.translate(0.22, 0.55);
+            // main body
+            ctx.fillStyle = 'rgba(40,50,65,0.95)';
+            ctx.beginPath();
+            ctx.roundRect(-0.18, -0.25, 0.36, 1.55, 0.12);
+            ctx.fill();
+            // barrel extension
+            ctx.fillStyle = 'rgba(55,68,85,0.92)';
+            ctx.beginPath();
+            ctx.roundRect(-0.1, 1.3, 0.2, 0.7, 0.08);
+            ctx.fill();
+            // energy cell glow strip
+            ctx.fillStyle = acA(0.55 + 0.3 * Math.sin(t * 3 + phase));
+            ctx.beginPath();
+            ctx.roundRect(-0.07, 0.1, 0.14, 0.65, 0.06);
+            ctx.fill();
+            // scope
+            ctx.fillStyle = 'rgba(60,75,100,0.90)';
+            ctx.beginPath();
+            ctx.roundRect(-0.24, -0.15, 0.28, 0.28, 0.07);
+            ctx.fill();
+            ctx.fillStyle = acA(0.7);
+            ctx.beginPath();
+            ctx.arc(-0.1, 0, 0.09, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Muzzle flash
+            if (this.flashTimer > 0) {
+                const fA = this.flashTimer / 0.12;
+                const fg = ctx.createRadialGradient(0, 2.05, 0, 0, 2.05, 0.55);
+                fg.addColorStop(0, `rgba(255,255,200,${fA * 0.95})`);
+                fg.addColorStop(0.4, acA(fA * 0.7));
+                fg.addColorStop(1, acA(0));
+                ctx.beginPath();
+                ctx.arc(0, 2.05, 0.55, 0, Math.PI * 2);
+                ctx.fillStyle = fg;
+                ctx.fill();
+            }
+            ctx.restore(); // weapon
+            ctx.restore(); // right arm
+
+            // ── Helmet ──
+            ctx.save();
+            ctx.rotate(headTilt);
+            // helmet shell
+            ctx.fillStyle = 'rgba(75,90,118,0.95)';
+            ctx.beginPath();
+            ctx.arc(0, -1.38, 0.82, 0, Math.PI * 2);
+            ctx.fill();
+            // helmet brow ridge
+            ctx.fillStyle = 'rgba(55,68,90,0.90)';
+            ctx.beginPath();
+            ctx.roundRect(-0.75, -1.72, 1.5, 0.28, 0.1);
+            ctx.fill();
+            // antenna
+            ctx.strokeStyle = 'rgba(140,160,190,0.75)';
+            ctx.lineWidth = 0.08;
+            ctx.beginPath();
+            ctx.moveTo(0.5, -2.05);
+            ctx.lineTo(0.5, -1.72);
             ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(0.5, -2.12, 0.1, 0, Math.PI * 2);
+            ctx.fillStyle = acA(0.8 + 0.2 * Math.sin(t * 4 + phase));
+            ctx.fill();
+            // visor — wide angry slit
+            const vg = ctx.createLinearGradient(-0.62, -1.55, 0.62, -1.25);
+            vg.addColorStop(0,   acA(visorPulse * 0.3));
+            vg.addColorStop(0.5, acA(visorPulse * 0.95));
+            vg.addColorStop(1,   acA(visorPulse * 0.3));
+            ctx.fillStyle = vg;
+            ctx.beginPath();
+            ctx.roundRect(-0.62, -1.62, 1.24, 0.38, 0.12);
+            ctx.fill();
+            // visor inner shine
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            ctx.beginPath();
+            ctx.roundRect(-0.55, -1.60, 0.5, 0.14, 0.07);
+            ctx.fill();
+            ctx.restore(); // helmet
+
+            ctx.restore(); // whole soldier
+
+            // Soft ground shadow (just under the feet)
+            const shadowA = 0.18 + 0.05 * Math.sin(t * 1.5 + phase);
+            ctx.save();
+            ctx.translate(x, y + s * 2.0);
+            ctx.scale(1, 0.22);
+            const sg = ctx.createRadialGradient(0, 0, 0, 0, 0, s * 1.1);
+            sg.addColorStop(0, `rgba(0,0,0,${shadowA})`);
+            sg.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 1.1, 0, Math.PI * 2);
+            ctx.fillStyle = sg;
+            ctx.fill();
+            ctx.restore();
         }
     }
 
@@ -548,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---------------------------------------------------------
     //  SCENE INSTANCES
     // ---------------------------------------------------------
-    let orbs, satellites, comets, astronauts;
+    let orbs, satellites, comets, soldiers;
 
     function buildScene() {
         orbs = [
@@ -571,10 +779,43 @@ document.addEventListener('DOMContentLoaded', () => {
             new Comet({ startX: 0.40, startY: 0.0, angle: Math.PI * 0.28, speed: 22, tailLen: 70 }),
         ];
 
-        astronauts = [
-            new Astronaut({ cx: 0.25, cy: 0.38, speed: 0.06, phase: 0,   scale: 0.9,  drift: 0.010 }),
-            new Astronaut({ cx: 0.72, cy: 0.62, speed: 0.05, phase: 2.4, scale: 0.75, drift: 0.013 }),
-            new Astronaut({ cx: 0.55, cy: 0.22, speed: 0.07, phase: 4.8, scale: 0.65, drift: 0.011 }),
+        // Three soldiers with different patrol routes, accent colours, and speeds
+        soldiers = [
+            new SpaceSoldier({
+                startX: 0.12, startY: 0.72,
+                scale: 1.0,
+                phase: 0,
+                speed: 32,
+                accent: [80, 210, 255],   // cyan — point man
+                waypoints: [
+                    [0.12, 0.72], [0.28, 0.58], [0.18, 0.42],
+                    [0.08, 0.55], [0.22, 0.78], [0.12, 0.72]
+                ]
+            }),
+            new SpaceSoldier({
+                startX: 0.78, startY: 0.65,
+                scale: 0.88,
+                phase: 2.1,
+                speed: 26,
+                accent: [255, 100, 80],   // red — heavy weapons
+                waypoints: [
+                    [0.78, 0.65], [0.88, 0.45], [0.92, 0.28],
+                    [0.82, 0.18], [0.70, 0.38], [0.75, 0.60],
+                    [0.78, 0.65]
+                ]
+            }),
+            new SpaceSoldier({
+                startX: 0.50, startY: 0.82,
+                scale: 0.78,
+                phase: 4.4,
+                speed: 38,
+                accent: [160, 255, 120],  // green — scout
+                waypoints: [
+                    [0.50, 0.82], [0.62, 0.70], [0.70, 0.82],
+                    [0.60, 0.90], [0.42, 0.88], [0.35, 0.75],
+                    [0.45, 0.68], [0.50, 0.82]
+                ]
+            }),
         ];
 
         buildParticles();
@@ -601,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
         comets.forEach(c => { c.update(dt); c.draw(); });
         orbs.forEach(o => o.draw());
         satellites.forEach(s => s.draw());
-        astronauts.forEach(a => a.draw());
+        soldiers.forEach(s => { s.update(dt); s.draw(); });
         updateAndDrawParticles();
         updateShoots(dt);
         drawVignette();
