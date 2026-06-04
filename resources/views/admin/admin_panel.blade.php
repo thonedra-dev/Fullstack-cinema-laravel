@@ -17,7 +17,7 @@
     <header class="ap-header">
         <div class="ap-header__brand">
             <i class="fas fa-network-wired ap-header__logo"></i>
-            <span class="ap-header__name">NEXUS // ADMIN</span>
+            <span class="ap-header__name">ADMIN PANEL</span>
         </div>
         
         <div class="ap-header__auth">
