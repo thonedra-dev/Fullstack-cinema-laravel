@@ -117,7 +117,15 @@
     <div class="hp-movies-scroll-wrap">
         <div class="hp-movies-row" id="hp-movies-row">
             @forelse ($nowShowing as $movie)
-                <a href="{{ route('user.movie.details', $movie->movie_id) }}" class="hp-movie-card">
+                {{--
+                    data-movie-id is the stable DOM handle used by the
+                    background polling script (homepage.js) to identify
+                    and gracefully remove cards for expired movies without
+                    a full page reload.
+                --}}
+                <a href="{{ route('user.movie.details', $movie->movie_id) }}"
+                   class="hp-movie-card"
+                   data-movie-id="{{ $movie->movie_id }}">
                     <div class="hp-movie-card__poster-wrap">
                         <img
                             src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
