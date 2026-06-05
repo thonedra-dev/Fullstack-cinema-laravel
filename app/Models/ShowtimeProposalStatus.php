@@ -18,25 +18,22 @@ class ShowtimeProposalStatus extends Model
         'admin_note',
     ];
 
-    /**
-     * Relationship: The movie this status belongs to.
-     */
+    // Fetches all the individual proposed slots tied to this batch
+    public function proposals()
+    {
+        return $this->hasMany(ShowtimeProposal::class, 'status_id', 'id');
+    }
+
     public function movie()
     {
         return $this->belongsTo(Movie::class, 'movie_id', 'movie_id');
     }
 
-    /**
-     * Relationship: The cinema this status belongs to.
-     */
     public function cinema()
     {
         return $this->belongsTo(Cinema::class, 'cinema_id', 'cinema_id');
     }
 
-    /**
-     * Relationship: The manager who submitted this proposal.
-     */
     public function manager()
     {
         return $this->belongsTo(Manager::class, 'manager_id', 'manager_id');

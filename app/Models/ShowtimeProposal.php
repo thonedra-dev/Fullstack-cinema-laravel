@@ -10,22 +10,11 @@ class ShowtimeProposal extends Model
     protected $primaryKey = 'id';
     public    $timestamps = true;
 
-    /*
-     * Schema after migration:
-     *   id, manager_id, cinema_id, hall_id, movie_id,
-     *   start_datetime (timestamp), end_datetime (timestamp),
-     *   status, admin_note, created_at, updated_at
-     *
-     * selected_dates / start_time / end_time were DROPPED by the alter migration.
-     * We now store one row per date — each row is one scheduled slot.
-     */
     protected $fillable = [
-        'manager_id',
-        'cinema_id',
+        'status_id',        // New FK pointing to showtime_proposal_status
         'hall_id',
-        'movie_id',
-        'start_datetime',   // full timestamp e.g. 2026-04-08 14:00:00
-        'end_datetime',     // full timestamp e.g. 2026-04-08 16:28:00
+        'start_datetime',
+        'end_datetime',
     ];
 
     protected $casts = [
@@ -33,14 +22,10 @@ class ShowtimeProposal extends Model
         'end_datetime'   => 'datetime',
     ];
 
-    public function manager()
+    // Connects this slot to the main proposal batch
+    public function status()
     {
-        return $this->belongsTo(Manager::class, 'manager_id', 'manager_id');
-    }
-
-    public function cinema()
-    {
-        return $this->belongsTo(Cinema::class, 'cinema_id', 'cinema_id');
+        return $this->belongsTo(ShowtimeProposalStatus::class, 'status_id', 'id');
     }
 
     public function hall()
@@ -65,8 +50,19 @@ class ShowtimeProposal extends Model
         );
     }
 
+    // Pass-through relationships via the parent status
+    public function manager()
+    {
+        return $this->status?->manager();
+    }
+
+    public function cinema()
+    {
+        return $this->status?->cinema();
+    }
+
     public function movie()
     {
-        return $this->belongsTo(Movie::class, 'movie_id', 'movie_id');
+        return $this->status?->movie();
     }
 }
