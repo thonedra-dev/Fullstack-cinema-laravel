@@ -23,6 +23,27 @@ class Showtime extends Model
         'end_time'   => 'datetime',
     ];
 
+    // =========================================================================
+    //  ACCESSOR — is_bookable
+    // =========================================================================
+    /**
+     * A showtime is considered bookable when its start_time is at least
+     * 15 minutes from now.  This is the single source of truth used by
+     * both the Blade template (inline disabled styling) and any downstream
+     * logic that needs the same cutoff.
+     *
+     * Accessible as:  $showtime->is_bookable  (Laravel magic accessor)
+     *
+     * @return bool
+     */
+    public function getIsBookableAttribute(): bool
+    {
+        if (!$this->start_time) return false;
+
+        // now()->addMinutes(15) = the earliest start_time we will accept
+        return $this->start_time->gt(now()->addMinutes(15));
+    }
+
     public function hall()
     {
         return $this->belongsTo(Hall::class, 'hall_id', 'hall_id');
