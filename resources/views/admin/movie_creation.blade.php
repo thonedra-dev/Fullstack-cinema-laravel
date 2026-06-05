@@ -20,7 +20,12 @@
 @section('hide_topbar_title') @endsection
 
 @section('head_extras')
-    @vite(['resources/css/movie_creation.css', 'resources/js/movie_creation.js'])
+    @vite([
+    'resources/css/movie_creation.css',
+    'resources/js/movie_quota_assignment.js',
+    'resources/js/theatre_pricing.js',
+    'resources/js/movie_creation.js'
+])
 @endsection
 
 @section('content')
@@ -185,30 +190,33 @@
             </button>
         </div>
 
-        {{-- ── 04: Supervisor Confirmation ────────────────── --}}
-        {{-- Ticket pricing rules --}}
+        {{-- ── 04: Ticket Pricing Rules (Enhanced) ─────────── --}}
         @php
-            $pricingSeats = [
-                'standard' => 'Standard',
-                'premium' => 'Premium',
-                'family' => 'Family',
-                'couple' => 'Couple',
-            ];
-            $pricingDays = [
-                'weekday' => 'Weekdays',
-                'weekend' => 'Weekends',
-            ];
+            $pricingSeats = ['standard' => 'Standard', 'premium' => 'Premium', 'family' => 'Family', 'couple' => 'Couple'];
+            $pricingDays  = ['weekday' => 'Weekdays', 'weekend' => 'Weekends'];
             $pricingRuleCount = $pricingTheatres->count() * count($pricingSeats) * count($pricingDays);
         @endphp
         <div class="mc-section mc-section--pricing">
             <div class="mc-section__header">
                 <span class="mc-section__number">04</span>
                 <span class="mc-section__title">Ticket Pricing Rules</span>
+                {{-- Header‑right controls ──────────────────────────── --}}
+                <div class="mc-pricing-controls">
+                    <button type="button" id="mc-pricing-expand-btn" class="mc-pricing-ctrl-btn" title="Expand full screen">
+                        ⛶ Expand
+                    </button>
+                    <button type="button" id="mc-pricing-bulk-btn" class="mc-pricing-ctrl-btn" title="Set prices globally">
+                        ⚡ Bulk Edit
+                    </button>
+                    <button type="button" id="mc-pricing-clear-all-btn" class="mc-pricing-ctrl-btn mc-pricing-ctrl-btn--danger" title="Clear all theatres">
+                        🗑 Clear All
+                    </button>
+                </div>
             </div>
 
             @error('ticket_prices_json')
                 <div class="at-alert at-alert--error" style="margin-bottom:14px;">
-                    <span class="at-alert__icon">x</span> {{ $message }}
+                    <span class="at-alert__icon">✕</span> {{ $message }}
                 </div>
             @enderror
 
@@ -226,53 +234,96 @@
 
             @if ($pricingTheatres->isEmpty())
                 <div class="at-alert at-alert--error" style="margin-bottom:14px;">
-                    <span class="at-alert__icon">x</span>
+                    <span class="at-alert__icon">✕</span>
                     Create at least one master theatre type before setting movie prices.
                 </div>
             @else
-                <div class="mc-pricing-grid" id="mc-pricing-grid">
-                    @foreach ($pricingTheatres as $theatreName)
-                    <div class="mc-pricing-card">
-                        <div class="mc-pricing-card__top">
-                            <span class="mc-pricing-card__eyebrow">Theatre</span>
-                            <h3 class="mc-pricing-card__title">{{ $theatreName }}</h3>
-                        </div>
-
-                        <div class="mc-pricing-table">
-                            <div class="mc-pricing-row mc-pricing-row--head">
-                                <span>Seat Type</span>
-                                <span>Weekday</span>
-                                <span>Weekend</span>
+                {{-- Scrollable viewport – the grid will be moved into the expand overlay when needed --}}
+                <div id="mc-pricing-viewport" class="mc-pricing-viewport">
+                    <div class="mc-pricing-grid" id="mc-pricing-grid">
+                        @foreach ($pricingTheatres as $theatreName)
+                        <div class="mc-pricing-card" data-theatre="{{ $theatreName }}">
+                            {{-- Top bar: theatre name + local actions ────────── --}}
+                            <div class="mc-pricing-card__top">
+                                <div>
+                                    <span class="mc-pricing-card__eyebrow">Theatre</span>
+                                    <h3 class="mc-pricing-card__title">{{ $theatreName }}</h3>
+                                </div>
+                                <div class="mc-pricing-card__actions">
+                                    <button type="button" class="mc-card-quickfill-btn" title="Quick‑fill all fields with one price">⚡ Fill All</button>
+                                    <button type="button" class="mc-card-delete-btn" title="Clear this theatre">🗑</button>
+                                </div>
                             </div>
 
-                            @foreach ($pricingSeats as $seatKey => $seatLabel)
-                                <div class="mc-pricing-row">
-                                    <span class="mc-pricing-seat">{{ $seatLabel }}</span>
-                                    @foreach ($pricingDays as $dayKey => $dayLabel)
-                                        <label class="mc-price-field" aria-label="{{ $theatreName }} {{ $seatLabel }} {{ $dayLabel }} price">
-                                            <span>RM</span>
-                                            <input
-                                                type="number"
-                                                class="mc-price-input"
-                                                inputmode="decimal"
-                                                min="0.01"
-                                                step="0.01"
-                                                placeholder="0.00"
-                                                data-theatre-name="{{ $theatreName }}"
-                                                data-seat-type="{{ $seatKey }}"
-                                                data-day-type="{{ $dayKey }}"
-                                            >
-                                        </label>
-                                    @endforeach
+                            {{-- Quick‑fill bar (hidden by default, toggled by the Fill All button) --}}
+                            <div class="mc-pricing-card__quickfill vc-hidden">
+                                <label class="mc-quickfill-label">
+                                    <span>RM</span>
+                                    <input type="number" class="mc-quickfill-input" placeholder="0.00" step="0.01" min="0.01">
+                                </label>
+                                <button type="button" class="mc-quickfill-apply">Apply All</button>
+                            </div>
+
+                            {{-- Price table ───────────────────────────────────── --}}
+                            <div class="mc-pricing-table">
+                                <div class="mc-pricing-row mc-pricing-row--head">
+                                    <span>Seat Type</span>
+                                    <span>Weekday</span>
+                                    <span>Weekend</span>
                                 </div>
-                            @endforeach
+
+                                @foreach ($pricingSeats as $seatKey => $seatLabel)
+                                    <div class="mc-pricing-row">
+                                        <span class="mc-pricing-seat">{{ $seatLabel }}</span>
+                                        @foreach ($pricingDays as $dayKey => $dayLabel)
+                                            <label class="mc-price-field" aria-label="{{ $theatreName }} {{ $seatLabel }} {{ $dayLabel }} price">
+                                                <span>RM</span>
+                                                <input type="number" class="mc-price-input" inputmode="decimal"
+                                                       min="0.01" step="0.01" placeholder="0.00"
+                                                       data-theatre-name="{{ $theatreName }}"
+                                                       data-seat-type="{{ $seatKey }}"
+                                                       data-day-type="{{ $dayKey }}">
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
+                        @endforeach
                     </div>
-                    @endforeach
                 </div>
             @endif
         </div>
 
+        {{-- Expand full‑screen overlay (grid is moved here dynamically) --}}
+        <div id="mc-pricing-expand-overlay" class="mc-pricing-expand-overlay vc-hidden">
+            <div class="mc-pricing-expand-header">
+                <button type="button" id="mc-pricing-collapse-btn" class="mc-pricing-back-btn" title="Back to form">
+                    ← Back to Form
+                </button>
+                <span class="mc-pricing-expand-title">All Theatre Prices</span>
+            </div>
+            <div id="mc-pricing-expand-placeholder" class="mc-pricing-expand-placeholder"></div>
+        </div>
+
+        {{-- Bulk edit modal (global helper) --}}
+        <div id="mc-bulk-modal" class="mc-modal-overlay vc-hidden" role="dialog" aria-modal="true">
+            <div class="mc-modal mc-bulk-modal">
+                <div class="mc-modal__body">
+                    <p class="mc-modal__label">Set Prices for All Theatres</p>
+                    <p class="mc-modal__sub">Fill any fields you want to apply globally. Leave blank to keep current values.</p>
+                    <div class="mc-bulk-grid" id="mc-bulk-fields">
+                        {{-- Generated by JS --}}
+                    </div>
+                </div>
+                <div class="mc-modal__actions">
+                    <button type="button" id="mc-bulk-apply" class="ac-btn ac-btn--primary">✓ Apply to All Theatres</button>
+                    <button type="button" id="mc-bulk-cancel" class="mc-modal__cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── 05: Supervisor Confirmation ────────────────── --}}
         <div class="mc-section mc-section--auth">
             <div class="mc-section__header">
                 <span class="mc-section__number">05</span>
@@ -315,8 +366,7 @@
         </div>
 
     </form>
-</div>
-
+</div>{{-- END #mc-form-view --}}
 
 {{-- ══════════════════════════════════════════════════════════
      VIEW 2 — CINEMA SELECTION GRID
