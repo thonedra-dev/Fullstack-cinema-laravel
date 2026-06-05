@@ -280,7 +280,6 @@
     padding: 14px 16px 12px;
     border-bottom: 1px solid var(--border);
 }
-
 .mc-pricing-card__eyebrow {
     color: var(--text-muted);
     font-family: var(--font-heading);
@@ -289,13 +288,16 @@
     letter-spacing: 0.12em;
     text-transform: uppercase;
 }
-
 .mc-pricing-card__title {
     color: #27d766;
     font-family: var(--font-heading);
     font-size: 1rem;
     font-weight: 900;
-    margin-left: auto;
+    margin-left: 0;          /* allow left alignment */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;        /* prevent overflow */
 }
 
 .mc-pricing-table {
@@ -761,3 +763,296 @@
 
 .mc-assignment-card:hover .mc-assignment-card__remove { opacity: 1; }
 
+
+/* ============================================================
+   PRICING – Scrollable viewport (max 3 cards per row)
+   ============================================================ */
+.mc-pricing-viewport {
+    overflow-x: auto;
+    padding-bottom: 4px;   /* space for scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-glow) transparent;
+}
+
+.mc-pricing-viewport::-webkit-scrollbar {
+    height: 6px;
+}
+.mc-pricing-viewport::-webkit-scrollbar-thumb {
+    background: var(--accent-glow);
+    border-radius: 3px;
+}
+
+.mc-pricing-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(310px, 1fr);
+    grid-template-rows: 1fr;
+    gap: 16px;
+    min-width: 100%;       /* fills viewport, but grid-auto-columns will stretch */
+}
+
+/* ============================================================
+   PRICING – Header controls (expand / bulk / clear all)
+   ============================================================ */
+.mc-pricing-controls {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.mc-pricing-ctrl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.3);
+    color: var(--accent-light);
+    cursor: pointer;
+    transition: background var(--transition);
+    white-space: nowrap;
+}
+
+.mc-pricing-ctrl-btn:hover {
+    background: rgba(91,106,240,0.18);
+}
+
+.mc-pricing-ctrl-btn--danger {
+    background: transparent;
+    border-color: rgba(240,91,91,0.3);
+    color: var(--danger);
+}
+
+.mc-pricing-ctrl-btn--danger:hover {
+    background: rgba(240,91,91,0.1);
+}
+
+/* ============================================================
+   THEATRE CARD – Quick‑fill bar & local delete
+   ============================================================ */
+.mc-pricing-card__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.mc-card-quickfill-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    cursor: pointer;
+    transition: border-color var(--transition), color var(--transition);
+}
+
+.mc-card-quickfill-btn:hover {
+    border-color: var(--accent-light);
+    color: var(--accent-light);
+}
+
+.mc-card-delete-btn {
+    background: none;
+    border: none;
+    color: var(--danger);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+    opacity: 0.7;
+    transition: opacity var(--transition);
+}
+
+.mc-card-delete-btn:hover {
+    opacity: 1;
+}
+
+/* Quick‑fill row (toggled) */
+.mc-pricing-card__quickfill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+}
+
+.mc-quickfill-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    flex: 1;
+}
+
+.mc-quickfill-label span {
+    color: var(--accent-light);
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.mc-quickfill-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.mc-quickfill-apply {
+    background: var(--accent-glow);
+    border: 1px solid rgba(91,106,240,0.3);
+    border-radius: var(--radius-sm);
+    color: var(--accent-light);
+    font-family: var(--font-heading);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background var(--transition);
+}
+
+.mc-quickfill-apply:hover {
+    background: rgba(91,106,240,0.2);
+}
+
+/* ============================================================
+   EXPAND FULL‑SCREEN OVERLAY
+   ============================================================ */
+.mc-pricing-expand-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 600;
+    background: var(--bg-body);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+.mc-pricing-expand-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.mc-pricing-back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+
+.mc-pricing-back-btn:hover {
+    border-color: var(--accent-light);
+}
+
+.mc-pricing-expand-title {
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.mc-pricing-expand-placeholder {
+    flex: 1;
+    overflow: auto;
+    padding-right: 4px;
+}
+
+/* In the expanded view, the grid becomes a 4‑column layout */
+.mc-pricing-expand-overlay .mc-pricing-grid {
+    grid-auto-flow: unset;
+    grid-auto-columns: unset;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto;
+    overflow-y: auto;
+    min-width: unset;
+    gap: 16px;
+}
+
+/* ============================================================
+   BULK EDIT MODAL – 8‑field grid
+   ============================================================ */
+.mc-bulk-modal {
+    max-width: 640px;
+}
+
+.mc-bulk-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+/* In the bulk modal we reuse mc-price-field but make it slightly larger */
+.mc-bulk-modal .mc-price-field {
+    padding: 8px 12px;
+}
+
+.mc-bulk-modal .mc-price-field span {
+    font-size: 0.7rem;
+}
+
+/* ============================================================
+   MODAL – Keep existing styles for .mc-modal-overlay etc.
+   ============================================================ */
+
+/* Responsive tweaks */
+@media (max-width: 1024px) {
+    .mc-pricing-expand-overlay .mc-pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .mc-pricing-expand-overlay .mc-pricing-grid {
+        grid-template-columns: 1fr;
+    }
+    .mc-bulk-grid {
+        grid-template-columns: 1fr;
+    }
+    .mc-pricing-controls {
+        flex-wrap: wrap;
+    }
+}
+
+/* Bulk field group labels */
+.mc-bulk-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mc-bulk-field-label {
+    font-family: var(--font-heading);
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
