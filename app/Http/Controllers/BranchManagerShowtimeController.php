@@ -249,62 +249,48 @@ class BranchManagerShowtimeController extends Controller
             return back()->with('bm_conflicts', $allConflicts);
         }
 
-        $statusRecord = ShowtimeProposalStatus::where('manager_id', $managerId)
-            ->where('cinema_id', $cinemaId)
-            ->where('movie_id', $movieId)
-            ->first();
+        // 1. Finding the parent status record stays exactly the same (keys exist here)
+$statusRecord = ShowtimeProposalStatus::where('manager_id', $managerId)
+    ->where('cinema_id', $cinemaId)
+    ->where('movie_id', $movieId)
+    ->first();
 
-        if ($statusRecord?->status === 'pending') {
-            return back()->with('bm_error', 'This movie already has a proposal waiting for admin review.');
-        }
+// 2. Clear out old entries if replacing a rejected schedule group
+$isReplaceRejected = ($request->input('replace_rejected') === '1');
+if ($isReplaceRejected && $statusRecord && $statusRecord->status === 'rejected') {
+    // UPDATED: Find and drop child slots cleanly using status_id
+    ShowtimeProposal::where('status_id', $statusRecord->id)->delete();
+}
 
-        if ($statusRecord?->status === 'approved') {
-            return redirect()->route('manager.upcoming')
-                ->with('bm_error', 'This movie already has approved showtimes.');
-        }
+// 3. Run your clean Database Transaction block
+DB::transaction(function () use ($allInserts, $cinemaId, $managerId, $movieId, &$statusRecord) {
+    if ($statusRecord?->status === 'rejected') {
+        // Cleaned up!
+        ShowtimeProposal::where('status_id', $statusRecord->id)->delete();
 
-        if ($statusRecord?->status === 'rejected' && ! $replaceRejected) {
-            return back()->with('bm_error', 'Please confirm replacement of the rejected proposal before resubmitting.');
-        }
+        $statusRecord->update([
+            'status' => 'pending',
+            'admin_note' => null,
+        ]);
+    } elseif (!$statusRecord) {
+        $statusRecord = ShowtimeProposalStatus::create([
+            'manager_id' => $managerId,
+            'cinema_id' => $cinemaId,
+            'movie_id' => $movieId,
+            'status' => 'pending',
+            'admin_note' => null,
+        ]);
+    }
 
-        DB::transaction(function () use (
-            $allInserts,
-            $cinemaId,
-            $managerId,
-            $movieId,
-            $statusRecord
-        ) {
-            if ($statusRecord?->status === 'rejected') {
-                ShowtimeProposal::where('manager_id', $managerId)
-                    ->where('cinema_id', $cinemaId)
-                    ->where('movie_id', $movieId)
-                    ->delete();
-
-                $statusRecord->update([
-                    'status' => 'pending',
-                    'admin_note' => null,
-                ]);
-            } elseif (! $statusRecord) {
-                ShowtimeProposalStatus::create([
-                    'manager_id' => $managerId,
-                    'cinema_id' => $cinemaId,
-                    'movie_id' => $movieId,
-                    'status' => 'pending',
-                    'admin_note' => null,
-                ]);
-            }
-
-            foreach ($allInserts as $slot) {
-                ShowtimeProposal::create([
-                    'manager_id'     => $managerId,
-                    'cinema_id'      => $cinemaId,
-                    'hall_id'        => $slot['hallId'],
-                    'movie_id'       => $movieId,
-                    'start_datetime' => $slot['start_datetime'],
-                    'end_datetime'   => $slot['end_datetime'],
-                ]);
-            }
-        });
+    foreach ($allInserts as $slot) {
+        ShowtimeProposal::create([
+            'status_id'      => $statusRecord->id,
+            'hall_id'        => $slot['hallId'],
+            'start_datetime' => $slot['start_datetime'],
+            'end_datetime'   => $slot['end_datetime'],
+        ]);
+    }
+});
 
         return redirect()->route('manager.upcoming')
             ->with('bm_success',
