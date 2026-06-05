@@ -2,21 +2,21 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+// Changed from Illuminate\Database\Eloquent\Model to Pivot
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class BranchManager extends Model
+class BranchManager extends Pivot
 {
     /*
-     * WHY Model AND NOT Pivot:
+     * WHY WE EXTEND Pivot INSTEAD OF Model:
      * ─────────────────────────────────────────────────────────────
-     * This class is used in two ways:
-     *   1. As a pivot record inside Manager::cinemas() belongsToMany
-     *      — works fine with Model, you can still pass it via ->using()
-     *   2. As a standalone queryable class with ::where(), ::with(),
-     *      ::firstOrCreate(), ->delete() in controllers
-     *      — these static methods ONLY exist on Model, not on Pivot
-     *
-     * Extending Pivot breaks usage #2. Extending Model supports both.
+     * This class acts as an intermediate bridge (pivot) table for a Many-to-Many
+     * relationship. 
+     * * 1. Laravel requires the pivot class to extend Pivot so eager-loading 
+     * methods like Manager::with('cinemas') work properly without crashing.
+     * 2. Because Pivot extends Model under the hood, standalone queries like 
+     * ::where(), ::with(), ::firstOrCreate(), and ->delete() continue to 
+     * work flawlessly across your other controllers.
      * ─────────────────────────────────────────────────────────────
      */
 
