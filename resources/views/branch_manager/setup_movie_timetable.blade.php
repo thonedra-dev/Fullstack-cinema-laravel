@@ -23,7 +23,7 @@
 --}}
 @extends('branch_manager.branch_manager_layout')
 
-@section('bm_page_title', 'Setup Timetable')
+@section('bm_page_title', $cinema->cinema_name ?? 'Setup Timetable')
 
 @section('bm_head_extras')
     @vite(['resources/css/setup_timetable.css', 'resources/js/setup_timetable.js'])
@@ -182,6 +182,33 @@
                     @endforeach
                 </div>
             @endif
+
+            {{-- ── Inline clock (compact, inside sidebar) ─── --}}
+            <div class="smt-sidebar-clock">
+                <div class="smt-sidebar-clock__label">🕐 Showtime Start</div>
+                <div class="smt-clock smt-clock--compact">
+                    <div class="smt-clock__col">
+                        <button type="button" class="smt-clock__arrow" data-target="hour"   data-dir="up">▲</button>
+                        <div class="smt-clock__digit" id="smt-hour-display">07</div>
+                        <button type="button" class="smt-clock__arrow" data-target="hour"   data-dir="down">▼</button>
+                    </div>
+                    <div class="smt-clock__sep">:</div>
+                    <div class="smt-clock__col">
+                        <button type="button" class="smt-clock__arrow" data-target="minute" data-dir="up">▲</button>
+                        <div class="smt-clock__digit" id="smt-minute-display">00</div>
+                        <button type="button" class="smt-clock__arrow" data-target="minute" data-dir="down">▼</button>
+                    </div>
+                    <div class="smt-clock__sep">:</div>
+                    <div class="smt-clock__col">
+                        <button type="button" class="smt-clock__arrow" data-target="ampm"   data-dir="up">▲</button>
+                        <div class="smt-clock__digit smt-clock__digit--ampm" id="smt-ampm-display">AM</div>
+                        <button type="button" class="smt-clock__arrow" data-target="ampm"   data-dir="down">▼</button>
+                    </div>
+                </div>
+                <p class="smt-end-time-preview">
+                    Ends at: <span id="smt-end-time-val">—</span>
+                </p>
+            </div>
         </aside>
 
         {{-- ── RIGHT MAIN AREA ───────────────────────────── --}}
@@ -219,36 +246,6 @@
                 </div>
             </div>
 
-            {{-- ── Alarm clock time picker ──────────────── --}}
-            <div class="smt-time-section">
-                <div class="smt-section-label">🕐 Showtime Start</div>
-
-                <div class="smt-clock">
-                    <div class="smt-clock__col">
-                        <button type="button" class="smt-clock__arrow" data-target="hour"   data-dir="up">▲</button>
-                        <div class="smt-clock__digit" id="smt-hour-display">07</div>
-                        <button type="button" class="smt-clock__arrow" data-target="hour"   data-dir="down">▼</button>
-                    </div>
-                    <div class="smt-clock__sep">:</div>
-                    <div class="smt-clock__col">
-                        <button type="button" class="smt-clock__arrow" data-target="minute" data-dir="up">▲</button>
-                        <div class="smt-clock__digit" id="smt-minute-display">00</div>
-                        <button type="button" class="smt-clock__arrow" data-target="minute" data-dir="down">▼</button>
-                    </div>
-                    <div class="smt-clock__sep">:</div>
-                    <div class="smt-clock__col">
-                        <button type="button" class="smt-clock__arrow" data-target="ampm"   data-dir="up">▲</button>
-                        <div class="smt-clock__digit smt-clock__digit--ampm" id="smt-ampm-display">AM</div>
-                        <button type="button" class="smt-clock__arrow" data-target="ampm"   data-dir="down">▼</button>
-                    </div>
-                </div>
-
-                <p class="smt-end-time-preview">
-                    Ends at: <span id="smt-end-time-val">—</span>
-                </p>
-            </div>
-
-            {{-- ── Date picker ──────────────────────────── --}}
             {{-- ── Date picker ──────────────────────────── --}}
 <div class="smt-date-section">
     <div class="smt-section-label">

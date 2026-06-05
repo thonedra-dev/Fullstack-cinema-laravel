@@ -238,13 +238,14 @@
         });
         sg.dates.sort();
 
-        /* ── Clear staging area ──────────────────────────────── */
-        selectedDates = [];
-        renderCalendar();
-        renderDateChips();
+        /* ── Do NOT clear staging area — keep dates selected so user
+               can immediately change the clock and add another slot ── */
+        // selectedDates remains unchanged
 
         /* ── Sync + re-render ────────────────────────────────── */
         renderPreview();
+        renderCalendar();   // refresh staged tints while keeping selection
+        renderDateChips();
         syncScheduleJson();
         updateSubmitBtn();
 
@@ -683,19 +684,18 @@
         selectedDates.forEach(function (iso) {
             var chip = document.createElement('span');
             chip.className = 'smt-date-chip';
+            chip.title = 'Click to deselect';
+            chip.style.cursor = 'pointer';
 
             var txt = document.createElement('span');
             txt.textContent = iso;
 
-            var rm = document.createElement('span');
-            rm.className   = 'smt-date-chip__remove';
-            rm.textContent = '✕';
-            rm.addEventListener('click', (function (isoVal) {
+            // Clicking the chip itself deselects the date (no ✕ button needed)
+            chip.addEventListener('click', (function (isoVal) {
                 return function () { toggleDate(isoVal); };
             })(iso));
 
             chip.appendChild(txt);
-            chip.appendChild(rm);
             container.appendChild(chip);
         });
     }
