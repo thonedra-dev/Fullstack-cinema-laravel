@@ -14,7 +14,6 @@
     @vite(['resources/js/bm_review_proposals.js'])
 @endsection
 
-
 @section('bm_content')
 
 <a href="{{ route('manager.upcoming') }}" class="bm-back-link">&larr; Back to Upcoming Movies</a>
@@ -73,7 +72,7 @@
 {{-- ═══════════════ TWO-COLUMN LAYOUT ═══════════════ --}}
 <div class="rp-layout">
 
-    {{-- LEFT: Cinema · Movie · Quota --}}
+    {{-- ── LEFT: Cinema · Movie · Rejection Note ── --}}
     <div class="rp-left">
 
         {{-- Cinema --}}
@@ -139,27 +138,6 @@
             </div>
         </div>
 
-        {{-- Quota --}}
-        @if ($quota)
-            <div class="ac-card rp-info-card rp-quota-card">
-                <div class="ac-card__title rp-section-title">Admin-Defined Quota</div>
-                <div class="rp-quota-grid">
-                    <div class="rp-info-row">
-                        <span class="rp-info-label">Start Date</span>
-                        <span class="rp-info-value">{{ $quota->start_date }}</span>
-                    </div>
-                    <div class="rp-info-row">
-                        <span class="rp-info-label">Max End Date</span>
-                        <span class="rp-info-value">{{ $quota->maximum_end_date }}</span>
-                    </div>
-                    <div class="rp-info-row">
-                        <span class="rp-info-label">Slots / Day</span>
-                        <span class="rp-info-value">{{ $quota->showtime_slots }}</span>
-                    </div>
-                </div>
-            </div>
-        @endif
-
         {{-- Admin note (if rejected) --}}
         @if ($status === 'rejected' && $proposal->admin_note)
             <div class="ac-card rp-info-card" style="border-color:rgba(240,91,91,0.2);">
@@ -170,9 +148,10 @@
 
     </div>{{-- /.rp-left --}}
 
-    {{-- RIGHT: Theatre(s) + Schedule --}}
+    {{-- ── RIGHT: Theatre(s) · Schedule · Quota · Actions ── --}}
     <div class="rp-right">
 
+        {{-- Schedule card --}}
         <div class="ac-card rp-info-card">
 
             {{-- Theatre selector tabs --}}
@@ -226,7 +205,7 @@
                 </button>
             </div>
 
-            {{-- Clock + Calendar --}}
+            {{-- Showtime panel + Mini Calendar --}}
             <div class="rp-schedule-visual">
                 <div class="rp-showtime-panel">
                     <div class="rp-showtime-panel__top">
@@ -256,7 +235,39 @@
                 </div>
             </div>
 
-        </div>{{-- /.ac-card --}}
+        </div>{{-- /.ac-card (schedule) --}}
+
+        {{-- Admin-Defined Quota — moved here, under the schedule --}}
+        @if ($quota)
+            <div class="ac-card rp-info-card rp-quota-card">
+                <div class="ac-card__title rp-section-title">Admin-Defined Quota</div>
+                <div class="rp-quota-grid">
+                    <div class="rp-info-row">
+                        <span class="rp-info-label">Start Date</span>
+                        <span class="rp-info-value">{{ $quota->start_date }}</span>
+                    </div>
+                    <div class="rp-info-row">
+                        <span class="rp-info-label">Max End Date</span>
+                        <span class="rp-info-value">{{ $quota->maximum_end_date }}</span>
+                    </div>
+                    <div class="rp-info-row">
+                        <span class="rp-info-label">Slots / Day</span>
+                        <span class="rp-info-value">{{ $quota->showtime_slots }}</span>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- Action bar — inside rp-right, under quota --}}
+        <div class="rp-action-bar" id="rp-action-bar">
+            <a href="{{ route('manager.upcoming') }}" class="rp-btn rp-btn--ghost">← Back</a>
+            @if ($status === 'rejected')
+                <a href="{{ route('manager.setup.movie', $movie->movie_id) }}" class="rp-btn rp-btn--resubmit">
+                    Re-submit New Proposal
+                </a>
+            @endif
+            <button type="button" id="rp-pdf-btn" class="rp-btn rp-btn--pdf">⬇&ensp;Download as PDF</button>
+        </div>
 
     </div>{{-- /.rp-right --}}
 
@@ -274,18 +285,6 @@
     </div>
 </div>
 
-{{-- ═══════════════ ACTION BAR (not in PDF) ═══════════════ --}}
-<div class="rp-action-bar" id="rp-action-bar">
-    <a href="{{ route('manager.upcoming') }}" class="rp-btn rp-btn--ghost">← Back</a>
-    @if ($status === 'rejected')
-        <a href="{{ route('manager.setup.movie', $movie->movie_id) }}" class="rp-btn rp-btn--resubmit">
-            Re-submit New Proposal
-        </a>
-    @endif
-    <button type="button" id="rp-pdf-btn" class="rp-btn rp-btn--pdf">⬇&ensp;Download as PDF</button>
-</div>
-
 <span id="rp-movie-name" data-name="{{ $movie->movie_name }}" style="display:none;"></span>
 
 @endsection
-
