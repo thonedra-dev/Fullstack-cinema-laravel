@@ -19,7 +19,7 @@
 
 @if ($movies->isEmpty())
     <div class="bm-empty" style="padding:80px 20px;">
-        <div class="bm-empty__icon">Cinema</div>
+        <div class="bm-empty__icon">🎬</div>
         <p class="bm-empty__text" style="font-size:1rem;margin-bottom:8px;">No upcoming movies.</p>
         <p class="bm-empty__text">All assigned movies have been scheduled, or no movies have been assigned yet.</p>
     </div>
@@ -27,6 +27,8 @@
     <div class="um-grid">
         @foreach ($movies as $movie)
             <div class="um-card">
+
+                {{-- ── Poster area ──────────────────────────────────── --}}
                 <div class="um-card__landscape">
                     @if (!empty($movie->landscape_poster))
                         <img
@@ -35,7 +37,7 @@
                             class="um-card__landscape-img"
                         >
                     @else
-                        <div class="um-card__landscape-ph">CinemaX</div>
+                        <div class="um-card__landscape-ph">🎬</div>
                     @endif
 
                     @if (!empty($movie->portrait_poster))
@@ -49,7 +51,9 @@
                     @endif
                 </div>
 
+                {{-- ── Card body ────────────────────────────────────── --}}
                 <div class="um-card__body">
+
                     <div class="um-card__title-row">
                         <h3 class="um-card__title">{{ $movie->movie_name }}</h3>
                         <div class="um-card__actions">
@@ -95,16 +99,64 @@
 
                     @if ($movie->quota_info)
                         <div class="um-card__quota">
-                            <span>{{ $movie->quota_info->start_date }} to {{ $movie->quota_info->maximum_end_date }}</span>
+                            <span>{{ $movie->quota_info->start_date }} → {{ $movie->quota_info->maximum_end_date }}</span>
                             <span>{{ $movie->quota_info->showtime_slots }} slots/day</span>
                         </div>
                     @endif
 
-                    @if ($movie->proposal_status === 'pending')
-                        <div class="um-proposal-badge um-proposal-badge--pending">
-                            Pending Admin Approval
+                    {{-- ════════════════════════════════════════════════════
+                         ACTION AREA
+                         ────────────────────────────────────────────────────
+                         $movie->proposal_status values:
+                           null       No proposal exists yet
+                                      → [ Setup This Movie ]
+
+                           'pending'  Proposal submitted, admin reviewing
+                                      → [ Review Proposal ]
+
+                           'approved' Admin approved (showtimes not yet written
+                                      to the showtimes table — edge case)
+                                      → [ Review Proposal ]
+
+                           'rejected' Admin rejected the proposal
+                                      → [ Review Old Proposal ] + [ Re-submit ]
+                    ════════════════════════════════════════════════════ --}}
+
+                    @if (is_null($movie->proposal_status))
+
+                        {{-- No proposal at all → send to setup page ─────── --}}
+                        <a
+                            href="{{ route('manager.setup.movie', $movie->movie_id) }}"
+                            class="um-setup-btn"
+                        >
+                            Setup This Movie
+                        </a>
+
+                    @elseif (in_array($movie->proposal_status, ['pending', 'approved']))
+
+                        {{-- Has an active proposal → Review only ────────── --}}
+                        <div class="um-action-row">
+                            @if ($movie->proposal_status === 'pending')
+                                <div class="um-proposal-badge um-proposal-badge--pending">
+                                    ⏳&ensp;Pending Admin Approval
+                                </div>
+                            @else
+                                <div class="um-proposal-badge um-proposal-badge--approved">
+                                    ✓&ensp;Proposal Approved
+                                </div>
+                            @endif
+
+                            <a
+                                href="{{ route('manager.proposal.review', $movie->movie_id) }}"
+                                class="um-review-btn"
+                            >
+                                Review Proposal
+                            </a>
                         </div>
+
                     @elseif ($movie->proposal_status === 'rejected')
+
+                        {{-- Rejected → show note + both buttons ──────────── --}}
                         <div class="um-rejected-compact">
                             <div class="um-rejected-line">
                                 <span class="um-rejected-line__status">Proposal Rejected</span>
@@ -114,23 +166,29 @@
                                     {{ $movie->proposal_admin_note ?: 'No admin note provided.' }}
                                 </span>
                             </div>
-                            <a
-                                href="{{ route('manager.setup.movie', $movie->movie_id) }}"
-                                class="um-resubmit-btn"
-                            >
-                                Re-submit
-                            </a>
+                            <div class="um-rejected-btns">
+                                {{-- Review the old (rejected) proposal ─────── --}}
+                                <a
+                                    href="{{ route('manager.proposal.review', $movie->movie_id) }}"
+                                    class="um-review-btn um-review-btn--ghost"
+                                >
+                                    Review Old Proposal
+                                </a>
+                                {{-- Fresh submission on the setup page ──────── --}}
+                                <a
+                                    href="{{ route('manager.setup.movie', $movie->movie_id) }}"
+                                    class="um-resubmit-btn"
+                                >
+                                    Re-submit
+                                </a>
+                            </div>
                         </div>
-                    @else
-                        <a
-                            href="{{ route('manager.setup.movie', $movie->movie_id) }}"
-                            class="um-setup-btn"
-                        >
-                            Setup This Movie
-                        </a>
+
                     @endif
-                </div>
-            </div>
+                    {{-- ════════════════ END ACTION AREA ═════════════════ --}}
+
+                </div>{{-- /.um-card__body --}}
+            </div>{{-- /.um-card --}}
         @endforeach
     </div>
 @endif
