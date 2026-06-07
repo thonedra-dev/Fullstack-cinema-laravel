@@ -70,12 +70,12 @@
          data-theatres='@json($theatresJson)'></div>
 
 {{-- ═══════════════ TWO-COLUMN LAYOUT ═══════════════ --}}
-<div class="rp-layout">
+<div class="rp-layout" style="background: #0a0c10 !important;">
 
     {{-- ── LEFT: Cinema · Movie · Rejection Note ── --}}
     <div class="rp-left">
 
-        {{-- Cinema --}}
+        {{-- Cinema Card --}}
         <div class="ac-card rp-info-card">
             <div class="ac-card__title rp-section-title">Cinema</div>
             @if ($cinema->cinema_picture)
@@ -96,7 +96,7 @@
             </div>
         </div>
 
-        {{-- Movie --}}
+        {{-- Movie Card --}}
         <div class="ac-card rp-info-card">
             <div class="ac-card__title rp-section-title">Movie</div>
             <div class="rp-movie-flex">
@@ -151,7 +151,7 @@
     {{-- ── RIGHT: Theatre(s) · Schedule · Quota · Actions ── --}}
     <div class="rp-right">
 
-        {{-- Schedule card --}}
+        {{-- Schedule Card (Theatre + Calendar) --}}
         <div class="ac-card rp-info-card">
 
             {{-- Theatre selector tabs --}}
@@ -237,7 +237,7 @@
 
         </div>{{-- /.ac-card (schedule) --}}
 
-        {{-- Admin-Defined Quota — moved here, under the schedule --}}
+        {{-- Admin-Defined Quota Card --}}
         @if ($quota)
             <div class="ac-card rp-info-card rp-quota-card">
                 <div class="ac-card__title rp-section-title">Admin-Defined Quota</div>
@@ -258,7 +258,7 @@
             </div>
         @endif
 
-        {{-- Action bar — inside rp-right, under quota --}}
+        {{-- Action bar (buttons in "green padding") --}}
         <div class="rp-action-bar" id="rp-action-bar">
             <a href="{{ route('manager.upcoming') }}" class="rp-btn rp-btn--ghost">← Back</a>
             @if ($status === 'rejected')
