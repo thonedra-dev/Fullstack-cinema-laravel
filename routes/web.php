@@ -29,6 +29,7 @@ use App\Http\Controllers\BranchManagerMovieDetailsController;
 use App\Http\Controllers\BranchManagerResourceController;
 use App\Http\Controllers\BranchManagerShowtimeController;
 use App\Http\Controllers\BranchManagerUpcomingController;
+use App\Http\Controllers\BranchManagerReviewProposalController;
 use App\Http\Controllers\BranchManagerNotificationController;
 use App\Http\Controllers\BranchManagerTheatreFormationController;
 
@@ -122,6 +123,7 @@ Route::get('/manager/home',           [BranchManagerDashboardController::class, 
 Route::get('/manager/cinema/profile', [BranchManagerDashboardController::class, 'cinemaProfile'])->name('manager.cinema.profile');
 Route::get('/manager/resources',      [BranchManagerResourceController::class, 'index'])->name('manager.resources');
 Route::get('/manager/upcoming',       [BranchManagerUpcomingController::class, 'index'])->name('manager.upcoming');
+Route::get('/manager/proposal/review/{movieId}', [BranchManagerReviewProposalController::class, 'show'])->name('manager.proposal.review');
 
 Route::get('/manager/setup/movie/{movieId}', [BranchManagerShowtimeController::class, 'fromMovie'])->name('manager.setup.movie')->where('movieId', '[0-9]+');
 Route::post('/manager/showtimes',            [BranchManagerShowtimeController::class, 'store'])->name('manager.showtimes.store');
