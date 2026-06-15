@@ -32,21 +32,21 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Dustbin toggle (select mode) ──────────────────────
     dustbinBtn.addEventListener('click', function () {
         if (body.classList.contains('select-mode-active')) {
-            // If already in select mode, check if any selected cards
+            // Already in select mode
             const selected = document.querySelectorAll('.um-compact-card.selected, .um-card.selected');
             if (selected.length > 0) {
-                showModal();
+                showModal();          // open confirmation popup
             } else {
-                exitSelectMode();
+                exitSelectMode();     // no selection → just close the bin
             }
         } else {
-            enterSelectMode();
+            enterSelectMode();        // open the bin, enter selection mode
         }
     });
 
     function enterSelectMode() {
         body.classList.add('select-mode-active');
-        dustbinBtn.classList.add('um-dustbin-toggle--active');
+        dustbinBtn.classList.add('um-dustbin-toggle--active');   // shows open bin icon
     }
 
     function exitSelectMode() {
@@ -62,11 +62,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── Card selection logic ──────────────────────────────
-    // Global click listener, only active when select mode is on
     document.addEventListener('click', function (e) {
         if (!body.classList.contains('select-mode-active')) return;
 
-        // Don't select if clicking on interactive elements
+        // Don't select if clicking on interactive elements or the dustbin
         if (e.target.closest('a, button, input, select, textarea, .um-dustbin-toggle')) return;
 
         const compactCard = e.target.closest('.um-compact-card');
@@ -90,7 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     cancelBtn.addEventListener('click', function () {
         hideModal();
-        // Keep selections and stay in select mode (user might want to adjust)
+        // Deselect and close the dustbin (back to normal state)
+        exitSelectMode();
     });
 
     deleteBtn.addEventListener('click', function () {
@@ -99,13 +99,14 @@ document.addEventListener('DOMContentLoaded', function () {
             card.remove();
         });
         hideModal();
-        exitSelectMode();
+        exitSelectMode();   // close bin, remove active effect
     });
 
     // Close modal when clicking overlay background
     modal.addEventListener('click', function (e) {
         if (e.target === modal) {
             hideModal();
+            exitSelectMode();   // same behaviour as cancel
         }
     });
 
