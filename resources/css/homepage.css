@@ -51,19 +51,24 @@
 /* ── Navigation ──────────────────────────────────────────── */
 .hp-nav {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
+    top: 0; left: 0; right: 0;
     height: var(--hp-nav-h);
     display: grid;
     grid-template-columns: auto 1fr auto;
     align-items: center;
     column-gap: 36px;
     padding: 0 48px;
-    background: rgba(7,7,15,0.88);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--hp-border);
+    background: linear-gradient(to bottom, rgba(7,7,15,0.80) 0%, transparent 100%);
+    backdrop-filter: none;
+    border-bottom: 1px solid transparent;
     z-index: 100;
+    transition: background 0.35s ease, border-color 0.35s ease, backdrop-filter 0.35s ease;
+}
+
+.hp-nav--scrolled {
+    background: rgba(7,7,15,0.95);
+    backdrop-filter: blur(14px);
+    border-bottom-color: var(--hp-border);
 }
 
 .hp-nav__brand {
@@ -107,13 +112,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 4px;
     width: 100%;
     min-width: 0;
-    padding: 5px;
-    border: 1px solid rgba(168,85,247,0.12);
-    border-radius: 8px;
-    background: rgba(255,255,255,0.035);
+    padding: 0;
+    border: none;
+    background: none;
 }
 
 .hp-nav__link {
@@ -205,7 +209,7 @@
     aspect-ratio: 21 / 8;
     min-height: 350px;
     overflow: hidden;
-    margin-top: var(--hp-nav-h);
+    margin-top: 0;
     background: #0a0a14;
 }
 
@@ -529,6 +533,115 @@
 
 .hp-trailer-modal__iframe {
     position: absolute; inset: 0; width: 100%; height: 100%; border: none;
+}
+
+/* ── Book Now button ─────────────────────────────────────── */
+.hp-btn--book {
+    background: var(--hp-red);
+    color: #fff;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(229,62,62,0.45);
+}
+.hp-btn--book:hover {
+    background: #c53030;
+    box-shadow: 0 8px 32px rgba(229,62,62,0.65);
+}
+
+/* ── User dropdown menu ──────────────────────────────────── */
+.hp-nav__user-menu {
+    position: relative;
+}
+
+.hp-nav__user-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid rgba(168,85,247,0.22);
+    border-radius: 50px;
+    padding: 5px 12px 5px 6px;
+    cursor: pointer;
+    color: var(--hp-text-sub);
+    transition: border-color var(--hp-transition), background var(--hp-transition);
+}
+.hp-nav__user-trigger:hover {
+    border-color: var(--hp-purple);
+    background: rgba(168,85,247,0.08);
+    color: var(--hp-text);
+}
+
+.hp-nav__user-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hp-nav__chevron {
+    color: var(--hp-text-muted);
+    transition: transform var(--hp-transition);
+    flex-shrink: 0;
+}
+.hp-nav__user-menu.open .hp-nav__chevron {
+    transform: rotate(180deg);
+}
+
+.hp-nav__dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 180px;
+    background: rgba(14,14,26,0.97);
+    border: 1px solid rgba(168,85,247,0.25);
+    border-radius: 12px;
+    padding: 6px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(168,85,247,0.08);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 200;
+}
+.hp-nav__dropdown--open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.hp-nav__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hp-text-sub);
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background var(--hp-transition), color var(--hp-transition);
+}
+.hp-nav__dropdown-item:hover {
+    background: rgba(168,85,247,0.10);
+    color: var(--hp-text);
+}
+.hp-nav__dropdown-item--danger { color: #fc8181; }
+.hp-nav__dropdown-item--danger:hover {
+    background: rgba(229,62,62,0.12);
+    color: #fc8181;
+}
+
+.hp-nav__dropdown-divider {
+    height: 1px;
+    background: rgba(168,85,247,0.12);
+    margin: 4px 8px;
 }
 
 /* ── Responsive ─────────────────────────────────────────── */

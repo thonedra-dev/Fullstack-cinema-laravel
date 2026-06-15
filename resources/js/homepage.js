@@ -48,6 +48,7 @@
         var titleEl      = document.getElementById('hp-hero-title');
         var metaEl       = document.getElementById('hp-hero-meta');
         var trailerBtn   = document.getElementById('hp-watch-trailer-btn');
+        var bookNowBtn   = document.getElementById('hp-book-now-btn');
 
         /* Advance index once per page load ────────────────── */
         var stored     = parseInt(sessionStorage.getItem(SESSION_KEY) || '-1', 10);
@@ -93,8 +94,11 @@
             metaEl.textContent = parts.join('  |  ');
 
             if (trailerBtn) {
-                trailerBtn.style.display = m.trailer_url ? '' : 'none';
-            }
+                  trailerBtn.style.display = m.trailer_url ? '' : 'none';
+                            }
+            if (bookNowBtn) {
+                  bookNowBtn.href = m.detail_url || '#';
+                            }
         }
 
         /* Switch slide ────────────────────────────────────── */
@@ -215,6 +219,45 @@
         window.addEventListener('resize', updateScrollThumb);
         updateScrollThumb();
     }
+
+    /* ================================================================
+   NAV SCROLL EFFECT
+================================================================ */
+var navEl = document.querySelector('.hp-nav');
+if (navEl) {
+    function updateNavBg() {
+        if (window.scrollY > 20) {
+            navEl.classList.add('hp-nav--scrolled');
+        } else {
+            navEl.classList.remove('hp-nav--scrolled');
+        }
+    }
+    window.addEventListener('scroll', updateNavBg, { passive: true });
+    updateNavBg();
+}
+
+/* ================================================================
+   USER DROPDOWN
+================================================================ */
+var userTrigger = document.getElementById('hp-user-trigger');
+var navDropdown = document.getElementById('hp-nav-dropdown');
+var userMenu    = document.getElementById('hp-user-menu');
+
+if (userTrigger && navDropdown) {
+    userTrigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var isOpen = navDropdown.classList.contains('hp-nav__dropdown--open');
+        navDropdown.classList.toggle('hp-nav__dropdown--open', !isOpen);
+        if (userMenu) userMenu.classList.toggle('open', !isOpen);
+    });
+    document.addEventListener('click', function () {
+        navDropdown.classList.remove('hp-nav__dropdown--open');
+        if (userMenu) userMenu.classList.remove('open');
+    });
+    navDropdown.addEventListener('click', function (e) {
+        e.stopPropagation(); // keep dropdown open when clicking items inside
+    });
+}
 
     /* ================================================================
        BACKGROUND EXPIRY POLLING
