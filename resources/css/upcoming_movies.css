@@ -287,14 +287,25 @@
     transform: scale(1.1);
 }
 
+
 /* ═══════════════════════════════════════════════════════════
-   NEW: Top bar, back arrow & layout toggles
+   TOP BAR (title + controls)
 ══════════════════════════════════════════════════════════════ */
 .um-top-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+}
+
+.um-page-title {
+    font-family: var(--bm-font-head);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--bm-text);
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.2;
 }
 
 /* Back arrow – unique, clean, no text */
@@ -475,6 +486,154 @@
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.28);
     color: var(--bm-text-sub);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NEW: Dustbin toggle button
+══════════════════════════════════════════════════════════════ */
+.um-dustbin-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--bm-radius-sm);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.10);
+    color: var(--bm-text-muted);
+    cursor: pointer;
+    transition: all var(--bm-transition);
+    margin-left: 4px;   /* small gap from layout toggles */
+}
+.um-dustbin-toggle:hover {
+    border-color: rgba(255,255,255,0.25);
+    color: #f87171;
+}
+
+/* Closed bin – shown by default */
+.um-dustbin-toggle .um-dustbin-closed { display: block; }
+.um-dustbin-toggle .um-dustbin-open   { display: none; }
+
+/* Active (select mode) – switch icons and turn red */
+.um-dustbin-toggle--active {
+    border-color: #f87171;
+    background: rgba(248,113,113,0.12);
+    color: #f87171;
+}
+.um-dustbin-toggle--active .um-dustbin-closed { display: none; }
+.um-dustbin-toggle--active .um-dustbin-open   { display: block; }
+
+/* ═══════════════════════════════════════════════════════════
+   NEW: Select mode styles
+══════════════════════════════════════════════════════════════ */
+/* When select mode is active, cards show pointer and subtle hover */
+.select-mode-active .um-compact-card,
+.select-mode-active .um-card {
+    cursor: pointer;
+    transition: box-shadow var(--bm-transition), outline var(--bm-transition);
+}
+.select-mode-active .um-compact-card:hover,
+.select-mode-active .um-card:hover {
+    box-shadow: 0 0 0 1px rgba(248,113,113,0.5);
+}
+
+/* Selected state – bright red outline */
+.um-compact-card.selected,
+.um-card.selected {
+    outline: 3px solid #f87171;
+    outline-offset: -2px;
+}
+/* Also add a slight inner glow for clarity */
+.um-compact-card.selected {
+    box-shadow: 0 0 12px rgba(248,113,113,0.3);
+}
+.um-card.selected {
+    box-shadow: 0 0 16px rgba(248,113,113,0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NEW: Delete confirmation modal
+══════════════════════════════════════════════════════════════ */
+.um-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.um-modal {
+    background: var(--bm-card);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-lg);
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+}
+
+.um-modal__icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+.um-modal__title {
+    font-family: var(--bm-font-head);
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--bm-text);
+    margin-bottom: 10px;
+}
+
+.um-modal__text {
+    font-size: 0.9rem;
+    color: var(--bm-text-sub);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.um-modal__download {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bm-accent);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.um-modal__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.um-modal-btn {
+    padding: 10px 24px;
+    border-radius: var(--bm-radius-sm);
+    font-family: var(--bm-font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background var(--bm-transition), transform var(--bm-transition);
+}
+.um-modal-btn--cancel {
+    background: var(--bm-surface);
+    color: var(--bm-text-sub);
+    border: 1px solid var(--bm-border);
+}
+.um-modal-btn--cancel:hover { background: rgba(255,255,255,0.08); }
+
+.um-modal-btn--delete {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(220,38,38,0.4);
+}
+.um-modal-btn--delete:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
 }
 
 /* ═══════════════════════════════════════════════════════════
