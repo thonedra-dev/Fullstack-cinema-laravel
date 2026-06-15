@@ -36,11 +36,9 @@ class BranchManagerUpcomingController extends Controller
         }
 
         $manager   = Auth::guard('manager')->user();
-$managerId = $manager->manager_id;                          // from the authenticated model
-$cinemaId  = $manager->cinema_id ?? (int) session('bm_cinema_id');  // fallback just in case
+        $managerId = $manager->manager_id;                          // from the authenticated model
+        $cinemaId  = $manager->cinema_id ?? (int) session('bm_cinema_id');  // fallback just in case
         $cinema    = Cinema::findOrFail($cinemaId);
-
- 
 
         // ── Fetch all proposal status rows for this cinema + manager ─────
         // Keyed by (int) movie_id so the lookup below never fails due to
@@ -57,6 +55,7 @@ $cinemaId  = $manager->cinema_id ?? (int) session('bm_cinema_id');  // fallback 
             ->join('cinema_movie_quotas as cmq', 'movies.movie_id', '=', 'cmq.movie_id')
             ->leftJoin('supervisors', 'cmq.supervisor_id', '=', 'supervisors.supervisor_id')
             ->where('cmq.cinema_id', $cinemaId)
+            ->orderBy('cmq.created_at', 'desc')   // ★ NEW: latest assigned first
             ->select(
                 'movies.*',
                 'cmq.start_date',

@@ -49,6 +49,11 @@
                             >
                         </div>
                     @endif
+
+                    {{-- ★ NEW: Delete icon for approved proposals only --}}
+                    @if ($movie->proposal_status === 'approved')
+                        <button class="um-delete-btn" title="Remove from view" aria-label="Remove card">✕</button>
+                    @endif
                 </div>
 
                 {{-- ── Card body ────────────────────────────────────── --}}
@@ -192,5 +197,21 @@
         @endforeach
     </div>
 @endif
+
+{{-- ★ NEW: Front‑end only delete (no DB change) for approved cards --}}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const grid = document.querySelector('.um-grid');
+    if (!grid) return;
+
+    grid.addEventListener('click', function (e) {
+        const btn = e.target.closest('.um-delete-btn');
+        if (!btn) return;
+
+        const card = btn.closest('.um-card');
+        if (card) card.remove();
+    });
+});
+</script>
 
 @endsection
