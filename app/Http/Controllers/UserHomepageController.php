@@ -28,27 +28,31 @@ class UserHomepageController extends Controller
             ->distinct();
 
         // ── Hero carousel ────────────────────────────────────────────────────
-        $heroMovies = Movie::with(['genres', 'trailers'])
-            ->nowShowing()                                   // ← scope applied
-            ->whereIn('movie_id', $showtimeMovieIds)
-            ->whereNotNull('landscape_poster')
-            ->where('landscape_poster', '!=', '')
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function (Movie $movie) {
-                $movie->trailer_embed_url = $movie->trailers->first()?->embed_url;
-                return $movie;
-            });
+       $heroMovies = Movie::with(['genres', 'trailers'])
+    ->whereIn('movie_id', function ($q) {
+        $q->select('movie_id')
+          ->from('showtimes')
+          ->where('end_time', '>', now());
+    })
+    ->whereNotNull('landscape_poster')
+    ->where('landscape_poster', '!=', '')
+    ->orderBy('created_at', 'desc')
+    ->get()
+    ->map(function (Movie $movie) {
+        $movie->trailer_embed_url = $movie->trailers->first()?->embed_url;
+        return $movie;
+    });
 
-        // ── Horizontal card row ──────────────────────────────────────────────
-        $nowShowing = Movie::with('genres')
-            ->nowShowing()                                   // ← scope applied
-            ->whereIn('movie_id', $showtimeMovieIds)
-            ->whereNotNull('portrait_poster')
-            ->where('portrait_poster', '!=', '')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
+$nowShowing = Movie::with('genres')
+    ->whereIn('movie_id', function ($q) {
+        $q->select('movie_id')
+          ->from('showtimes')
+          ->where('end_time', '>', now());
+    })
+    ->whereNotNull('portrait_poster')
+    ->where('portrait_poster', '!=', '')
+    ->orderBy('created_at', 'desc')
+    ->get();
         return view('users.homepage', compact('heroMovies', 'nowShowing'));
     }
 
@@ -71,11 +75,16 @@ class UserHomepageController extends Controller
      * against this array and removes cards whose IDs are absent.
      */
     public function getLiveMovieIds(): JsonResponse
-    {
-        $ids = Movie::nowShowing()
-            ->pluck('movie_id')   // SELECT movie_id FROM movies WHERE EXISTS(...)
-            ->all();              // Convert Collection → plain PHP array for JSON
+{
+    // A movie is "live" only if it has at least ONE showtime
+    // whose end_time is still in the future.
+    // If every end_time row for a movie_id has passed → it's excluded.
+    $ids = DB::table('showtimes')
+    ->where('end_time', '>', now())
+    ->distinct()
+    ->pluck('movie_id')
+    ->all();
 
-        return response()->json(['ids' => $ids]);
-    }
+    return response()->json(['ids' => $ids]);
+}
 }
