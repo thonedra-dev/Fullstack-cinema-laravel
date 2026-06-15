@@ -39,18 +39,26 @@
         @php
             $customer = auth('customer')->user();
         @endphp
-        @if ($customer)
-            <span class="hp-nav__user">
-                <span class="hp-nav__avatar">{{ strtoupper(substr($customer->name ?? 'C', 0, 1)) }}</span>
-                <span>{{ $customer->name }}</span>
-            </span>
-            <form action="{{ route('users.logout') }}" method="POST" class="hp-nav__logout-form">
+       @if ($customer)
+    <div class="hp-nav__user-menu" id="hp-user-menu">
+        <button class="hp-nav__user-trigger" id="hp-user-trigger" type="button">
+            <span class="hp-nav__avatar">{{ strtoupper(substr($customer->name ?? 'C', 0, 1)) }}</span>
+            <span class="hp-nav__user-name">{{ $customer->name }}</span>
+            <svg class="hp-nav__chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="hp-nav__dropdown" id="hp-nav-dropdown">
+            <a href="#" class="hp-nav__dropdown-item">👤  Profile</a>
+            <a href="#" class="hp-nav__dropdown-item">🎟  Orders</a>
+            <div class="hp-nav__dropdown-divider"></div>
+            <form action="{{ route('users.logout') }}" method="POST">
                 @csrf
-                <button type="submit" class="hp-nav__signin">Sign Out</button>
+                <button type="submit" class="hp-nav__dropdown-item hp-nav__dropdown-item--danger">Sign Out</button>
             </form>
-        @else
-            <a href="{{ route('users.login') }}" class="hp-nav__signin">Sign In</a>
-        @endif
+        </div>
+    </div>
+@else
+    <a href="{{ route('users.login') }}" class="hp-nav__signin">Sign In</a>
+@endif
     </div>
 </nav>
 
@@ -74,6 +82,7 @@
                 "runtime_m"   => $m->runtime % 60,
                 "language"    => $m->language,
                 "trailer_url" => $m->trailer_embed_url,
+                "detail_url"  => route('user.movie.details', $m->movie_id),
             ])->values()
         ) !!}'
     ></div>
@@ -88,7 +97,7 @@
                 <button class="hp-btn hp-btn--outline" id="hp-watch-trailer-btn" style="display:none;">
                     ▶ Watch Trailer
                 </button>
-                <button class="hp-btn hp-btn--ghost">Read More</button>
+                <a href="#" class="hp-btn hp-btn--book" id="hp-book-now-btn">🎟 Book Now</a>
             </div>
         </div>
     </div>
