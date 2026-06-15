@@ -20,5 +20,4 @@ use App\Http\Controllers\UserHomepageController;
 use Illuminate\Support\Facades\Route;
 
 // Add this line inside your existing routes/api.php file:
-Route::get('/live-movie-ids', [UserHomepageController::class, 'getLiveMovieIds'])
-    ->name('api.live-movie-ids');
+Route::get('/live-movie-ids', [UserHomepageController::class, 'getLiveMovieIds']);

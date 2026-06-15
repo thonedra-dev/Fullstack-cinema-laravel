@@ -150,6 +150,7 @@ Route::get('/staff/view-seats', [StaffSeatMonitoringController::class, 'index'])
 |--------------------------------------------------------------------------
 */
 Route::get('/users/homepage', [UserHomepageController::class, 'index'])->name('home');
+Route::get('/api/live-movie-ids', [UserHomepageController::class, 'getLiveMovieIds'])->name('api.live-movie-ids');
 Route::get('/users/login',    [CustomerLoginController::class, 'showLogin'])->name('users.login');
 Route::post('/users/login',   [CustomerLoginController::class, 'login'])->name('users.login.post');
 Route::post('/users/logout',  [CustomerLoginController::class, 'logout'])->name('users.logout');
