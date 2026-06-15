@@ -245,6 +245,48 @@
 }
 .um-resubmit-btn:hover { transform: translateY(-1px); background: #4ade80; }
 
+/* ── Portrait overlay ───────────────────────────────────── */
+.um-card__portrait-wrap {
+    position: absolute;
+    bottom: -30px; left: 28px;
+    width: 102px; height: 156px;
+    border-radius: 8px;
+    border: 2px solid var(--bm-border);
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 2;
+}
+
+.um-card__portrait { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* ── ★ NEW: Delete button (approved cards only) ────────── */
+.um-delete-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(220,38,38,0.9);
+    color: #fff;
+    border: none;
+    font-size: 1rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 5;
+    opacity: 0.85;
+    transition: opacity 0.2s, transform 0.2s;
+    padding: 0;
+}
+
+.um-delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 640px) {
     .um-card__landscape  { aspect-ratio: 16/6; }
