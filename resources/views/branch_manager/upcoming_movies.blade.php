@@ -9,15 +9,10 @@
 @section('bm_content')
 
 {{-- ════════════════════════════════════════════════════════
-   TOP BAR : back arrow + layout toggles
+   TOP AREA : Title + layout toggles + dustbin
 ═══════════════════════════════════════════════════════════ --}}
 <div class="um-top-bar">
-    <a href="{{ route('manager.home') }}" class="um-back-arrow" aria-label="Back to Dashboard">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-        </svg>
-    </a>
+    <h1 class="um-page-title">Upcoming Movies</h1>
 
     <div class="um-layout-toggles">
         <button class="um-layout-toggle is-active" data-view="compact" title="Card view" aria-label="Card view">
@@ -33,6 +28,26 @@
                 <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
                 <line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>
                 <line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+        </button>
+
+        {{-- Dustbin toggle (select mode) --}}
+        <button class="um-dustbin-toggle" title="Delete cards" aria-label="Delete cards">
+            {{-- Closed bin icon --}}
+            <svg class="um-dustbin-closed" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+            {{-- Open bin icon (hidden by default) --}}
+            <svg class="um-dustbin-open" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                {{-- Lid open --}}
+                <line x1="5" y1="3" x2="7" y2="5"/><line x1="19" y1="3" x2="17" y2="5"/>
             </svg>
         </button>
     </div>
@@ -52,18 +67,16 @@
         <div class="um-compact-grid">
             @foreach ($movies as $movie)
                 <div class="um-compact-card">
-
                     {{-- Poster --}}
                     <div class="um-compact-card__poster">
                         @if (!empty($movie->portrait_poster))
                             <img src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
-                                 alt="{{ $movie->movie_name }}"
-                                 class="um-compact-card__img">
+                                 alt="{{ $movie->movie_name }}" class="um-compact-card__img">
                         @else
                             <div class="um-compact-card__placeholder">🎬</div>
                         @endif
 
-                        {{-- Status icon (approved / pending / rejected only) --}}
+                        {{-- Status icon (approved / pending / rejected) --}}
                         <div class="um-compact-card__status">
                             @if ($movie->proposal_status === 'approved')
                                 <span class="um-status-icon um-status-icon--approved">✓</span>
@@ -117,38 +130,25 @@
         <div class="um-grid">
             @foreach ($movies as $movie)
                 <div class="um-card">
-
-                    {{-- Poster area (same as before) --}}
+                    {{-- Poster area --}}
                     <div class="um-card__landscape">
                         @if (!empty($movie->landscape_poster))
-                            <img
-                                src="{{ asset('images/movies/' . $movie->landscape_poster) }}"
-                                alt="{{ $movie->movie_name }}"
-                                class="um-card__landscape-img"
-                            >
+                            <img src="{{ asset('images/movies/' . $movie->landscape_poster) }}"
+                                 alt="{{ $movie->movie_name }}" class="um-card__landscape-img">
                         @else
                             <div class="um-card__landscape-ph">🎬</div>
                         @endif
 
                         @if (!empty($movie->portrait_poster))
                             <div class="um-card__portrait-wrap">
-                                <img
-                                    src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
-                                    alt="{{ $movie->movie_name }} portrait"
-                                    class="um-card__portrait"
-                                >
+                                <img src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
+                                     alt="{{ $movie->movie_name }} portrait" class="um-card__portrait">
                             </div>
-                        @endif
-
-                        {{-- Delete icon (approved only) – handled by JS --}}
-                        @if ($movie->proposal_status === 'approved')
-                            <button class="um-delete-btn" title="Remove from view" aria-label="Remove card">✕</button>
                         @endif
                     </div>
 
-                    {{-- Card body (unchanged) --}}
+                    {{-- Card body --}}
                     <div class="um-card__body">
-                        {{-- ... exact same body as before ... --}}
                         <div class="um-card__title-row">
                             <h3 class="um-card__title">{{ $movie->movie_name }}</h3>
                             <div class="um-card__actions">
@@ -189,7 +189,7 @@
                             </div>
                         @endif
 
-                        {{-- Action area (unchanged) --}}
+                        {{-- Action area --}}
                         @if (is_null($movie->proposal_status))
                             <a href="{{ route('manager.setup.movie', $movie->movie_id) }}" class="um-setup-btn">Setup This Movie</a>
                         @elseif (in_array($movie->proposal_status, ['pending', 'approved']))
@@ -220,6 +220,27 @@
             @endforeach
         </div>
     @endif
+</div>
+
+{{-- ════════════════════════════════════════════════════════
+   DELETE CONFIRMATION MODAL
+═══════════════════════════════════════════════════════════ --}}
+<div id="um-delete-modal" class="um-modal-overlay" style="display:none;">
+    <div class="um-modal">
+        <div class="um-modal__icon">⚠️</div>
+        <h2 class="um-modal__title">Delete Selected Cards</h2>
+        <p class="um-modal__text">
+            This action <strong>cannot be undone</strong>. The selected cards will only be removed from this view.
+            You may want to download a backup first.
+        </p>
+        <a href="#" class="um-modal__download" onclick="window.print(); return false;">
+            📄 Download list as PDF
+        </a>
+        <div class="um-modal__actions">
+            <button class="um-modal-btn um-modal-btn--cancel" id="um-modal-cancel">Cancel</button>
+            <button class="um-modal-btn um-modal-btn--delete" id="um-modal-delete">Delete</button>
+        </div>
+    </div>
 </div>
 
 @endsection
