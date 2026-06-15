@@ -287,6 +287,214 @@
     transform: scale(1.1);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   NEW: Top bar, back arrow & layout toggles
+══════════════════════════════════════════════════════════════ */
+.um-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+/* Back arrow – unique, clean, no text */
+.um-back-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: var(--bm-text-sub);
+    transition: background var(--bm-transition), color var(--bm-transition),
+                border-color var(--bm-transition);
+}
+.um-back-arrow:hover {
+    background: rgba(255,255,255,0.12);
+    color: var(--bm-accent);
+    border-color: var(--bm-accent);
+}
+
+/* Layout toggle buttons */
+.um-layout-toggles {
+    display: flex;
+    gap: 8px;
+}
+
+.um-layout-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--bm-radius-sm);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.10);
+    color: var(--bm-text-muted);
+    cursor: pointer;
+    transition: all var(--bm-transition);
+}
+.um-layout-toggle:hover {
+    border-color: rgba(255,255,255,0.25);
+    color: var(--bm-text-sub);
+}
+.um-layout-toggle.is-active {
+    background: var(--bm-accent);
+    border-color: var(--bm-accent);
+    color: #000;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NEW: Compact card grid
+══════════════════════════════════════════════════════════════ */
+.um-compact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.um-compact-card {
+    background: var(--bm-card);
+    border: 1px solid var(--bm-border);
+    border-radius: var(--bm-radius-lg);
+    overflow: hidden;
+    box-shadow: var(--bm-shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Poster area */
+.um-compact-card__poster {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2/3;        /* portrait ratio */
+    background: var(--bm-surface);
+    overflow: hidden;
+}
+
+.um-compact-card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.um-compact-card__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: var(--bm-text-muted);
+}
+
+/* Status icon (top‑right on poster) */
+.um-compact-card__status {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+}
+
+.um-status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #fff;
+}
+.um-status-icon--approved {
+    background: #22c55e;
+}
+.um-status-icon--pending {
+    background: #f59e0b;
+}
+.um-status-icon--rejected {
+    background: #f87171;
+}
+
+/* Movie name */
+.um-compact-card__title {
+    font-family: var(--bm-font-head);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--bm-text);
+    padding: 12px 12px 6px;
+    text-align: center;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+
+/* Action buttons */
+.um-compact-card__actions {
+    padding: 6px 12px 14px;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: auto;            /* push to bottom */
+}
+
+.um-compact-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: var(--bm-radius-sm);
+    font-family: var(--bm-font-head);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all var(--bm-transition);
+    cursor: pointer;
+}
+.um-compact-btn--primary {
+    background: var(--bm-accent);
+    color: #000;
+    border: none;
+    box-shadow: 0 4px 12px rgba(34,197,94,0.25);
+}
+.um-compact-btn--primary:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+}
+.um-compact-btn--ghost {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: var(--bm-text-muted);
+}
+.um-compact-btn--ghost:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.28);
+    color: var(--bm-text-sub);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NEW: Delete button (already present in your old CSS,
+        but ensure it’s not overwritten; keeping as is)
+══════════════════════════════════════════════════════════════ */
+/* (The existing .um-delete-btn rules stay unchanged) */
+
+/* ── Responsive adjustments for compact grid ────────────── */
+@media (max-width: 900px) {
+    .um-compact-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 500px) {
+    .um-compact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 640px) {
     .um-card__landscape  { aspect-ratio: 16/6; }
