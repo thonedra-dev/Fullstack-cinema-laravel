@@ -18,6 +18,11 @@
  *   "Movie Rejection By Admin"
  *     → always navigate to /manager/setup/movie/:id
  *       (setup page handles the replace-rejected flow internally)
+ *
+ *   "Movie Expired"
+ *     → always navigate to /manager/movie/:id  (view movie details;
+ *       raised by BranchManagerResourceController when a running movie
+ *       passes its maximum_end_date and is pulled from Running Movies)
  */
 
 (function () {
@@ -41,6 +46,12 @@
 
                 /* ── Showtime Approved ─────────────────────────────── */
                 if (tag === 'Showtime Approved') {
+                    window.location.href = '/manager/movie/' + movieId;
+                    return;
+                }
+
+                /* ── Movie Expired ─────────────────────────────────── */
+                if (tag === 'Movie Expired') {
                     window.location.href = '/manager/movie/' + movieId;
                     return;
                 }

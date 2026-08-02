@@ -14,12 +14,18 @@
                                   (not yet submitted) → setup_movie_timetable
       "Movie Rejection By Admin"→ always clickable → setup_movie_timetable (resubmit)
       "Showtime Approved"       → always clickable → bm_movie_formation
+      "Movie Expired"           → always clickable → movie details page
+                                  (raised by BranchManagerResourceController
+                                  when a running movie passes maximum_end_date)
 
     Visual:
       If proposal_status === 'rejected' OR tag === 'Movie Rejection By Admin':
         card gets .bmn-card--rejected (bright red tint + border)
       This colours BOTH the original "Movie Assigned" card AND the
       "Movie Rejection By Admin" card for the same movie.
+
+      If tag === 'Movie Expired':
+        card gets .bmn-card--expired (dim/amber tint + border)
 --}}
 @extends('branch_manager.branch_manager_layout')
 
@@ -56,12 +62,14 @@
                 /*
                  * Determine tag CSS modifier.
                  *   approved  → green
-                 *   rejected  → bright red (new class)
+                 *   rejected  → bright red
+                 *   expired   → amber/dim (new)
                  *   assigned  → purple (default)
                  */
                 $tagClass = match($noti->tag) {
                     'Showtime Approved'        => 'approved',
                     'Movie Rejection By Admin' => 'rejected',
+                    'Movie Expired'             => 'expired',
                     default                    => 'assigned',
                 };
 
@@ -74,10 +82,14 @@
                  */
                 $isRejectedContext = $noti->tag === 'Movie Rejection By Admin'
                     || $noti->proposal_status === 'rejected';
+
+                $isExpiredContext = $noti->tag === 'Movie Expired';
             @endphp
 
             <div
-                class="bmn-card {{ $isRejectedContext ? 'bmn-card--rejected' : '' }}"
+                class="bmn-card
+                    {{ $isRejectedContext ? 'bmn-card--rejected' : '' }}
+                    {{ $isExpiredContext ? 'bmn-card--expired' : '' }}"
                 data-movie-id="{{ $noti->movie_id }}"
                 data-tag="{{ $noti->tag }}"
                 data-proposal-status="{{ $noti->proposal_status ?? '' }}"
