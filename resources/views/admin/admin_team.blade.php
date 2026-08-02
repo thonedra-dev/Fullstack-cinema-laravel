@@ -86,10 +86,10 @@
             <span class="at-nav__text">Managers</span>
         </a>
 
-        <a href="{{ route('admin.proposals.index') }}"
-           class="at-nav__link {{ request()->routeIs('admin.proposals.*') ? 'is-active' : '' }}">
+        <a href="{{ route('admin.movies.now_showing') }}"
+           class="at-nav__link {{ request()->routeIs('admin.movies.*', 'admin.proposals.*') ? 'is-active' : '' }}">
             <span class="at-nav__icon">📩</span>
-            <span class="at-nav__text">Movie Proposals</span>
+            <span class="at-nav__text">Movies</span>
         </a>
     </nav>
 

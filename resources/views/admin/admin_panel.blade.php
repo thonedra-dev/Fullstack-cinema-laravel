@@ -113,10 +113,10 @@
             </div>
         </a>
 
-        <a href="{{ route('admin.proposals.index') }}" class="ap-card cyber-edge">
+        <a href="{{ route('admin.movies.now_showing') }}" class="ap-card cyber-edge">
             <div class="ap-card__icon-wrap"><i class="fas fa-file-code ap-card__icon"></i></div>
             <div class="ap-card__content">
-                <h2 class="ap-card__title">PROPOSALS</h2>
+                <h2 class="ap-card__title">Movies</h2>
                 <p class="ap-card__desc">Review incoming logs</p>
             </div>
         </a>
