@@ -73,7 +73,7 @@ class BranchManagerResourceController extends Controller
             ->select('movies.*', 'cmq.showtime_slots', 'cmq.start_date', 'cmq.maximum_end_date')
             ->get();
 
-        // ── Detect newly EXPIRED movies (same base pool, but date has passed) ──
+        // ── Detect newly EXPIRED movies (same base pool, but date has passed to NotificationController) ──
         $expiredMovies = Movie::join('cinema_movie_quotas as cmq', 'movies.movie_id', '=', 'cmq.movie_id')
             ->where('cmq.cinema_id', $cinemaId)
             ->whereIn('movies.movie_id', $activeMovieIds)
