@@ -20,11 +20,13 @@ class AdminMovieProposalController extends Controller
     }
 
     /* ─────────────────────────────────────────────────────────────
-       LIST
+       LIST (Proposals tab)
        GET /admin/proposals
     ───────────────────────────────────────────────────────────── */
    public function index()
 {
+    $activeTab = 'proposals';
+
     $proposals = ShowtimeProposalStatus::with(['manager', 'cinema', 'movie'])
         ->orderByRaw("CASE status WHEN 'pending' THEN 0 ELSE 1 END")
         ->orderBy('created_at', 'desc')
@@ -53,8 +55,9 @@ class AdminMovieProposalController extends Controller
         }
     }
 
-    return view('admin.movie_proposals', compact('proposals'));
+    return view('admin.admin_movies', compact('proposals', 'activeTab'));
 }
+
     /* ─────────────────────────────────────────────────────────────
        DETAIL
        GET /admin/proposals/{id}
