@@ -8,7 +8,7 @@ use App\Http\Controllers\Auth\CustomerLoginController;
 use App\Http\Controllers\Auth\ManualSignupController;
 
 // Core Admin Controllers
-use App\Http\Controllers\AdminAuthController; // 💡 Cleanly imported here!
+use App\Http\Controllers\AdminAuthController; 
 use App\Http\Controllers\AdminCinemaController;
 use App\Http\Controllers\AdminCinemaViewController;
 use App\Http\Controllers\AdminCityController;
@@ -21,6 +21,7 @@ use App\Http\Controllers\AdminTheatreController;
 use App\Http\Controllers\AdminTheatreResourceController;
 use App\Http\Controllers\AdminHallController;
 use App\Http\Controllers\FoodDrinkController;
+use App\Http\Controllers\AdminMovieLiveController;
 
 // Branch Manager Controllers
 use App\Http\Controllers\BranchManagerAuthController;
@@ -102,6 +103,8 @@ Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(f
 
     // Proposal Logging Review Chain
     Route::get('/proposals',               [AdminMovieProposalController::class, 'index'])->name('proposals.index');
+    // CHANGED: Removed the 'admin.' prefix here so it inherits correctly from the group.
+    Route::get('/movies/now-showing',      [AdminMovieLiveController::class, 'nowShowing'])->name('movies.now_showing');
     Route::get('/proposals/{id}',          [AdminMovieProposalController::class, 'show'])->name('proposals.show')->where('id', '[0-9]+');
     Route::post('/proposals/{id}/approve', [AdminMovieProposalController::class, 'approve'])->name('proposals.approve')->where('id', '[0-9]+');
     Route::post('/proposals/{id}/reject',  [AdminMovieProposalController::class, 'reject'])->name('proposals.reject')->where('id', '[0-9]+');
@@ -166,7 +169,6 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback'])->name
 Route::get('/users/sign-up',          function () { return view('users.signup'); })->name('users.signup');
 Route::post('/users/sign-up/start',   [ManualSignupController::class, 'start'])->name('users.signup.start');
 Route::post('/users/sign-up/verify',  [ManualSignupController::class, 'verify'])->name('users.signup.verify');
-// Fixed user typo 'resend' path structure spacing
 Route::post('/users/sign-up/resend',  [ManualSignupController::class, 'resend'])->name('users.signup.resend');
 Route::post('/users/sign-up/complete', [ManualSignupController::class, 'complete'])->name('users.signup.complete');
 
