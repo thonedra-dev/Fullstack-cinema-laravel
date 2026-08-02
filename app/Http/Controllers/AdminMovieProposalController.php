@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class AdminMovieProposalController extends Controller
 {
+    private BranchManagerNotificationController $notifications;
+
+    public function __construct(BranchManagerNotificationController $notifications)
+    {
+        $this->notifications = $notifications;
+    }
+
     /* ─────────────────────────────────────────────────────────────
        LIST
        GET /admin/proposals
@@ -147,16 +154,12 @@ class AdminMovieProposalController extends Controller
     $movieName = $approvedMovie?->movie_name ?? 'Movie';
     $slotCount = count($approved);
 
-    DB::table('manager_notifications')->insert([
-        'manager_id' => $statusRecord->manager_id,
-        'noti_picture' => $approvedMovie?->portrait_poster,
-        'noti_message' => '"' . $movieName . '" — ' . $slotCount .
-            ' showtime(s) have been approved and are now live on the schedule.',
-        'tag' => 'Showtime Approved',
-        'is_read' => false,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $this->notifications->notifyShowtimeApproved(
+        $statusRecord->manager_id,
+        $movieName,
+        $approvedMovie?->portrait_poster,
+        $slotCount
+    );
 
     return redirect()->route('admin.proposals.index')
         ->with(
@@ -195,17 +198,13 @@ class AdminMovieProposalController extends Controller
     $supervisorName = $supervisorRow?->supervisor_name ?? 'Admin';
     $movieName = $movie?->movie_name ?? 'Movie';
 
-    $notiMessage = '"' . $movieName . '" proposal rejected by ' .
-        $supervisorName . ': ' . $request->admin_note;
-
-    DB::table('manager_notifications')->insert([
-        'manager_id' => $statusRecord->manager_id,
-        'noti_picture' => $movie?->portrait_poster,
-        'noti_message' => $notiMessage,
-        'tag' => 'Movie Rejection By Admin',
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    $this->notifications->notifyProposalRejected(
+        $statusRecord->manager_id,
+        $movieName,
+        $movie?->portrait_poster,
+        $supervisorName,
+        $request->admin_note
+    );
 
     return redirect()->route('admin.proposals.index')
         ->with('success', 'Proposal rejected. Note sent to branch manager.');

@@ -80,8 +80,13 @@ class BranchManagerNotificationController extends Controller
     // =====================================================================
     //  NOTIFICATION CONSTRUCTION
     //  Single source of truth for creating manager_notifications rows.
-    //  Any part of the app that needs to notify a manager should call one
-    //  of these methods rather than inserting into the table directly.
+    //  Anything in the app that needs to notify a manager should call one
+    //  of the public "notifyX()" wrapper methods below — never insert into
+    //  manager_notifications directly from another controller.
+    //
+    //  Adding a new reason to notify in the future = adding ONE small public
+    //  wrapper method here that calls notify(). Nothing else in the app
+    //  needs to know how manager_notifications rows are structured.
     // =====================================================================
 
     /**
@@ -89,54 +94,86 @@ class BranchManagerNotificationController extends Controller
      * (its quota's maximum_end_date has passed) and was pulled from
      * Running Movies.
      *
-     * Deduplicated: won't insert a second "Movie Expired" notification
-     * for the same movie poster if one already exists for this manager.
-     *
-     * @param  int     $managerId
-     * @param  string  $movieName
-     * @param  string|null  $moviePoster
-     * @return void
+     * Deduplicated — re-running this for the same movie won't spam a
+     * second notification (this can be triggered on every Resources
+     * page load, so dedup matters here).
      */
     public function notifyExpiredMovie(int $managerId, string $movieName, ?string $moviePoster): void
+    {
+        $this->notify(
+            managerId: $managerId,
+            tag: 'Movie Expired',
+            message: "\"{$movieName}\" has passed its scheduled end date and was removed from Running Movies. You can find it under Expired Movies.",
+            picture: $moviePoster,
+            dedupe: true,
+        );
+    }
+
+    /**
+     * Notify a manager that admin approved their showtime proposal.
+     * One-shot admin action — no dedup needed.
+     */
+    public function notifyShowtimeApproved(int $managerId, string $movieName, ?string $moviePoster, int $slotCount): void
+    {
+        $this->notify(
+            managerId: $managerId,
+            tag: 'Showtime Approved',
+            message: "\"{$movieName}\" — {$slotCount} showtime(s) have been approved and are now live on the schedule.",
+            picture: $moviePoster,
+            dedupe: false,
+        );
+    }
+
+    /**
+     * Notify a manager that admin rejected their showtime proposal,
+     * including the admin's note. One-shot admin action — no dedup needed.
+     */
+    public function notifyProposalRejected(int $managerId, string $movieName, ?string $moviePoster, string $supervisorName, string $adminNote): void
+    {
+        $this->notify(
+            managerId: $managerId,
+            tag: 'Movie Rejection By Admin',
+            message: "\"{$movieName}\" proposal rejected by {$supervisorName}: {$adminNote}",
+            picture: $moviePoster,
+            dedupe: false,
+        );
+    }
+
+    /**
+     * Generic notification creator — the single place that actually
+     * touches the manager_notifications table.
+     *
+     * @param  int     $managerId
+     * @param  string  $tag       Short label shown on the card (e.g. "Movie Expired")
+     * @param  string  $message   Full body text shown on the card
+     * @param  string|null  $picture  Poster filename, used both for display AND as
+     *                               the movie-linking key (matched against
+     *                               movies.portrait_poster elsewhere) and as the
+     *                               dedup key when $dedupe is true
+     * @param  bool    $dedupe    If true, skips insert when an identical
+     *                            (manager_id, tag, noti_picture) row already
+     *                            exists. Use for reasons that can be triggered
+     *                            repeatedly (e.g. a page-load check). Leave
+     *                            false for one-shot events (admin approve/reject),
+     *                            since those should always produce a fresh entry.
+     * @return void
+     */
+    private function notify(int $managerId, string $tag, string $message, ?string $picture, bool $dedupe = true): void
     {
         if (!$managerId) {
             return;
         }
 
-        $this->createNotificationOnce(
-            managerId: $managerId,
-            tag: 'Movie Expired',
-            message: "\"{$movieName}\" has passed its scheduled end date and was removed from Running Movies. You can find it under Expired Movies.",
-            picture: $moviePoster,
-        );
-    }
+        if ($dedupe) {
+            $alreadyNotified = DB::table('manager_notifications')
+                ->where('manager_id', $managerId)
+                ->where('tag', $tag)
+                ->where('noti_picture', $picture)
+                ->exists();
 
-    /**
-     * Generic, deduplicated notification creator.
-     *
-     * Dedup key is (manager_id, tag, noti_picture) — same convention
-     * already used for the existing proposal-related notifications,
-     * which link a notification back to a movie via its poster filename.
-     *
-     * Add more public wrapper methods above (e.g. notifyX(), notifyY())
-     * for each new reason to notify a manager, all funneling through here.
-     *
-     * @param  int     $managerId
-     * @param  string  $tag
-     * @param  string  $message
-     * @param  string|null  $picture
-     * @return void
-     */
-    private function createNotificationOnce(int $managerId, string $tag, string $message, ?string $picture): void
-    {
-        $alreadyNotified = DB::table('manager_notifications')
-            ->where('manager_id', $managerId)
-            ->where('tag', $tag)
-            ->where('noti_picture', $picture)
-            ->exists();
-
-        if ($alreadyNotified) {
-            return;
+            if ($alreadyNotified) {
+                return;
+            }
         }
 
         DB::table('manager_notifications')->insert([
