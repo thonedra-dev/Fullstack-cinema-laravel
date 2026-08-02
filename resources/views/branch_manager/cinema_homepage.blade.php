@@ -49,7 +49,17 @@
         <span class="bm-portal-card__arrow">→</span>
     </a>
 
-    {{-- 4: Notifications (static) --}}
+    {{-- 4: Expired Movies --}}
+    <a href="{{ route('manager.expired.movies') }}" class="bm-portal-card">
+        <div class="bm-portal-card__icon">🕒</div>
+        <div class="bm-portal-card__body">
+            <p class="bm-portal-card__title">Expired Movies</p>
+            <p class="bm-portal-card__desc">View movies that are no longer active.</p>
+        </div>
+        <span class="bm-portal-card__arrow">→</span>
+    </a>
+
+    {{-- 5: Notifications (static) --}}
    <a href="{{ route('manager.notifications') }}" class="bm-portal-card bm-portal-card--noti">
     <div class="bm-portal-card__icon">
         🔔
@@ -66,7 +76,7 @@
     <span class="bm-portal-card__arrow">→</span>
 </a>
 
-    {{-- 5: Employees (static) --}}
+    {{-- 6: Employees (static) --}}
     <div class="bm-portal-card bm-portal-card--static">
         <div class="bm-portal-card__icon">👥</div>
         <div class="bm-portal-card__body">

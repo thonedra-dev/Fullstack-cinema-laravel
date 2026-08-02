@@ -32,6 +32,7 @@ use App\Http\Controllers\BranchManagerUpcomingController;
 use App\Http\Controllers\BranchManagerReviewProposalController;
 use App\Http\Controllers\BranchManagerNotificationController;
 use App\Http\Controllers\BranchManagerTheatreFormationController;
+use App\Http\Controllers\BranchManagerExpiredMoviesController; 
 
 // Staff & Operations
 use App\Http\Controllers\EmployeeAuthController;
@@ -133,7 +134,8 @@ Route::get('/manager/movie/{movieId}', [BranchManagerMovieDetailsController::cla
 Route::post('/proposals/{movieId}/rearrange', [BranchManagerShowtimeController::class, 'rearrange'])->name('manager.proposals.rearrange');
 Route::get('/manager/notifications',          [BranchManagerNotificationController::class, 'index'])->name('manager.notifications');
 Route::get('/manager/theatre/{theatreId}',    [BranchManagerTheatreFormationController::class, 'show'])->name('manager.theatre.formation');
-
+Route::get('/manager/expired-movies', [BranchManagerExpiredMoviesController::class, 'index'])
+    ->name('manager.expired.movies');
 /*
 |--------------------------------------------------------------------------
 | 4. Separate Field Employee & Staff Operations (Isolated)
