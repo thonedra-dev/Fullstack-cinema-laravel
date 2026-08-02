@@ -90,4 +90,32 @@ class Movie extends Model
             $q->whereDate('maximum_end_date', '>=', now()->toDateString());
         });
     }
+
+    // =========================================================================
+    //  SCOPE: hasLiveShowtime
+    // =========================================================================
+    /**
+     * Restrict the query to movies that have at least ONE showtime row
+     * whose end_time is still in the future (PUBLIC / user-facing side).
+     *
+     * This is intentionally a SEPARATE concept from scopeNowShowing():
+     *   - scopeNowShowing()      → quota window hasn't expired (per cinema)
+     *   - scopeHasLiveShowtime() → an actual scheduled showtime hasn't ended yet
+     *
+     * Mirrors the logic already used in UserHomepageController@index and
+     * @getLiveMovieIds, extracted here so any other part of the app
+     * (e.g. the admin "Now Showing" tab, via AdminMovieController) can
+     * reuse the exact same definition instead of duplicating the sub-query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeHasLiveShowtime($query)
+    {
+        return $query->whereIn('movie_id', function ($q) {
+            $q->select('movie_id')
+              ->from('showtimes')
+              ->where('end_time', '>', now());
+        });
+    }
 }
