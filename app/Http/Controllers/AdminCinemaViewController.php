@@ -5,15 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Cinema;
 use App\Models\Showtime;
 use App\Models\Theatre;
+use Illuminate\Support\Facades\DB;
 
 class AdminCinemaViewController extends Controller
 {
     /**
      * Display all cinemas. Movies section only shows movies with at least
-     * one approved showtime. Pending proposals do NOT appear as movie cards.
-     *
-     * Also passes all master theatre types so the "Assign Theatre" modal
-     * in view_cinema.blade.php can filter out already-assigned ones per cinema.
+     * one approved showtime AND whose quota maximum_end_date has not passed.
      *
      * GET /admin/cinema
      */
@@ -28,12 +26,22 @@ class AdminCinemaViewController extends Controller
         ->orderBy('cinema_id', 'desc')
         ->get();
 
-        // Filter each cinema's movies to only those with at least one approved showtime
-        $cinemas->each(function ($cinema) {
+        $today = now()->toDateString();
+
+        // Filter each cinema's movies to active showtimes AND maximum_end_date >= today
+        $cinemas->each(function ($cinema) use ($today) {
             $hallIds = $cinema->halls->pluck('hall_id');
 
-            $activeMovieIds = Showtime::whereIn('hall_id', $hallIds)
+            // 1. Movie IDs that have active showtimes in this cinema's halls
+            $showtimeMovieIds = Showtime::whereIn('hall_id', $hallIds)
                 ->distinct()
+                ->pluck('movie_id');
+
+            // 2. Filter to those whose quota maximum_end_date >= today
+            $activeMovieIds = DB::table('cinema_movie_quotas')
+                ->where('cinema_id', $cinema->cinema_id)
+                ->whereIn('movie_id', $showtimeMovieIds)
+                ->whereDate('maximum_end_date', '>=', $today)
                 ->pluck('movie_id');
 
             $cinema->setRelation(
@@ -43,7 +51,6 @@ class AdminCinemaViewController extends Controller
         });
 
         // All master theatre types — used in the "Assign Theatre" modal.
-        // The blade filters out already-assigned ones per cinema.
         $allTheatres = Theatre::orderBy('theatre_name')->get();
 
         return view('admin.view_cinema', compact('cinemas', 'allTheatres'));
