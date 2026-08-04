@@ -22,6 +22,7 @@ use App\Http\Controllers\AdminTheatreResourceController;
 use App\Http\Controllers\AdminHallController;
 use App\Http\Controllers\FoodDrinkController;
 use App\Http\Controllers\AdminMovieLiveController;
+use App\Http\Controllers\AdminExpiredMoviesController;
 
 // Branch Manager Controllers
 use App\Http\Controllers\BranchManagerAuthController;
@@ -57,11 +58,6 @@ Route::middleware(['guest'])->prefix('admin')->name('admin.')->group(function ()
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
 });
 
-/*
-|--------------------------------------------------------------------------
-| 2. Admin/Supervisor Panel & Protected Operations (Auth Capsule)
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(function () {
     
     // Core Admin Panel Destination
@@ -103,17 +99,36 @@ Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(f
 
     // Proposal Logging Review Chain
     Route::get('/proposals',               [AdminMovieProposalController::class, 'index'])->name('proposals.index');
-    // CHANGED: Removed the 'admin.' prefix here so it inherits correctly from the group.
     Route::get('/movies/now-showing',      [AdminMovieLiveController::class, 'nowShowing'])->name('movies.now_showing');
+    Route::get('/movies/expired',          [AdminExpiredMoviesController::class, 'index'])->name('movies.expired');
     Route::get('/proposals/{id}',          [AdminMovieProposalController::class, 'show'])->name('proposals.show')->where('id', '[0-9]+');
     Route::post('/proposals/{id}/approve', [AdminMovieProposalController::class, 'approve'])->name('proposals.approve')->where('id', '[0-9]+');
     Route::post('/proposals/{id}/reject',  [AdminMovieProposalController::class, 'reject'])->name('proposals.reject')->where('id', '[0-9]+');
+
+    // ── NEW: Now Showing → single movie live-detail page ──────────────
+    Route::get('/movies/now-showing/{movie}', [AdminMovieLiveController::class, 'show'])
+        ->name('movies.now_showing.show')
+        ->where('movie', '[0-9]+');
+
+    // ── NEW: JSON — theatres for a given cinema+movie ──────────────────
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres', [AdminMovieLiveController::class, 'theatresJson'])
+        ->name('movies.now_showing.theatres')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+']);
+
+    // ── NEW: showtimes under a theatre ──────────────────────────────
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/showtimes', [AdminMovieLiveController::class, 'showtimesJson'])
+        ->name('movies.now_showing.showtimes')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
+
+     // ── CHANGED: seats now keyed by showtime, not theatre ───────────
+    Route::get('/showtimes/{showtime}/seats', [AdminMovieLiveController::class, 'seatsForShowtimeJson'])
+        ->name('showtimes.seats')
+        ->where('showtime', '[0-9]+');
 
     // Synthesized Rations Inventory Systems
     Route::get('/food-drink/create', [FoodDrinkController::class, 'create'])->name('food_drink.create');
     Route::post('/food-drink/store', [FoodDrinkController::class, 'store'])->name('food_drink.store');
 });
-
 /*
 |--------------------------------------------------------------------------
 | 3. Branch Manager Network
