@@ -13,7 +13,7 @@
 @else
     <div class="mp-nowshowing-grid">
         @foreach ($nowShowingMovies as $movie)
-            <a href="#" class="mp-nowshowing-card" data-movie-id="{{ $movie->movie_id }}">
+            <a href="{{ route('admin.movies.now_showing.show', $movie->movie_id) }}" class="mp-nowshowing-card">
                 <div class="mp-nowshowing-card__poster-wrap">
                     @if (!empty($movie->portrait_poster))
                         <img
