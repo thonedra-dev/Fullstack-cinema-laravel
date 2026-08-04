@@ -1,17 +1,17 @@
 {{--
     resources/views/admin/admin_movies.blade.php
     ────────────────────────────────────────────────
-    Shared page for three tabs, one controller per tab:
-      - Now Showing → AdminMovieLiveController@nowShowing      ($activeTab = 'now_showing') [DEFAULT]
-      - Proposals   → AdminMovieProposalController@index   ($activeTab = 'proposals')
+    Pure navigator/chrome for two tabs, one controller each:
+      - Now Showing → AdminMovieLiveController@nowShowing   ($activeTab = 'now_showing') [DEFAULT]
+      - Proposals   → AdminMovieProposalController@index    ($activeTab = 'proposals')
       - Expired     → (not built yet — static disabled tab)
 
-    Data:
-      $activeTab        – 'now_showing' | 'proposals'
-      $proposals        – (proposals tab) ShowtimeProposalStatus collection
-                           decorated with: first_id, slot_count, start_time, theatre
-      $nowShowingMovies – (now showing tab) Movie collection w/ genres,
-                           filtered via Movie::hasLiveShowtime()
+    Tab body markup lives in:
+      - admin.partials.now_showing_content  (expects $nowShowingMovies)
+      - admin.partials.proposals_content    (expects $proposals)
+
+    These are the same views the controllers return standalone for
+    AJAX tab-switch requests.
 --}}
 @extends('admin.admin_team')
 
@@ -20,10 +20,12 @@
 
 @section('head_extras')
     @vite([
-        'resources/css/admin_movies.css',
-        'resources/css/movie_proposals.css',
-        'resources/js/admin_movies.js',
-    ])
+    'resources/css/admin_movies.css',
+    'resources/css/now_showing_movies.css',
+    'resources/css/proposed_movies.css',
+    'resources/css/movie_proposals.css',
+    'resources/js/admin_movies.js',
+])
 @endsection
 
 @section('content')
@@ -35,7 +37,7 @@
 @endphp
 
 <div class="ac-page-header mp-header">
-    <div>
+    <div id="mpPageHeaderText">
         @if ($activeTab === 'now_showing')
             <h1 class="ac-page-header__title">Now <span>Showing</span></h1>
             <p class="ac-page-header__sub">
@@ -55,14 +57,15 @@
             id="mpTabToggleBtn"
             class="mp-tab-toggle-btn"
             aria-label="Switch view"
-            aria-expanded="{{ $activeTab !== 'now_showing' ? 'true' : 'false' }}"
+            aria-expanded="false"
         >
             ⚙
         </button>
 
-        <div id="mpTabsBar" class="mp-tabs-bar {{ $activeTab !== 'now_showing' ? 'mp-tabs-bar--open' : '' }}">
+        <div id="mpTabsBar" class="mp-tabs-bar">
             <a
                 href="{{ route('admin.movies.now_showing') }}"
+                data-tab="now_showing"
                 class="mp-tab-item {{ $activeTab === 'now_showing' ? 'mp-tab-item--active' : '' }}"
             >
                 Now Showing
@@ -70,6 +73,7 @@
 
             <a
                 href="{{ route('admin.proposals.index') }}"
+                data-tab="proposals"
                 class="mp-tab-item {{ $activeTab === 'proposals' ? 'mp-tab-item--active' : '' }}"
             >
                 Proposals
@@ -82,109 +86,12 @@
     </div>
 </div>
 
-@if ($activeTab === 'now_showing')
-
-    {{-- ── NOW SHOWING TAB (AdminMovieLiveController@nowShowing) ─── --}}
-    @if ($nowShowingMovies->isEmpty())
-        <div class="ac-empty" style="padding:80px 20px;">
-            <div class="ac-empty__icon">🎬</div>
-            <p class="ac-empty__text" style="font-size:1rem;">No movies currently showing.</p>
-        </div>
+<div id="mpContentArea" data-active-tab="{{ $activeTab }}">
+    @if ($activeTab === 'now_showing')
+        @include('admin.partials.now_showing_movies', ['nowShowingMovies' => $nowShowingMovies])
     @else
-        <div class="mp-nowshowing-grid">
-            @foreach ($nowShowingMovies as $movie)
-                <a href="#" class="mp-nowshowing-card" data-movie-id="{{ $movie->movie_id }}">
-                    <div class="mp-nowshowing-card__poster-wrap">
-                        @if (!empty($movie->portrait_poster))
-                            <img
-                                src="{{ asset('images/movies/' . $movie->portrait_poster) }}"
-                                alt="{{ $movie->movie_name }}"
-                                class="mp-nowshowing-card__poster"
-                            >
-                        @else
-                            <div class="mp-nowshowing-card__poster-ph">🎬</div>
-                        @endif
-                    </div>
-                    <div class="mp-nowshowing-card__body">
-                        <p class="mp-nowshowing-card__title">{{ $movie->movie_name }}</p>
-                        @if ($movie->genres->isNotEmpty())
-                            <div class="mp-nowshowing-card__genres">
-                                @foreach ($movie->genres->take(3) as $genre)
-                                    <span class="mp-nowshowing-card__genre">{{ $genre->genre_name }}</span>
-                                @endforeach
-                            </div>
-                        @endif
-                        <p class="mp-nowshowing-card__meta">
-                            @php $h = intdiv($movie->runtime, 60); $m = $movie->runtime % 60; @endphp
-                            <span>⏱ {{ $h > 0 ? $h . 'h ' : '' }}{{ $m }}m</span>
-                            <span>•</span>
-                            <span>🌐 {{ $movie->language }}</span>
-                        </p>
-                    </div>
-                </a>
-            @endforeach
-        </div>
+        @include('admin.partials.proposed_movies', ['proposals' => $proposals])
     @endif
-
-@else
-
-    {{-- ── PROPOSALS TAB (AdminMovieProposalController@index) ── --}}
-    @if ($proposals->isEmpty())
-
-        <div class="ac-empty" style="padding:80px 20px;">
-            <div class="ac-empty__icon">📩</div>
-            <p class="ac-empty__text" style="font-size:1rem;">No proposals yet.</p>
-            <p class="ac-empty__text" style="margin-top:6px;">
-                Branch managers will submit proposals after configuring showtimes.
-            </p>
-        </div>
-
-    @else
-
-        @php
-            $pending  = $proposals->where('status', 'pending');
-            $approved = $proposals->where('status', 'approved');
-            $rejected = $proposals->where('status', 'rejected');
-        @endphp
-
-        @if ($pending->isNotEmpty())
-            <div class="mp-group-label">
-                <span class="mp-group-dot mp-group-dot--pending"></span>
-                Pending Review ({{ $pending->count() }})
-            </div>
-            <div class="mp-list">
-                @foreach ($pending as $p)
-                    @include('admin.partials.proposal_card', ['p' => $p])
-                @endforeach
-            </div>
-        @endif
-
-        @if ($approved->isNotEmpty())
-            <div class="mp-group-label" style="margin-top:32px;">
-                <span class="mp-group-dot mp-group-dot--approved"></span>
-                Approved ({{ $approved->count() }})
-            </div>
-            <div class="mp-list">
-                @foreach ($approved as $p)
-                    @include('admin.partials.proposal_card', ['p' => $p])
-                @endforeach
-            </div>
-        @endif
-
-        @if ($rejected->isNotEmpty())
-            <div class="mp-group-label" style="margin-top:32px;">
-                <span class="mp-group-dot mp-group-dot--rejected"></span>
-                Rejected ({{ $rejected->count() }})
-            </div>
-            <div class="mp-list">
-                @foreach ($rejected as $p)
-                    @include('admin.partials.proposal_card', ['p' => $p])
-                @endforeach
-            </div>
-        @endif
-
-    @endif
-
-@endif
+</div>
 
 @endsection
