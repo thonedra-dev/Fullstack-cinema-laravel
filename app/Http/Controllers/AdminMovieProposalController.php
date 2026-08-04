@@ -23,7 +23,7 @@ class AdminMovieProposalController extends Controller
        LIST (Proposals tab)
        GET /admin/proposals
     ───────────────────────────────────────────────────────────── */
-   public function index()
+   public function index(Request $request)
 {
     $activeTab = 'proposals';
 
@@ -53,6 +53,11 @@ class AdminMovieProposalController extends Controller
         } else {
             $p->theatre = $uniqueHalls->first()?->theatre;
         }
+    }
+
+    // AJAX tab-switch request → return only the tab body partial
+    if ($request->ajax()) {
+        return view('admin.partials.proposed_movies', compact('proposals'));
     }
 
     return view('admin.admin_movies', compact('proposals', 'activeTab'));
