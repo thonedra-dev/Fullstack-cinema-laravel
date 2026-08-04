@@ -23,7 +23,6 @@
     'resources/css/admin_movies.css',
     'resources/css/now_showing_movies.css',
     'resources/css/proposed_movies.css',
-    'resources/css/movie_proposals.css',
     'resources/js/admin_movies.js',
 ])
 @endsection
