@@ -33,6 +33,7 @@
     $activeTab = $activeTab ?? 'now_showing';
     $nowShowingMovies = $nowShowingMovies ?? collect();
     $proposals = $proposals ?? collect();
+    $expiredMovies = $expiredMovies ?? collect();
 @endphp
 
 <div class="ac-page-header mp-header">
@@ -42,10 +43,15 @@
             <p class="ac-page-header__sub">
                 Movies currently live and scheduled across active cinema halls.
             </p>
-        @else
+        @elseif ($activeTab === 'proposals')
             <h1 class="ac-page-header__title">Movie <span>Proposals</span></h1>
             <p class="ac-page-header__sub">
                 Showtime proposals submitted by branch managers. Click to review and approve.
+            </p>
+        @else
+            <h1 class="ac-page-header__title">Expired <span>Movies</span></h1>
+            <p class="ac-page-header__sub">
+                Movies whose quota maximum end dates have passed across cinemas.
             </p>
         @endif
     </div>
@@ -78,9 +84,13 @@
                 Proposals
             </a>
 
-            <span class="mp-tab-item mp-tab-item--disabled" title="Coming soon">
+            <a
+                href="{{ route('admin.movies.expired') }}"
+                data-tab="expired"
+                class="mp-tab-item {{ $activeTab === 'expired' ? 'mp-tab-item--active' : '' }}"
+            >
                 Expired
-            </span>
+            </a>
         </div>
     </div>
 </div>
@@ -88,8 +98,10 @@
 <div id="mpContentArea" data-active-tab="{{ $activeTab }}">
     @if ($activeTab === 'now_showing')
         @include('admin.partials.now_showing_movies', ['nowShowingMovies' => $nowShowingMovies])
-    @else
+    @elseif ($activeTab === 'proposals')
         @include('admin.partials.proposed_movies', ['proposals' => $proposals])
+    @else
+        @include('admin.partials.expired_movies', ['expiredMovies' => $expiredMovies])
     @endif
 </div>
 

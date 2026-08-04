@@ -69,7 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 contentArea.dataset.activeTab = tab;
                 updateActiveTabClasses(tab);
                 updateHeaderText(tab);
-                document.title = tab === 'now_showing' ? 'Now Showing Movies' : 'Movie Proposals';
+
+                // Update document title based on active tab
+                if (tab === 'now_showing') {
+                    document.title = 'Now Showing Movies';
+                } else if (tab === 'proposals') {
+                    document.title = 'Movie Proposals';
+                } else if (tab === 'expired') {
+                    document.title = 'Expired Movies';
+                }
 
                 if (pushState) {
                     history.pushState({ tab, url }, '', url);
@@ -92,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateHeaderText(tab) {
         if (!headerText) return;
+
         if (tab === 'now_showing') {
             headerText.innerHTML = `
                 <h1 class="ac-page-header__title">Now <span>Showing</span></h1>
@@ -99,11 +108,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     Movies currently live and scheduled across active cinema halls.
                 </p>
             `;
-        } else {
+        } else if (tab === 'proposals') {
             headerText.innerHTML = `
                 <h1 class="ac-page-header__title">Movie <span>Proposals</span></h1>
                 <p class="ac-page-header__sub">
                     Showtime proposals submitted by branch managers. Click to review and approve.
+                </p>
+            `;
+        } else if (tab === 'expired') {
+            headerText.innerHTML = `
+                <h1 class="ac-page-header__title">Expired <span>Movies</span></h1>
+                <p class="ac-page-header__sub">
+                    Movies whose quota maximum end dates have passed across cinemas.
                 </p>
             `;
         }
