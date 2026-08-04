@@ -1,0 +1,201 @@
+/* ============================================================
+   Proposal Cards
+   Used by:
+   - admin/partials/proposed_movies.blade.php
+   - admin/partials/proposal_card.blade.php
+   ============================================================ */
+
+.mp-group-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 14px;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    color: #fff;
+}
+
+.mp-group-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.mp-group-dot--pending {
+    background: #f59e0b;
+}
+
+.mp-group-dot--approved {
+    background: #22c55e;
+}
+
+.mp-group-dot--rejected {
+    background: #ef4444;
+}
+
+.mp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.mp-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 6px 82px 1fr auto;
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+
+    transition:
+        transform .18s ease,
+        border-color .18s ease,
+        box-shadow .18s ease;
+}
+
+.mp-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(34,197,94,.35);
+    box-shadow: 0 14px 34px rgba(0,0,0,.25);
+}
+
+.mp-card__status-bar {
+    align-self: stretch;
+    border-radius: 999px;
+}
+
+.mp-card__status-bar--pending {
+    background: #f59e0b;
+}
+
+.mp-card__status-bar--approved {
+    background: #22c55e;
+}
+
+.mp-card__status-bar--rejected {
+    background: #ef4444;
+}
+
+.mp-card__poster-wrap {
+    width: 82px;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,255,255,.08);
+    background: rgba(255,255,255,.04);
+}
+
+.mp-card__poster,
+.mp-card__poster-ph {
+    width: 100%;
+    height: 100%;
+}
+
+.mp-card__poster {
+    object-fit: cover;
+    display: block;
+}
+
+.mp-card__poster-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+}
+
+.mp-card__body {
+    min-width: 0;
+}
+
+.mp-card__headline {
+    margin: 0 0 10px;
+    color: #fff;
+    line-height: 1.55;
+    font-size: .92rem;
+}
+
+.mp-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mp-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 4px 10px;
+
+    border-radius: 999px;
+
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+
+    font-size: .72rem;
+    color: rgba(255,255,255,.82);
+}
+
+.mp-card__badge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.mp-status-badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+
+    font-size: .72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.mp-status-badge--pending {
+    background: rgba(245,158,11,.12);
+    color: #f59e0b;
+}
+
+.mp-status-badge--approved {
+    background: rgba(34,197,94,.12);
+    color: #22c55e;
+}
+
+.mp-status-badge--rejected {
+    background: rgba(239,68,68,.12);
+    color: #ef4444;
+}
+
+.mp-card__arrow {
+    color: rgba(255,255,255,.45);
+    font-size: 1.15rem;
+    transition: transform .18s ease;
+}
+
+.mp-card:hover .mp-card__arrow {
+    transform: translateX(4px);
+    color: #22c55e;
+}
+
+@media (max-width: 760px) {
+    .mp-card {
+        grid-template-columns: 6px 70px 1fr;
+    }
+
+    .mp-card__badge-wrap {
+        grid-column: 2 / -1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+}
