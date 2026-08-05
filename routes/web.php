@@ -57,7 +57,6 @@ Route::middleware(['guest'])->prefix('admin')->name('admin.')->group(function ()
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
 });
-
 Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(function () {
     
     // Core Admin Panel Destination
@@ -115,7 +114,12 @@ Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(f
         ->name('movies.now_showing.theatres')
         ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+']);
 
-    // ── NEW: showtimes under a theatre ──────────────────────────────
+    // ── NEW: JSON — distinct dates that have a showtime under a theatre ─
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/dates', [AdminMovieLiveController::class, 'datesJson'])
+        ->name('movies.now_showing.dates')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
+
+    // ── NEW: showtimes under a theatre (optionally ?date=YYYY-MM-DD) ──
     Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/showtimes', [AdminMovieLiveController::class, 'showtimesJson'])
         ->name('movies.now_showing.showtimes')
         ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
@@ -123,6 +127,11 @@ Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(f
      // ── CHANGED: seats now keyed by showtime, not theatre ───────────
     Route::get('/showtimes/{showtime}/seats', [AdminMovieLiveController::class, 'seatsForShowtimeJson'])
         ->name('showtimes.seats')
+        ->where('showtime', '[0-9]+');
+
+    // ── NEW: JSON — financial report (bookings/payments) for a showtime ─
+    Route::get('/showtimes/{showtime}/financials', [AdminMovieLiveController::class, 'financialsJson'])
+        ->name('showtimes.financials')
         ->where('showtime', '[0-9]+');
 
     // Synthesized Rations Inventory Systems
