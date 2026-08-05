@@ -10,14 +10,14 @@ class Booking extends Model
     protected $primaryKey = 'booking_id';
     public    $timestamps = true;
 
-   protected $fillable = [
-    'user_id', 'cinema_id', 'booking_status',
-    'total_amount', 'stripe_payment_intent_id', 'expires_at',
-];
-protected $casts = [
-    'total_amount' => 'decimal:2',
-    'expires_at'   => 'datetime',
-];
+    protected $fillable = [
+        'user_id', 'cinema_id', 'booking_status',
+        'total_amount', 'stripe_payment_intent_id', 'expires_at',
+    ];
+    protected $casts = [
+        'total_amount' => 'decimal:2',
+        'expires_at'   => 'datetime',
+    ];
 
     /* ── Relationships ─────────────────────────────────── */
 
@@ -29,5 +29,11 @@ protected $casts = [
     public function customer()
     {
         return $this->belongsTo(Customer::class, 'user_id', 'user_id');
+    }
+
+    // NEW — a booking has one payment record in the `payments` table
+    public function payment()
+    {
+        return $this->hasOne(Payment::class, 'booking_id', 'booking_id');
     }
 }
