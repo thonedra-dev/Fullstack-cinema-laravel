@@ -78,9 +78,18 @@ class AdminMovieLiveController extends Controller
                   });
             })
             ->orderBy('theatre_name')
-            ->get(['theatre_id', 'theatre_name', 'theatre_icon', 'theatre_poster']);
+->get(['theatre_id', 'theatre_name', 'theatre_icon', 'theatre_poster'])
+->map(function ($theatre) {
+    return [
+        'theatre_id'     => $theatre->theatre_id,
+        'theatre_name'   => $theatre->theatre_name,
+        // ⚠️ ASSUMED path — adjust to wherever these files actually live on disk
+        'theatre_icon'   => $theatre->theatre_icon ? asset('images/theatres/' . $theatre->theatre_icon) : null,
+        'theatre_poster' => $theatre->theatre_poster ? asset('images/theatres/' . $theatre->theatre_poster) : null,
+    ];
+});
 
-        return response()->json($theatres);
+return response()->json($theatres);
     }
 
     /* ─────────────────────────────────────────────────────────────
