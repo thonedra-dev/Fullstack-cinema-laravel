@@ -1,0 +1,221 @@
+/* resources/css/movie-live/_seats.css */
+/* ── SEAT MAP SPECIFIC STYLES ──────────────────────────────── */
+
+/* Screen Axis Curve */
+.mld-screen-container {
+    width: 80%;
+    max-width: 520px;
+    margin-bottom: 30px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mld-screen-curve {
+    height: 6px;
+    background: #a855f7;
+    border-radius: 50%;
+    box-shadow: 0 2px 18px 3px rgba(168, 85, 247, 0.6);
+}
+
+.mld-screen-label {
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #a855f7;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+/* Status Legend */
+.mld-seat-legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 10px 18px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    font-size: 0.75rem;
+    color: rgba(240, 238, 255, 0.7);
+    flex-shrink: 0;
+}
+
+.mld-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── HIGH-DENSITY SEAT MATRIX ──────────────────────────────── */
+.mld-seat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    flex: 1;
+}
+
+.mld-seat-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.mld-seat-row__label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #a855f7;
+    width: 20px;
+    text-align: center;
+    opacity: 0.7;
+    flex-shrink: 0;
+}
+
+.mld-seat-row__seats {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+/* ── Base Compact Seat Structure ────────────────────────────── */
+.mld-seat {
+    width: 26px;
+    height: 24px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px 3px 5px 5px;
+    position: relative;
+    user-select: none;
+    cursor: default;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+/* Headrest Notch */
+.mld-seat::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: 3px;
+    right: 3px;
+    height: 5px;
+    border-radius: 3px 3px 0 0;
+}
+
+/* ── Seat Category Variants ──────────────────────────────────── */
+.mld-seat--standard {
+    background: #22c55e;
+    border: 1px solid #16a34a;
+    border-top: none;
+    color: #052e16;
+}
+.mld-seat--standard::before { background: #16a34a; }
+
+.mld-seat--couple {
+    background: #fb7185;
+    border: 1px solid #e11d48;
+    border-top: none;
+    color: #4c0519;
+}
+.mld-seat--couple::before { background: #e11d48; }
+
+.mld-seat--premium {
+    width: 32px;
+    background: #1e1e3a;
+    border: 1px solid #6366f1;
+    border-top: none;
+    color: #a5b4fc;
+}
+.mld-seat--premium::before { background: #6366f1; }
+
+.mld-seat--family {
+    width: 36px;
+    background: #1e1a2e;
+    border: 1px solid #ec4899;
+    border-top: none;
+    color: #f9a8d4;
+}
+.mld-seat--family::before { background: #ec4899; }
+
+/* ── Couple Pair Outer Boundary Container ───────────────────── */
+.mld-couple-pair {
+    display: flex;
+    gap: 3px;
+    background: rgba(251, 113, 133, 0.06);
+    border: 1px solid rgba(251, 113, 133, 0.25);
+    border-radius: 6px;
+    padding: 3px 3px 2px;
+}
+
+/* ── Booking Status Overrides ────────────────────────────────── */
+.mld-seat--pending,
+.mld-seat--held {
+    background: #eab308 !important;
+    border-color: #ca8a04 !important;
+    border-top: none !important;
+    color: #422006 !important;
+    box-shadow: 0 2px 0 #92400e, 0 0 8px rgba(234, 179, 8, 0.35) !important;
+}
+.mld-seat--pending::before,
+.mld-seat--held::before { background: #ca8a04 !important; }
+
+.mld-seat--sold {
+    background: #1a0a0a !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    border-top: none !important;
+    color: rgba(239, 68, 68, 0.7) !important;
+}
+.mld-seat--sold::before { background: rgba(239, 68, 68, 0.3) !important; }
+
+.mld-seat--sold::after {
+    content: "✕";
+    position: absolute;
+    font-size: 0.55rem;
+    color: rgba(239, 68, 68, 0.8);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* ── Seat map area: flex column layout ──────────────────────── */
+#mldSeatArea .mld-seat-grid {
+    flex: 1;
+}
+
+/* ensure the seat area can accommodate the map */
+.mld-seat-area .mld-view-fade {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ── Responsive seat sizing ──────────────────────────────────── */
+@media (max-width: 768px) {
+    .mld-seat {
+        width: 20px;
+        height: 18px;
+        font-size: 0.45rem;
+        margin-top: 4px;
+    }
+    .mld-seat--premium { width: 24px; }
+    .mld-seat--family { width: 28px; }
+    .mld-seat-row__label { font-size: 0.65rem; width: 16px; }
+    .mld-seat-row { gap: 4px; }
+    .mld-seat-row__seats { gap: 3px; }
+    .mld-couple-pair { gap: 2px; padding: 2px 2px 1px; }
+    .mld-seat-legend { gap: 8px; font-size: 0.65rem; padding: 6px 10px; }
+    .mld-screen-container { width: 90%; }
+}

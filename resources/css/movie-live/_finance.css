@@ -1,0 +1,209 @@
+/* resources/css/movie-live/_finance.css */
+
+/* ── FINANCE BACK BUTTON (inside finance browser) ────────── */
+.mld-finance-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(236, 72, 153, 0.08));
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    color: #a855f7;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+}
+.mld-finance-back-btn:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(236, 72, 153, 0.15));
+    border-color: #a855f7;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.20);
+}
+
+/* ── FINANCE BROWSER WRAPPER ────────────────────────────── */
+.mld-finance-browser-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* ── FINANCE SUMMARY (L5 top cards) ────────────────────── */
+.mld-finance-summary {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: rgba(127, 127, 127, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 16px;
+}
+.mld-finance-summary__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.mld-finance-summary__label {
+    font-size: 0.72rem;
+    opacity: 0.6;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.mld-finance-summary__value {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+/* ── FINANCE TABLES (glass-morphism, modern) ───────────── */
+.mld-finance-wrap {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(4px);
+}
+
+.mld-finance-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.mld-finance-table thead {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.10));
+    border-bottom: 2px solid rgba(168, 85, 247, 0.30);
+}
+.mld-finance-table th {
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(240, 238, 255, 0.75);
+}
+.mld-finance-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: #f0eeff;
+}
+.mld-finance-table tbody tr {
+    transition: background 0.15s ease;
+}
+.mld-finance-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.02);
+}
+.mld-finance-table tbody tr:hover {
+    background: rgba(168, 85, 247, 0.08);
+}
+
+/* ── STATUS BADGES ───────────────────────────────────────── */
+.mld-finance-status {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+.mld-finance-status--confirmed,
+.mld-finance-status--succeeded,
+.mld-finance-status--paid {
+    background: rgba(40, 180, 100, 0.18);
+    color: #4ade80;
+}
+.mld-finance-status--pending {
+    background: rgba(230, 170, 30, 0.20);
+    color: #facc15;
+}
+.mld-finance-status--failed,
+.mld-finance-status--cancelled {
+    background: rgba(220, 60, 60, 0.18);
+    color: #f87171;
+}
+.mld-finance-status--none {
+    background: rgba(127, 127, 127, 0.12);
+    color: #9ca3af;
+}
+
+/* ── EXPAND BUTTON (L1–L4) ──────────────────────────────── */
+.mld-finance-expand-btn {
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    color: #a855f7;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+.mld-finance-expand-btn:hover {
+    background: rgba(168, 85, 247, 0.30);
+    border-color: #a855f7;
+    transform: scale(1.05) rotate(-90deg);
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
+}
+.mld-finance-expand-btn:active {
+    transform: scale(0.95);
+}
+
+/* ── L3 MOVIE ROW (poster + stats) ───────────────────────── */
+.mld-finance-movie-row td {
+    padding: 12px 14px;
+    vertical-align: middle;
+}
+.mld-finance-movie-row__poster-cell {
+    width: 64px;
+}
+.mld-finance-movie-row__poster {
+    width: 52px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: rgba(127, 127, 127, 0.10);
+    display: block;
+}
+.mld-finance-movie-row__poster-ph {
+    width: 52px;
+    height: 70px;
+    border-radius: 8px;
+    background: rgba(127, 127, 127, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    opacity: 0.5;
+}
+.mld-finance-movie-row__title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 4px;
+    color: #ffffff;
+}
+.mld-finance-movie-row__meta {
+    font-size: 0.82rem;
+    opacity: 0.6;
+    margin: 0;
+}
+
+/* ── TABLES: specific adjustments ────────────────────────── */
+.mld-finance-table--movies thead th:first-child {
+    width: 70px;
+}
+.mld-finance-table--movies td:last-child {
+    text-align: right;
+}
+
+/* ── FINANCE LADDER CONTAINER: ensure scrollable ───────── */
+#mldFinanceBrowserBody {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
