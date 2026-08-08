@@ -1,13 +1,19 @@
 // resources/js/movie-live/navigation.js
 // Owns the sidebar drill-down: Cinemas -> Theatres -> Dates -> Showtimes.
-// Knows nothing about the seat map or financial report — it only reports
-// the chosen showtime upward via the onShowtimeSelected callback.
+// ALSO decides what the demo section (left panel) shows, keyed only on
+// which panel is currently active + what's currently selected — never on
+// direction. This is what makes forward/back symmetric for free:
+//   Cinemas panel   -> cinema-only card
+//   Theatres panel  -> cinema-only if no theatre chosen yet, else cinema+hall
+//   Dates panel     -> cinema+hall (theatre is always known by this point)
+//   Showtimes panel -> untouched (neutral) — only an explicit showtime
+//                       click hands control to the seat/finance view.
 
 import { loadingHtml, emptyHtml, escapeHtml, formatDateKey, parseTimestamp } from './utils.js';
 
-export function initNavigation(root, { onShowtimeSelected }) {
+export function initNavigation(root, { onShowtimeSelected, infoCardView }) {
     const backBtn        = document.getElementById('mldBackBtn');
-    const backBtnLabel    = document.getElementById('mldBackBtnLabel');
+    const backBtnLabel   = document.getElementById('mldBackBtnLabel');
 
     const panelCinemas    = document.getElementById('mldPanelCinemas');
     const panelTheatres   = document.getElementById('mldPanelTheatres');
@@ -15,15 +21,13 @@ export function initNavigation(root, { onShowtimeSelected }) {
     const panelShowtimes  = document.getElementById('mldPanelShowtimes');
     const allPanels       = [panelCinemas, panelTheatres, panelDates, panelShowtimes];
 
-    const theatresTpl    = root.dataset.theatresUrlTemplate;
-    const datesTpl        = root.dataset.datesUrlTemplate;
-    const showtimesTpl   = root.dataset.showtimesUrlTemplate;
+    const theatresTpl   = root.dataset.theatresUrlTemplate;
+    const datesTpl       = root.dataset.datesUrlTemplate;
+    const showtimesTpl  = root.dataset.showtimesUrlTemplate;
 
     const state = {
-        cinemaId: null,
-        cinemaName: null,
-        theatreId: null,
-        theatreName: null,
+        cinema: null,     // { id, name, address, contact, description, picture, cityName }
+        theatre: null,    // { id, name, icon, poster }
         dateKey: null,
         dateLabel: null,
         showtimeId: null,
@@ -34,10 +38,10 @@ export function initNavigation(root, { onShowtimeSelected }) {
         const btn = e.target.closest('.mld-choice-btn--cinema');
         if (!btn) return;
 
-        state.cinemaId   = btn.dataset.cinemaId;
-        state.cinemaName = btn.dataset.cinemaName;
+        state.cinema = readCinemaFromDataset(btn.dataset);
+        state.theatre = null; // fresh cinema invalidates any previously chosen theatre
 
-        setBack('Cinemas', () => {
+        setBack('Cinema Selection', () => {
             showPanel(panelCinemas);
             setBack(null);
         });
@@ -46,29 +50,31 @@ export function initNavigation(root, { onShowtimeSelected }) {
     });
 
     function loadTheatres() {
-        panelTheatres.innerHTML = loadingHtml('Loading theatres…');
+        panelTheatres.innerHTML = panelHeader('Theatre Selection') + loadingHtml('Loading theatres…');
         showPanel(panelTheatres);
 
-        const url = theatresTpl.replace('__CINEMA_ID__', state.cinemaId);
+        const url = theatresTpl.replace('__CINEMA_ID__', state.cinema.id);
 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
             .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
             .then((theatres) => {
                 if (!theatres || !theatres.length) {
-                    panelTheatres.innerHTML = emptyHtml('No theatres found for this cinema.');
+                    panelTheatres.innerHTML = panelHeader('Theatre Selection') + emptyHtml('No theatres found for this cinema.');
                     return;
                 }
-                panelTheatres.innerHTML = theatres.map((t) => `
+                panelTheatres.innerHTML = panelHeader('Theatre Selection') + theatres.map((t) => `
                     <button type="button" class="mld-choice-btn mld-choice-btn--theatre"
                             data-theatre-id="${t.theatre_id}"
-                            data-theatre-name="${escapeHtml(t.theatre_name)}">
+                            data-theatre-name="${escapeHtml(t.theatre_name)}"
+                            data-theatre-icon="${escapeHtml(t.theatre_icon || '')}"
+                            data-theatre-poster="${escapeHtml(t.theatre_poster || '')}">
                         <span class="mld-choice-btn__icon">🎭</span>
                         <span class="mld-choice-btn__label">${escapeHtml(t.theatre_name)}</span>
                         <span class="mld-choice-btn__chevron">›</span>
                     </button>
                 `).join('');
             })
-            .catch(() => { panelTheatres.innerHTML = emptyHtml('Failed to load theatres.'); });
+            .catch(() => { panelTheatres.innerHTML = panelHeader('Theatre Selection') + emptyHtml('Failed to load theatres.'); });
     }
 
     /* ── STEP 2: Theatre Click Handler ───────────────────────────────── */
@@ -76,12 +82,11 @@ export function initNavigation(root, { onShowtimeSelected }) {
         const btn = e.target.closest('.mld-choice-btn--theatre');
         if (!btn) return;
 
-        state.theatreId   = btn.dataset.theatreId;
-        state.theatreName = btn.dataset.theatreName;
+        state.theatre = readTheatreFromDataset(btn.dataset);
 
-        setBack(state.cinemaName, () => {
+        setBack('Theatre Selection', () => {
             showPanel(panelTheatres);
-            setBack('Cinemas', () => {
+            setBack('Cinema Selection', () => {
                 showPanel(panelCinemas);
                 setBack(null);
             });
@@ -91,21 +96,21 @@ export function initNavigation(root, { onShowtimeSelected }) {
     });
 
     function loadDates() {
-        panelDates.innerHTML = loadingHtml('Loading dates…');
+        panelDates.innerHTML = panelHeader('Date Selection') + loadingHtml('Loading dates…');
         showPanel(panelDates);
 
         const url = datesTpl
-            .replace('__CINEMA_ID__', state.cinemaId)
-            .replace('__THEATRE_ID__', state.theatreId);
+            .replace('__CINEMA_ID__', state.cinema.id)
+            .replace('__THEATRE_ID__', state.theatre.id);
 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
             .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
             .then((dates) => {
                 if (!dates || !dates.length) {
-                    panelDates.innerHTML = emptyHtml('No showtimes recorded for this theatre.');
+                    panelDates.innerHTML = panelHeader('Date Selection') + emptyHtml('No showtimes recorded for this theatre.');
                     return;
                 }
-                panelDates.innerHTML = dates.map((d) => {
+                panelDates.innerHTML = panelHeader('Date Selection') + dates.map((d) => {
                     const label = formatDateKey(d.date_key);
                     const count = Number(d.showtime_count) || 0;
                     return `
@@ -120,7 +125,7 @@ export function initNavigation(root, { onShowtimeSelected }) {
                     `;
                 }).join('');
             })
-            .catch(() => { panelDates.innerHTML = emptyHtml('Failed to load dates.'); });
+            .catch(() => { panelDates.innerHTML = panelHeader('Date Selection') + emptyHtml('Failed to load dates.'); });
     }
 
     /* ── STEP 3: Date Click Handler ──────────────────────────────────── */
@@ -131,11 +136,11 @@ export function initNavigation(root, { onShowtimeSelected }) {
         state.dateKey   = btn.dataset.dateKey;
         state.dateLabel = btn.dataset.dateLabel;
 
-        setBack(state.theatreName, () => {
+        setBack('Day Selection', () => {
             showPanel(panelDates);
-            setBack(state.cinemaName, () => {
+            setBack('Theatre Selection', () => {
                 showPanel(panelTheatres);
-                setBack('Cinemas', () => {
+                setBack('Cinema Selection', () => {
                     showPanel(panelCinemas);
                     setBack(null);
                 });
@@ -146,23 +151,23 @@ export function initNavigation(root, { onShowtimeSelected }) {
     });
 
     function loadShowtimes() {
-        panelShowtimes.innerHTML = loadingHtml('Loading showtimes…');
+        panelShowtimes.innerHTML = panelHeader('Showtime Selection') + loadingHtml('Loading showtimes…');
         showPanel(panelShowtimes);
 
         const url = showtimesTpl
-            .replace('__CINEMA_ID__', state.cinemaId)
-            .replace('__THEATRE_ID__', state.theatreId)
+            .replace('__CINEMA_ID__', state.cinema.id)
+            .replace('__THEATRE_ID__', state.theatre.id)
             + '?date=' + encodeURIComponent(state.dateKey);
 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
             .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
             .then((showtimes) => {
                 if (!showtimes || !showtimes.length) {
-                    panelShowtimes.innerHTML = emptyHtml('No showtimes on this date.');
+                    panelShowtimes.innerHTML = panelHeader('Showtime Selection') + emptyHtml('No showtimes on this date.');
                     return;
                 }
 
-                let html = `<div class="mld-group-title">📅 ${escapeHtml(state.dateLabel)}</div>`;
+                let html = panelHeader('Showtime Selection') + `<div class="mld-group-title">📅 ${escapeHtml(state.dateLabel)}</div>`;
                 showtimes.forEach((s) => {
                     const parsed = parseTimestamp(s.start_time);
                     html += `
@@ -177,7 +182,7 @@ export function initNavigation(root, { onShowtimeSelected }) {
 
                 panelShowtimes.innerHTML = html;
             })
-            .catch(() => { panelShowtimes.innerHTML = emptyHtml('Failed to load showtimes.'); });
+            .catch(() => { panelShowtimes.innerHTML = panelHeader('Showtime Selection') + emptyHtml('Failed to load showtimes.'); });
     }
 
     /* ── STEP 4: Showtime Click Handler ──────────────────────────────── */
@@ -191,8 +196,37 @@ export function initNavigation(root, { onShowtimeSelected }) {
         btn.classList.add('mld-choice-btn--active');
 
         state.showtimeId = btn.dataset.showtimeId;
-        onShowtimeSelected(state.showtimeId, { theatreName: state.theatreName });
+        onShowtimeSelected(state.showtimeId, { theatreName: state.theatre?.name });
     });
+
+    /* ── Demo-section driver ─────────────────────────────────────────
+       The ONLY place that decides what the left panel shows for
+       Cinemas / Theatres / Dates. Showtimes is intentionally absent:
+       leaving it untouched is what keeps the seat/finance view alive
+       when the user steps back from it.
+    ──────────────────────────────────────────────────────────────── */
+    function updateDemoSection(panel) {
+        if (panel === panelCinemas) {
+            if (state.cinema) infoCardView.showCinemaOnly(state.cinema);
+            return;
+        }
+        if (panel === panelTheatres) {
+            if (!state.cinema) return;
+            if (state.theatre) {
+                infoCardView.showCinemaAndHall(state.cinema, state.theatre);
+            } else {
+                infoCardView.showCinemaOnly(state.cinema);
+            }
+            return;
+        }
+        if (panel === panelDates) {
+            if (state.cinema && state.theatre) {
+                infoCardView.showCinemaAndHall(state.cinema, state.theatre);
+            }
+            return;
+        }
+        // panelShowtimes: no-op by design
+    }
 
     /* ── Helper Functions ────────────────────────────────────────── */
     function showPanel(panelToShow) {
@@ -200,6 +234,7 @@ export function initNavigation(root, { onShowtimeSelected }) {
             p.classList.toggle('mld-panel--active', p === panelToShow);
         });
         panelToShow.scrollTop = 0;
+        updateDemoSection(panelToShow);
     }
 
     function setBack(label, onClick) {
@@ -211,5 +246,30 @@ export function initNavigation(root, { onShowtimeSelected }) {
         backBtn.hidden = false;
         backBtnLabel.textContent = `Back to ${label}`;
         backBtn.onclick = onClick;
+    }
+
+    function panelHeader(text) {
+        return `<div class="mld-panel__title">${escapeHtml(text)}</div>`;
+    }
+
+    function readCinemaFromDataset(ds) {
+        return {
+            id: ds.cinemaId,
+            name: ds.cinemaName,
+            address: ds.cinemaAddress || '',
+            contact: ds.cinemaContact || '',
+            description: ds.cinemaDescription || '',
+            picture: ds.cinemaPicture || '',
+            cityName: ds.cityName || '',
+        };
+    }
+
+    function readTheatreFromDataset(ds) {
+        return {
+            id: ds.theatreId,
+            name: ds.theatreName,
+            icon: ds.theatreIcon || '',
+            poster: ds.theatrePoster || '',
+        };
     }
 }
