@@ -43,11 +43,24 @@ class AdminMovieLiveController extends Controller
     {
         $movie->load('genres');
 
-        $cinemas = Cinema::whereHas('showtimes', function ($q) use ($movie) {
-                $q->where('movie_id', $movie->movie_id);
-            })
-            ->orderBy('cinema_name')
-            ->get(['cinema_id', 'cinema_name']);
+        $cinemas = Cinema::with('city')
+    ->whereHas('showtimes', function ($q) use ($movie) {
+        $q->where('movie_id', $movie->movie_id);
+    })
+    ->orderBy('cinema_name')
+    ->get(['cinema_id', 'cinema_name', 'cinema_address', 'cinema_contact', 'cinema_description', 'cinema_picture', 'city_id'])
+    ->map(function ($cinema) {
+        return (object) [
+            'cinema_id'          => $cinema->cinema_id,
+            'cinema_name'        => $cinema->cinema_name,
+            'cinema_address'     => $cinema->cinema_address,
+            'cinema_contact'     => $cinema->cinema_contact,
+            'cinema_description' => $cinema->cinema_description,
+            'cinema_picture'     => $cinema->cinema_picture,
+            // ⚠️ ASSUMED City model exposes `city_name` — rename here if yours differs
+            'city_name'          => optional($cinema->city)->city_name,
+        ];
+    });
 
         return view('admin.admin_movie_live_detail', compact('movie', 'cinemas'));
     }
@@ -65,7 +78,7 @@ class AdminMovieLiveController extends Controller
                   });
             })
             ->orderBy('theatre_name')
-            ->get(['theatre_id', 'theatre_name']);
+            ->get(['theatre_id', 'theatre_name', 'theatre_icon', 'theatre_poster']);
 
         return response()->json($theatres);
     }
