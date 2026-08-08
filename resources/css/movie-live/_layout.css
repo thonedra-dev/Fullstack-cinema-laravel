@@ -1,0 +1,91 @@
+/* resources/css/movie-live/_layout.css */
+/* ── FIXED VIEWPORT (NO PAGE SCROLL) ── */
+html,
+body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+/* Main app wrapper – fills entire viewport */
+.mld-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background: #0a0a14;
+    color: #f0eeff;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Header area (fixed height, no scroll) */
+.mld-app-header {
+    flex-shrink: 0;
+    padding: 20px 32px 12px;
+    background: #0e0e1a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Main content: fills remaining height, scrolling happens inside columns */
+.mld-app-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 24px;
+    padding: 16px 32px 32px;
+    overflow: hidden;          /* no body scroll */
+}
+
+/* ── LEFT COLUMN (seat area) ── */
+.mld-seat-area {
+    background: #0e0e1a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px 20px;
+    overflow-y: auto;          /* scrolls independently */
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5);
+}
+
+/* ── RIGHT COLUMN (sidebar) ── */
+.mld-sidebar {
+    background: #0e0e1a;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+    overflow-y: auto;          /* scrolls independently */
+    overscroll-behavior: contain;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 100%;          /* constrained by grid cell */
+    scrollbar-width: thin;
+}
+
+/* Scrollbar styling */
+.mld-sidebar::-webkit-scrollbar,
+.mld-seat-area::-webkit-scrollbar {
+    width: 4px;
+}
+.mld-sidebar::-webkit-scrollbar-track,
+.mld-seat-area::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.04);
+}
+.mld-sidebar::-webkit-scrollbar-thumb,
+.mld-seat-area::-webkit-scrollbar-thumb {
+    background: #a855f7;
+    border-radius: 4px;
+}
+
+/* ── Responsive tweaks ── */
+@media (max-width: 900px) {
+    .mld-app-body {
+        grid-template-columns: 1fr;
+        padding: 12px 16px 16px;
+    }
+    .mld-sidebar {
+        max-height: 380px;
+    }
+}
