@@ -9,6 +9,7 @@ use App\Models\Theatre;
 use App\Models\Showtime;
 use App\Models\Ticket;
 use App\Models\Booking;
+use App\Models\Payment;
 
 class AdminMovieLiveController extends Controller
 {
@@ -223,5 +224,163 @@ return response()->json($theatres);
                 'total_amount_paid' => $rows->unique('booking_id')->sum(fn ($r) => (float) $r->amount_paid),
             ],
         ]);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       FINANCE ROLLUP LADDER (all scoped to $movie, confirmed
+       bookings only — this is revenue, not "seats currently held").
+       L1 cinemas -> L2 theatres -> L3 movie (always 1 row here)
+       -> L4 showtimes -> L5 financialsJson() (already exists above).
+    ───────────────────────────────────────────────────────────── */
+
+    // L1 — per-cinema totals for this movie
+    public function cinemasFinancialsJson(Movie $movie)
+    {
+        $rows = $this->confirmedTicketRows($movie)
+            ->join('cinemas', 'cinemas.cinema_id', '=', 'showtimes.cinema_id')
+            ->addSelect('cinemas.cinema_name')
+            ->get();
+
+        $paymentTotals = $this->paymentTotalsByBookingIds($rows->pluck('booking_id')->unique());
+
+        $data = $rows->groupBy('cinema_id')->map(function ($group) use ($paymentTotals) {
+            $first = $group->first();
+            $bookingIds = $group->pluck('booking_id')->unique();
+            return [
+                'cinema_id'           => $first->cinema_id,
+                'cinema_name'         => $first->cinema_name,
+                'ticket_count'        => $group->count(),
+                'booking_count'       => $bookingIds->count(),
+                'total_ticket_revenue'=> (float) $group->sum('price_paid'),
+                'total_payments'      => (float) $bookingIds->sum(fn ($id) => $paymentTotals->get($id, 0)),
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+    // L2 — per-theatre totals under one cinema, this movie
+    public function theatresFinancialsJson(Movie $movie, Cinema $cinema)
+    {
+        $rows = $this->confirmedTicketRows($movie, $cinema->cinema_id)
+            ->join('theatres', 'theatres.theatre_id', '=', 'halls.theatre_id')
+            ->addSelect('theatres.theatre_name')
+            ->get();
+
+        $paymentTotals = $this->paymentTotalsByBookingIds($rows->pluck('booking_id')->unique());
+
+        $data = $rows->groupBy('theatre_id')->map(function ($group) use ($paymentTotals) {
+            $first = $group->first();
+            $bookingIds = $group->pluck('booking_id')->unique();
+            return [
+                'theatre_id'           => $first->theatre_id,
+                'theatre_name'         => $first->theatre_name,
+                'ticket_count'         => $group->count(),
+                'booking_count'        => $bookingIds->count(),
+                'total_ticket_revenue' => (float) $group->sum('price_paid'),
+                'total_payments'       => (float) $bookingIds->sum(fn ($id) => $paymentTotals->get($id, 0)),
+            ];
+        })->values();
+
+        return response()->json($data);
+    }
+
+    // L3 — movie row(s) w/ portrait poster, under one cinema+theatre.
+    // Always exactly 1 row on this page since it's already movie-scoped,
+    // kept list-shaped so the frontend doesn't special-case it.
+    public function moviesFinancialsJson(Movie $movie, Cinema $cinema, Theatre $theatre)
+    {
+        $rows = $this->confirmedTicketRows($movie, $cinema->cinema_id, $theatre->theatre_id)->get();
+
+        $paymentTotals = $this->paymentTotalsByBookingIds($rows->pluck('booking_id')->unique());
+        $bookingIds = $rows->pluck('booking_id')->unique();
+
+        return response()->json([[
+            'movie_id'              => $movie->movie_id,
+            'movie_name'            => $movie->movie_name,
+            // ⚠️ ASSUMED path — matches your images/movies/{...}_portrait_....jpg convention
+            'portrait_poster'       => $movie->portrait_poster ? asset('images/movies/' . $movie->portrait_poster) : null,
+            'ticket_count'          => $rows->count(),
+            'booking_count'         => $bookingIds->count(),
+            'total_ticket_revenue'  => (float) $rows->sum('price_paid'),
+            'total_payments'        => (float) $bookingIds->sum(fn ($id) => $paymentTotals->get($id, 0)),
+        ]]);
+    }
+
+    // L4 — per-showtime totals under one cinema+theatre(+movie),
+    // optionally scoped to a single calendar date.
+    public function showtimesFinancialsJson(Request $request, Movie $movie, Cinema $cinema, Theatre $theatre)
+    {
+        $query = $this->confirmedTicketRows($movie, $cinema->cinema_id, $theatre->theatre_id);
+
+        if ($request->filled('date')) {
+            $query->whereDate('showtimes.start_time', $request->query('date'));
+        }
+
+        $rows = $query->get();
+
+        $paymentTotals = $this->paymentTotalsByBookingIds($rows->pluck('booking_id')->unique());
+
+        $data = $rows->groupBy('showtime_id')->map(function ($group) use ($paymentTotals) {
+            $first = $group->first();
+            $bookingIds = $group->pluck('booking_id')->unique();
+            return [
+                'showtime_id'           => $first->showtime_id,
+                'start_time'            => $first->start_time,
+                'ticket_count'          => $group->count(),
+                'booking_count'         => $bookingIds->count(),
+                'total_ticket_revenue'  => (float) $group->sum('price_paid'),
+                'total_payments'        => (float) $bookingIds->sum(fn ($id) => $paymentTotals->get($id, 0)),
+            ];
+        })->values()->sortBy('start_time')->values();
+
+        return response()->json($data);
+    }
+
+    /* ── Private helpers for the rollup ladder ───────────────────── */
+
+    // Base query: confirmed-booking ticket rows for $movie, optionally
+    // narrowed to a cinema and/or theatre. Callers add their own
+    // ->addSelect(...) for the name column they need to group by.
+    private function confirmedTicketRows(Movie $movie, ?int $cinemaId = null, ?int $theatreId = null)
+    {
+        $query = Ticket::query()
+            ->join('showtimes', 'showtimes.showtime_id', '=', 'tickets.showtime_id')
+            ->join('bookings', 'bookings.booking_id', '=', 'tickets.booking_id')
+            ->join('halls', 'halls.hall_id', '=', 'showtimes.hall_id')
+            ->where('showtimes.movie_id', $movie->movie_id)
+            ->where('bookings.booking_status', 'confirmed');
+
+        if ($cinemaId) {
+            $query->where('showtimes.cinema_id', $cinemaId);
+        }
+        if ($theatreId) {
+            $query->where('halls.theatre_id', $theatreId);
+        }
+
+        return $query->select(
+            'tickets.ticket_id',
+            'tickets.price_paid',
+            'bookings.booking_id',
+            'showtimes.showtime_id',
+            'showtimes.cinema_id',
+            'showtimes.start_time',
+            'halls.theatre_id'
+        );
+    }
+
+    // Payments are per-booking, not per-ticket — dedupe before summing
+    // so a booking with 4 seats doesn't get its payment counted 4x.
+    private function paymentTotalsByBookingIds($bookingIds)
+    {
+        if ($bookingIds->isEmpty()) {
+            return collect();
+        }
+
+        return Payment::whereIn('booking_id', $bookingIds)
+            ->get(['booking_id', 'amount_paid'])
+            ->unique('booking_id')
+            ->pluck('amount_paid', 'booking_id')
+            ->map(fn ($v) => (float) $v);
     }
 }
