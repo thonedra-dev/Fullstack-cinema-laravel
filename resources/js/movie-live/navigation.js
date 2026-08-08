@@ -1,17 +1,13 @@
 // resources/js/movie-live/navigation.js
 // Owns the sidebar drill-down: Cinemas -> Theatres -> Dates -> Showtimes.
-// ALSO decides what the demo section (left panel) shows, keyed only on
-// which panel is currently active + what's currently selected — never on
-// direction. This is what makes forward/back symmetric for free:
-//   Cinemas panel   -> cinema-only card
-//   Theatres panel  -> cinema-only if no theatre chosen yet, else cinema+hall
-//   Dates panel     -> cinema+hall (theatre is always known by this point)
-//   Showtimes panel -> untouched (neutral) — only an explicit showtime
-//                       click hands control to the seat/finance view.
+// Does NOT decide what the demo section shows anymore — it just reports
+// its state via onStateChange every time the active panel changes, and
+// fires onShowtimeSelected when a showtime is explicitly clicked.
+// demo-section.js is the one that turns that into a rendered view.
 
 import { loadingHtml, emptyHtml, escapeHtml, formatDateKey, parseTimestamp } from './utils.js';
 
-export function initNavigation(root, { onShowtimeSelected, infoCardView }) {
+export function initNavigation(root, { onShowtimeSelected, onStateChange }) {
     const backBtn        = document.getElementById('mldBackBtn');
     const backBtnLabel   = document.getElementById('mldBackBtnLabel');
 
@@ -199,42 +195,28 @@ export function initNavigation(root, { onShowtimeSelected, infoCardView }) {
         onShowtimeSelected(state.showtimeId, { theatreName: state.theatre?.name });
     });
 
-    /* ── Demo-section driver ─────────────────────────────────────────
-       The ONLY place that decides what the left panel shows for
-       Cinemas / Theatres / Dates. Showtimes is intentionally absent:
-       leaving it untouched is what keeps the seat/finance view alive
-       when the user steps back from it.
-    ──────────────────────────────────────────────────────────────── */
-    function updateDemoSection(panel) {
-        if (panel === panelCinemas) {
-            if (state.cinema) infoCardView.showCinemaOnly(state.cinema);
-            return;
-        }
-        if (panel === panelTheatres) {
-            if (!state.cinema) return;
-            if (state.theatre) {
-                infoCardView.showCinemaAndHall(state.cinema, state.theatre);
-            } else {
-                infoCardView.showCinemaOnly(state.cinema);
-            }
-            return;
-        }
-        if (panel === panelDates) {
-            if (state.cinema && state.theatre) {
-                infoCardView.showCinemaAndHall(state.cinema, state.theatre);
-            }
-            return;
-        }
-        // panelShowtimes: no-op by design
-    }
-
     /* ── Helper Functions ────────────────────────────────────────── */
     function showPanel(panelToShow) {
         allPanels.forEach((p) => {
             p.classList.toggle('mld-panel--active', p === panelToShow);
         });
         panelToShow.scrollTop = 0;
-        updateDemoSection(panelToShow);
+        onStateChange(snapshotFor(panelToShow));
+    }
+
+    function snapshotFor(panel) {
+        const panelName =
+            panel === panelCinemas  ? 'cinemas' :
+            panel === panelTheatres ? 'theatres' :
+            panel === panelDates    ? 'dates' : 'showtimes';
+
+        return {
+            panel: panelName,
+            cinema: state.cinema,
+            theatre: state.theatre,
+            dateKey: state.dateKey,
+            dateLabel: state.dateLabel,
+        };
     }
 
     function setBack(label, onClick) {
@@ -272,4 +254,8 @@ export function initNavigation(root, { onShowtimeSelected, infoCardView }) {
             poster: ds.theatrePoster || '',
         };
     }
+
+    // Paint the initial state (Cinemas panel, nothing selected yet) so
+    // demo-section.js can render its placeholder / L1 rollup immediately.
+    onStateChange(snapshotFor(panelCinemas));
 }
