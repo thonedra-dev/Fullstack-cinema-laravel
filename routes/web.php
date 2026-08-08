@@ -104,35 +104,56 @@ Route::middleware(['auth:supervisor'])->prefix('admin')->name('admin.')->group(f
     Route::post('/proposals/{id}/approve', [AdminMovieProposalController::class, 'approve'])->name('proposals.approve')->where('id', '[0-9]+');
     Route::post('/proposals/{id}/reject',  [AdminMovieProposalController::class, 'reject'])->name('proposals.reject')->where('id', '[0-9]+');
 
-    // ── NEW: Now Showing → single movie live-detail page ──────────────
+    // ── Now Showing → single movie live-detail page ──────────────
     Route::get('/movies/now-showing/{movie}', [AdminMovieLiveController::class, 'show'])
         ->name('movies.now_showing.show')
         ->where('movie', '[0-9]+');
 
-    // ── NEW: JSON — theatres for a given cinema+movie ──────────────────
+    // ── JSON — theatres for a given cinema+movie ──────────────────
     Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres', [AdminMovieLiveController::class, 'theatresJson'])
         ->name('movies.now_showing.theatres')
         ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+']);
 
-    // ── NEW: JSON — distinct dates that have a showtime under a theatre ─
+    // ── JSON — distinct dates that have a showtime under a theatre ─
     Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/dates', [AdminMovieLiveController::class, 'datesJson'])
         ->name('movies.now_showing.dates')
         ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
 
-    // ── NEW: showtimes under a theatre (optionally ?date=YYYY-MM-DD) ──
+    // ── showtimes under a theatre (optionally ?date=YYYY-MM-DD) ──
     Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/showtimes', [AdminMovieLiveController::class, 'showtimesJson'])
         ->name('movies.now_showing.showtimes')
         ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
 
-     // ── CHANGED: seats now keyed by showtime, not theatre ───────────
+     // ── seats keyed by showtime ───────────
     Route::get('/showtimes/{showtime}/seats', [AdminMovieLiveController::class, 'seatsForShowtimeJson'])
         ->name('showtimes.seats')
         ->where('showtime', '[0-9]+');
 
-    // ── NEW: JSON — financial report (bookings/payments) for a showtime ─
+    // ── JSON — financial report (bookings/payments) for a single showtime [L5] ─
     Route::get('/showtimes/{showtime}/financials', [AdminMovieLiveController::class, 'financialsJson'])
         ->name('showtimes.financials')
         ->where('showtime', '[0-9]+');
+
+    // ── NEW: Finance rollup ladder (all scoped to a single movie) ─────
+    // L1 — per-cinema totals for this movie
+    Route::get('/movies/now-showing/{movie}/cinemas/financials', [AdminMovieLiveController::class, 'cinemasFinancialsJson'])
+        ->name('movies.now_showing.cinemas_financials')
+        ->where('movie', '[0-9]+');
+
+    // L2 — per-theatre totals under one cinema, this movie
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/financials', [AdminMovieLiveController::class, 'theatresFinancialsJson'])
+        ->name('movies.now_showing.theatres_financials')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+']);
+
+    // L3 — movie row(s) w/ portrait poster, under one cinema+theatre (always 1 row on this page)
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/movies-financials', [AdminMovieLiveController::class, 'moviesFinancialsJson'])
+        ->name('movies.now_showing.movies_financials')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
+
+    // L4 — per-showtime totals under one cinema+theatre(+movie), optionally ?date=YYYY-MM-DD
+    Route::get('/movies/now-showing/{movie}/cinemas/{cinema}/theatres/{theatre}/showtimes-financials', [AdminMovieLiveController::class, 'showtimesFinancialsJson'])
+        ->name('movies.now_showing.showtimes_financials')
+        ->where(['movie' => '[0-9]+', 'cinema' => '[0-9]+', 'theatre' => '[0-9]+']);
 
     // Synthesized Rations Inventory Systems
     Route::get('/food-drink/create', [FoodDrinkController::class, 'create'])->name('food_drink.create');
