@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="100" viewBox="0 0 1200 100" role="img" aria-labelledby="title desc">
+    <title id="title">CinemaX — Lights down. Possibilities up.</title><desc id="desc">CinemaX cinema booking and operations project.</desc><defs>
+      <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a855f7"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+      <linearGradient id="ice" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#a855f7"/></linearGradient>
+      <radialGradient id="halo"><stop stop-color="#7c3aed" stop-opacity=".23"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0v40" fill="none" stroke="#a855f7" stroke-opacity=".055"/></pattern>
+      <filter id="glow" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="5"/></filter>
+    </defs>
+    <style>
+      text{font-family:'Segoe UI',Arial,Helvetica,sans-serif} .mono{font-family:Consolas,'Liberation Mono',monospace}
+      .float{animation:float 9s ease-in-out infinite} .breathe{animation:breathe 5s ease-in-out infinite}
+      .signal{stroke-dasharray:5 12;animation:signal 12s linear infinite}
+      @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+      @keyframes breathe{0%,100%{opacity:.65}50%{opacity:1}}
+      @keyframes signal{to{stroke-dashoffset:-170}}
+      @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+    </style>
+    <defs><clipPath id="panel"><rect width="1200" height="100" rx="24"/></clipPath></defs>
+    <rect x="0.5" y="0.5" width="1199" height="99" rx="24" fill="#07070f" stroke="#282438" /><g clip-path="url(#panel)"><g transform="translate(42 35) scale(0.75)" fill="none" stroke="#a855f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="30" height="23" rx="4"/><path d="M2 10h30M2 7l-1-6 30-5 1 6M7 0l5 5M20-2l5 5"/></g><text x="84" y="58" font-size="26" fill="#f0eeff" font-weight="600" >CinemaX</text><text x="1154" y="54" font-size="17" fill="#aaa5bf" font-weight="500" text-anchor="end" letter-spacing="2.4">LIGHTS DOWN. POSSIBILITIES UP.</text></g></svg>
