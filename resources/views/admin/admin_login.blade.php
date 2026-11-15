@@ -72,10 +72,27 @@
     </div>
 
     <div class="login-right" aria-hidden="true">
-        <canvas id="orb-canvas"></canvas>
-        <div class="login-right__overlay-text">
-            <p class="login-right__tagline">CINEMAX CONTROL</p>
-            <p class="login-right__sub">Cinema Operations Matrix</p>
+        <div class="cinema-art__header">
+            <span class="cinema-art__signature">CINEMAX <span>/</span> CONTROL</span>
+            <span class="cinema-art__edition">MOTION STUDY &nbsp; 001</span>
+        </div>
+        <div class="cinema-art__stage">
+            <div class="cinema-art__halo"></div>
+            <div class="cinema-art__fallback">
+                @for ($frame = 0; $frame < 10; $frame++)
+                    <span style="--frame: {{ $frame }}"></span>
+                @endfor
+            </div>
+            <canvas id="cinema-aperture"></canvas>
+        </div>
+        <div class="cinema-art__caption">
+            <div class="cinema-art__eyebrow"><span></span> A NEW PERSPECTIVE</div>
+            <p class="cinema-art__title">Every frame.<br><span>Extraordinary.</span></p>
+            <p class="cinema-art__description">Behind every great cinema experience, there's you.</p>
+        </div>
+        <div class="cinema-art__footer">
+            <span>CINEMA, IN A NEW DIMENSION.</span>
+            <span class="cinema-art__mark"><i></i><i></i><i></i><i></i><i></i></span>
         </div>
     </div>
 </div>
