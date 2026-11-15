@@ -158,11 +158,19 @@ class UserMovieDetailsController extends Controller
             return $sg;
         }, $stateGroups));
 
-        return view('users.movie_details', [
-            'movie'          => $movie,
-            'availableDates' => $availableDates,   // Collection<Carbon>
-            'activeDate'     => $activeDate,        // Carbon|null
-            'stateGroups'    => json_encode($stateGroups, JSON_UNESCAPED_UNICODE),
+        if ($request->wantsJson()) {
+        return response()->json([
+            'stateGroups'    => $stateGroups,           // send as array, not JSON string
+            'availableDates' => $availableDates->map(fn($d) => $d->toDateString()),
+            'activeDate'     => $activeDate?->toDateString(),
         ]);
     }
+
+    return view('users.movie_details', [
+        'movie'          => $movie,
+        'availableDates' => $availableDates,
+        'activeDate'     => $activeDate,
+        'stateGroups'    => json_encode($stateGroups, JSON_UNESCAPED_UNICODE),
+    ]);
+}
 }

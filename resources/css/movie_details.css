@@ -1,8 +1,6 @@
 /* ============================================================
-   resources/css/movie_details.css
-   Public movie detail + showtime page — cyberpunk cinema aesthetic
-   Mirrors the homepage palette (--hp-* vars are redefined here
-   as --md-* so this file is self-contained).
+   movie_details.css – Public movie detail + showtime page
+   Updated: carousel date strip, hero adjustments, polish
    ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,31 +73,52 @@
 
 .md-nav__signin:hover { border-color: var(--md-purple); color: var(--md-purple); }
 
-/* ── Back link ───────────────────────────────────────────── */
+/* ── Back link (inside hero overlay) ────────────────────── */
 .md-back {
-    display: inline-flex; align-items: center; gap: 6px;
-    margin: 16px 48px;
-    font-size: 0.85rem; font-weight: 600; color: var(--md-text-sub);
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
     text-decoration: none;
-    transition: color var(--md-transition);
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    padding: 8px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all var(--md-transition);
+    z-index: 10;
 }
 
-.md-back:hover { color: var(--md-text); }
+.md-back:hover {
+    color: #fff;
+    background: rgba(168,85,247,0.3);
+    border-color: var(--md-purple);
+    box-shadow: 0 0 20px rgba(168,85,247,0.2);
+}
 
 /* ══════════════════════════════════════════════════════════
-   HERO
+   HERO – reduced height, better image rendering
 ══════════════════════════════════════════════════════════ */
 .md-hero {
     position: relative;
     width: 100%;
-    aspect-ratio: 21 / 8;
-    min-height: 380px;
+    aspect-ratio: 21 / 9;   /* was 21/8 – reduced height */
+    min-height: 280px;
     overflow: hidden;
     background: #0a0a14;
 }
 
 .md-hero__img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;       /* ensures image covers without distortion */
+    display: block;
+    filter: brightness(1.05) contrast(1.05); /* slightly brighter */
 }
 
 .md-hero__ph {
@@ -112,15 +131,21 @@
     position: absolute; inset: 0;
     background:
         linear-gradient(to right,
-            rgba(7,7,15,0.97) 0%,
-            rgba(7,7,15,0.70) 45%,
-            rgba(7,7,15,0.12) 100%),
+            rgba(7,7,15,0.85) 0%,
+            rgba(7,7,15,0.50) 45%,
+            rgba(7,7,15,0.10) 100%),
         linear-gradient(to top,
-            rgba(7,7,15,0.90) 0%,
-            transparent 40%);
-    display: flex; flex-direction: column;
+            rgba(7,7,15,0.80) 0%,
+            transparent 50%);
+    display: flex;
+    flex-direction: column;
     justify-content: flex-end;
     padding: 32px 52px 36px;
+}
+
+/* Content inside overlay */
+.md-hero__content {
+    max-width: 70%;
 }
 
 .md-hero__rating {
@@ -173,7 +198,136 @@
 .md-btn--outline:hover { border-color: var(--md-purple); color: var(--md-purple); }
 
 /* ══════════════════════════════════════════════════════════
-   SHOWTIME LAYOUT  (sidebar + main panel)
+   DATE STRIP CAROUSEL
+══════════════════════════════════════════════════════════ */
+.md-date-strip-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 20px 0 24px;
+    padding: 0 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+    border: 1px solid var(--md-border);
+}
+
+.md-date-arrow {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--md-border-vis);
+    background: rgba(255,255,255,0.04);
+    color: var(--md-text-sub);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all var(--md-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.md-date-arrow:hover {
+    background: rgba(168,85,247,0.15);
+    border-color: var(--md-purple);
+    color: var(--md-text);
+}
+.md-date-arrow:disabled {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.md-date-strip-container {
+    overflow: hidden;
+    flex: 1;
+    position: relative;
+}
+
+.md-date-strip {
+    display: flex;
+    gap: 4px;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+    padding: 4px 0;
+}
+
+/* Date button – no underline, glow on active */
+.md-date-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    min-width: 72px;
+    transition: background var(--md-transition), box-shadow var(--md-transition);
+    gap: 2px;
+    color: var(--md-text-sub);
+    flex-shrink: 0;
+}
+
+.md-date-btn:hover {
+    background: rgba(168,85,247,0.08);
+    color: var(--md-text);
+}
+
+.md-date-btn__day {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 0.03em;
+    color: var(--md-text-muted);
+}
+
+.md-date-btn__num-wrap {
+    display: flex; align-items: baseline; gap: 10px;
+}
+
+.md-date-btn__num {
+    font-size: 1.2rem;
+    font-family: 'Oswald', 'DM Sans', sans-serif;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.md-date-btn__month {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--md-text-muted);
+}
+
+/* Active date – glowing purple instead of underline */
+.md-date-btn--active {
+    background: rgba(168,85,247,0.12);
+    box-shadow: 0 0 20px rgba(168,85,247,0.2);
+    color: var(--md-text);
+}
+
+.md-date-btn--active .md-date-btn__num {
+    color: var(--md-purple);
+}
+.md-date-btn--active .md-date-btn__day {
+    color: var(--md-purple);
+}
+.md-date-btn--active .md-date-btn__month {
+    color: var(--md-purple);
+}
+
+/* Today badge */
+.md-date-btn--today .md-date-btn__day::after {
+    content: "·Today";
+    font-size: 0.6rem;
+    font-weight: 400;
+    color: var(--md-purple);
+    margin-left: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   SHOWTIME LAYOUT (sidebar + main panel)
 ══════════════════════════════════════════════════════════ */
 .md-showtimes-layout {
     display: grid;
@@ -186,12 +340,11 @@
 .md-sidebar {
     border-right: 1px solid var(--md-border);
     overflow-y: auto;
-    max-height: calc(100vh - var(--md-nav-h));
+    max-height: calc(100vh - var(--md-nav-h) - 180px);
     position: sticky;
     top: var(--md-nav-h);
 }
 
-/* State accordion item */
 .md-state-group {
     border-bottom: 1px solid var(--md-border);
 }
@@ -219,7 +372,6 @@
     transform: rotate(180deg);
 }
 
-/* Cinema list inside state */
 .md-cinema-list {
     display: none;
     flex-direction: column;
@@ -265,7 +417,6 @@
     gap: 0;
 }
 
-/* Cinema header row */
 .md-cinema-header {
     display: flex;
     align-items: center;
@@ -305,98 +456,10 @@
 .md-avail--fast      { color: #f59e0b; }
 .md-avail--sold      { color: #ef4444; }
 
-/* ── Date strip ──────────────────────────────────────────── */
-.md-date-strip-wrap {
-    overflow-x: auto;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-    margin-bottom: 22px;
-    border-bottom: 1px solid var(--md-border);
-    padding-bottom: 0;
-}
-
-.md-date-strip-wrap--top {
-    margin: 0 0 24px;
-}
-
-.md-date-strip-wrap::-webkit-scrollbar { display: none; }
-
-.md-date-strip {
-    display: flex;
-    gap: 6px;
-    min-width: max-content;
-}
-
-/* Date button — TGV style */
-.md-date-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 14px 20px;
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    min-width: 86px;
-    transition: color var(--md-transition), border-color var(--md-transition), background var(--md-transition);
-    gap: 3px;
-}
-
-.md-date-btn:hover .md-date-btn__num { color: var(--md-text); }
-
-.md-date-btn__day {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--md-text-muted);
-    text-transform: capitalize;
-    letter-spacing: 0.03em;
-}
-
-.md-date-btn__num-wrap {
-    display: flex; align-items: baseline; gap: 3px;
-}
-
-.md-date-btn__num {
-    font-size: 1.34rem;
-    font-weight: 800;
-    color: var(--md-text-sub);
-    line-height: 1;
-    transition: color var(--md-transition);
-}
-
-.md-date-btn__month {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--md-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-}
-
-/* Active date — white bold + purple underline */
-.md-date-btn--active {
-    border-bottom-color: var(--md-purple);
-    background: rgba(168,85,247,0.05);
-}
-
-.md-date-btn--active .md-date-btn__day   { color: var(--md-text-sub); }
-.md-date-btn--active .md-date-btn__num   { color: var(--md-text); font-size: 1.42rem; }
-.md-date-btn--active .md-date-btn__month { color: var(--md-text-sub); }
-
-/* ── Showtime section (theatre blocks + time pills) ──────── */
-.md-showtime-section {
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-}
-
-.md-select-hint {
-    font-size: 0.875rem; color: var(--md-text-muted); padding: 32px 0;
-}
-
-
+/* ── Showtime pills ──────────────────────────────────────── */
 .md-theatre-name {
     font-size: 0.85rem; font-weight: 900;
-    color: var(--md-purple); /* purple theatre name like TGV red */
+    color: var(--md-purple);
     text-transform: uppercase; letter-spacing: 0.1em;
     margin-bottom: 14px;
     display: flex; align-items: center; gap: 10px;
@@ -408,7 +471,6 @@
     background: var(--md-border-vis);
 }
 
-/* Time pills */
 .md-time-pills {
     display: flex;
     flex-wrap: wrap;
@@ -442,20 +504,170 @@
     box-shadow: 0 8px 24px rgba(168,85,247,0.24);
 }
 
-/* No showtimes placeholder */
-.md-no-showtimes {
-    display: flex; align-items: center; gap: 12px;
-    padding: 40px 52px; color: var(--md-text-muted);
-    font-size: 0.9rem;
+/* ── Loading spinner (surprise polish) ──────────────────── */
+.md-loading-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    gap: 12px;
+    color: var(--md-text-sub);
 }
 
-.md-showtimes-shell {
-    padding: 0 40px 60px;
+.md-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid rgba(168,85,247,0.15);
+    border-top-color: var(--md-purple);
+    border-radius: 50%;
+    animation: mdSpin 0.8s linear infinite;
+}
+
+@keyframes mdSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── NEW: CINEMATIC DATE STRIP – BIGGER, WIDER, MORE SPACIOUS ── */
+
+.md-date-strip-wrap {
+    padding: 8px 16px;
+    gap: 12px;
+}
+
+.md-date-arrow {
+    width: 44px;
+    height: 44px;
+    font-size: 1.6rem;
+    border-radius: 50%;
+}
+
+.md-date-strip {
+    display: flex;
+    gap: 18px;                 /* ← more breathing room between dates */
+    justify-content: center;   /* ← center the buttons within the strip */
+    align-items: center;
+    padding: 6px 0;
+}
+
+.md-date-btn {
+    min-width: 110px;          /* ← wider buttons (was 72px) */
+    padding: 16px 24px;        /* ← bigger touch area (was 10px 14px) */
+    border-radius: 14px;
+    gap: 6px;
+    transition: all 0.25s ease;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+
+.md-date-btn:hover {
+    background: rgba(168,85,247,0.12);
+    border-color: rgba(168,85,247,0.30);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168,85,247,0.15);
+}
+
+.md-date-btn__day {
+    font-size: 0.95rem;        /* ← bigger day label (was 0.78rem) */
+    font-weight: 700;
+    letter-spacing: 0.08em;    /* ← cinematic spacing */
+    text-transform: uppercase;
+    color: var(--md-text-muted);
+}
+
+.md-date-btn__num {
+    font-size: 1.8rem;         /* ← BIG date number (was 1.2rem) */
+    font-weight: 900;          /* ← extra bold for cinematic feel */
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--md-text-sub);
+}
+
+.md-date-btn__month {
+    font-size: 0.9rem;         /* ← bigger month (was 0.7rem) */
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--md-text-muted);
+}
+
+/* ── Active date – cinematic glow ────────────────────────────── */
+.md-date-btn--active {
+    background: linear-gradient(135deg, rgba(168,85,247,0.20), rgba(236,72,153,0.12));
+    border-color: var(--md-purple);
+    box-shadow: 0 0 30px rgba(168,85,247,0.25), inset 0 0 20px rgba(168,85,247,0.05);
+    transform: translateY(-2px);
+}
+
+.md-date-btn--active .md-date-btn__num {
+    color: var(--md-purple);
+    text-shadow: 0 0 30px rgba(168,85,247,0.4);
+}
+
+.md-date-btn--active .md-date-btn__day {
+    color: var(--md-purple);
+}
+
+.md-date-btn--active .md-date-btn__month {
+    color: var(--md-purple);
+}
+
+/* ── "Today" badge ────────────────────────────────────────────── */
+.md-date-btn--today .md-date-btn__day::after {
+    content: "· TODAY";
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #facc15;
+    margin-left: 6px;
+}
+
+/* ── Responsive: smaller screens ─────────────────────────────── */
+@media (max-width: 860px) {
+    .md-date-btn {
+        min-width: 80px;
+        padding: 12px 16px;
+    }
+    .md-date-btn__num {
+        font-size: 1.4rem;
+    }
+    .md-date-btn__day {
+        font-size: 0.78rem;
+    }
+    .md-date-btn__month {
+        font-size: 0.72rem;
+    }
+    .md-date-strip {
+        gap: 10px;
+    }
+}
+
+@media (max-width: 560px) {
+    .md-date-btn {
+        min-width: 64px;
+        padding: 8px 12px;
+    }
+    .md-date-btn__num {
+        font-size: 1.1rem;
+    }
+    .md-date-btn__day {
+        font-size: 0.65rem;
+    }
+    .md-date-btn__month {
+        font-size: 0.6rem;
+    }
+    .md-date-strip {
+        gap: 6px;
+    }
+    .md-date-arrow {
+        width: 32px;
+        height: 32px;
+        font-size: 1.2rem;
+    }
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
 @media (max-width: 860px) {
-    .md-showtimes-shell { padding: 0 24px 48px; }
+    .md-showtimes-shell { padding: 0 16px 48px; }
     .md-showtimes-layout { grid-template-columns: 1fr; }
     .md-sidebar {
         max-height: none;
@@ -463,14 +675,18 @@
         border-right: none;
         border-bottom: 1px solid var(--md-border);
     }
-    .md-back { margin: 14px 24px; }
     .md-hero__overlay { padding: 24px 28px 28px; }
+    .md-hero__content { max-width: 100%; }
     .md-main-panel { padding: 24px 0 0; }
     .md-nav { padding: 0 24px; gap: 16px; }
     .md-nav__links { display: none; }
     .md-cinema-header { align-items: flex-start; }
+    .md-date-strip-wrap { flex-wrap: wrap; }
 }
+
 @media (max-width: 560px) {
     .md-hero { aspect-ratio: 16/9; min-height: auto; }
     .md-hero__title { font-size: 1.4rem; }
+    .md-date-btn { min-width: 60px; padding: 6px 10px; }
+    .md-date-btn__num { font-size: 1rem; }
 }

@@ -1,14 +1,6 @@
 {{--
     resources/views/users/movie_details.blade.php
-    ─────────────────────────────────────────────
     Public movie detail + showtime selection page.
-    Controller: UserMovieDetailsController@show
-    Data:
-      $movie          – Movie with ->genres
-      $availableDates – Collection<Carbon>  (future/today dates only)
-      $activeDate     – Carbon|null         (currently selected date)
-      $stateGroups    – JSON string (state → cinema → theatre → times)
-                        Each time entry carries  is_bookable: bool
 --}}
 <!DOCTYPE html>
 <html lang="en">
@@ -19,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     @vite(['resources/css/movie_details.css', 'resources/js/movie_details.js'])
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body class="md-body" data-seat-route="{{ route('user.seats') }}" data-movie-id="{{ $movie->movie_id }}">
 
@@ -34,11 +27,8 @@
     <button class="md-nav__signin">Sign In</button>
 </nav>
 
-{{-- ── Back link ───────────────────────────────────────────── --}}
-<a href="{{ route('home') }}" class="md-back">← Back</a>
-
 {{-- ══════════════════════════════════════════════════════════
-     HERO — full-width landscape poster
+     HERO — full-width landscape poster with back link overlay
 ══════════════════════════════════════════════════════════ --}}
 <div class="md-hero">
     @if (!empty($movie->landscape_poster))
@@ -52,21 +42,26 @@
     @endif
 
     <div class="md-hero__overlay">
-        <h1 class="md-hero__title">{{ $movie->movie_name }}</h1>
-        <div class="md-hero__meta">
-            @if ($movie->genres->isNotEmpty())
-                <span class="md-hero__rating">PG</span>
-                <span>{{ $movie->genres->pluck('genre_name')->join(', ') }}</span>
+        {{-- Back link positioned top-left inside overlay --}}
+        <a href="{{ route('home') }}" class="md-back">← Back</a>
+
+        <div class="md-hero__content">
+            <h1 class="md-hero__title">{{ $movie->movie_name }}</h1>
+            <div class="md-hero__meta">
+                @if ($movie->genres->isNotEmpty())
+                    <span class="md-hero__rating">PG</span>
+                    <span>{{ $movie->genres->pluck('genre_name')->join(', ') }}</span>
+                    <span class="md-hero__sep">|</span>
+                @endif
+                @php $h = intdiv($movie->runtime, 60); $mrt = $movie->runtime % 60; @endphp
+                <span>{{ $h > 0 ? $h . ' hr ' : '' }}{{ $mrt }} mins</span>
                 <span class="md-hero__sep">|</span>
-            @endif
-            @php $h = intdiv($movie->runtime, 60); $mrt = $movie->runtime % 60; @endphp
-            <span>{{ $h > 0 ? $h . ' hr ' : '' }}{{ $mrt }} mins</span>
-            <span class="md-hero__sep">|</span>
-            <span>{{ $movie->language }}</span>
-        </div>
-        <div class="md-hero__actions">
-            <button class="md-btn md-btn--primary">MORE INFO</button>
-            <button class="md-btn md-btn--outline">Watch Trailer</button>
+                <span>{{ $movie->language }}</span>
+            </div>
+            <div class="md-hero__actions">
+                <button class="md-btn md-btn--primary">MORE INFO</button>
+                <button class="md-btn md-btn--outline">Watch Trailer</button>
+            </div>
         </div>
     </div>
 </div>
@@ -76,16 +71,16 @@
 ══════════════════════════════════════════════════════════ --}}
 
 {{--
-    JSON bridge consumed by movie_details.js.
-    The is_bookable flag on each time entry drives the JS pill renderer.
-    The Blade date strip below is the server-side source of truth;
-    the JS date strip (inside md-date-strip) is hidden when Blade renders
-    dates — we keep the JS strip div present so the JS doesn't error.
+    Data-attribute bridge for JS.
+    - data-groups: initial JSON (same as before)
+    - data-available-dates: list of all date strings (for carousel)
+    - data-active-date: currently selected date
 --}}
 <div
     id="md-data"
     class="md-hidden"
     data-groups='{!! $stateGroups !!}'
+    data-available-dates='{!! $availableDates->map(fn($d) => $d->toDateString())->toJson() !!}'
     data-active-date="{{ $activeDate?->toDateString() }}"
 ></div>
 
@@ -101,42 +96,17 @@
 <div class="md-showtimes-shell">
 
     {{-- ══════════════════════════════════════════════════
-         DATE STRIP — server-rendered
-         Only dates >= today are present in $availableDates
-         (the controller already filtered expired dates out).
-         The active date receives the md-date-btn--active class.
+         DATE STRIP — carousel with arrows
+         Rendered by JS from the data-available-dates list.
     ══════════════════════════════════════════════════ --}}
-    <div class="md-date-strip-wrap md-date-strip-wrap--top">
-        <div class="md-date-strip" id="md-date-strip">
-            @foreach ($availableDates as $dateCarbon)
-                @php
-                    $dateStr   = $dateCarbon->toDateString();
-                    $isActive  = $activeDate && $activeDate->toDateString() === $dateStr;
-                    $isToday   = $dateCarbon->isToday();
-                    $labelDay  = $isToday ? 'Today' : $dateCarbon->format('D');
-                    $labelNum  = $dateCarbon->format('j');
-                    $labelMonth= $dateCarbon->format('M');
-
-                    // Build the URL for this date so the button is a real link
-                    // — no JS required for date switching (progressive enhancement).
-                    $dateUrl = route('user.movie.details', $movie->movie_id)
-                               . '?date=' . $dateStr;
-                @endphp
-
-                <a
-                    href="{{ $dateUrl }}"
-                    class="md-date-btn {{ $isActive ? 'md-date-btn--active' : '' }}"
-                    data-date="{{ $dateStr }}"
-                    aria-pressed="{{ $isActive ? 'true' : 'false' }}"
-                >
-                    <span class="md-date-btn__day">{{ $labelDay }}</span>
-                    <div class="md-date-btn__num-wrap">
-                        <span class="md-date-btn__num">{{ $labelNum }}</span>
-                        <span class="md-date-btn__month">{{ $labelMonth }}</span>
-                    </div>
-                </a>
-            @endforeach
+    <div class="md-date-strip-wrap">
+        <button class="md-date-arrow md-date-arrow--prev" id="mdDatePrev" aria-label="Previous dates">‹</button>
+        <div class="md-date-strip-container" id="mdDateStripContainer">
+            <div class="md-date-strip" id="mdDateStrip">
+                {{-- JS will populate this --}}
+            </div>
         </div>
+        <button class="md-date-arrow md-date-arrow--next" id="mdDateNext" aria-label="Next dates">›</button>
     </div>
 
     <div class="md-showtimes-layout">
@@ -158,91 +128,47 @@
                 </div>
             </div>
 
+            {{-- Showtime section will be replaced by JS --}}
             <div class="md-showtime-section" id="md-showtime-section">
-
+                {{-- Initial render from server (first cinema) --}}
                 @php
-                    // Decode the JSON string the controller built so Blade can
-                    // render the initial state without waiting for JS.
                     $groups = json_decode($stateGroups, true) ?? [];
+                    $firstCinema = $groups[0]['cinemas'][0] ?? null;
                 @endphp
 
-                @if (empty($groups))
-                    <p class="md-select-hint">Select a cinema from the left to view showtimes.</p>
-                @else
-                    {{--
-                        Server-side initial render of theatre blocks.
-                        JS will re-render this section when the user switches
-                        cinemas or dates; this gives a meaningful first paint
-                        with zero JS dependency.
-
-                        We render the first cinema of the first state group
-                        as the default visible selection — matching the JS
-                        behaviour in buildSidebar() which also selects
-                        stateIdx=0, cinemaIdx=0 on first load.
-                    --}}
-                    @php
-                        $firstCinema = $groups[0]['cinemas'][0] ?? null;
-                    @endphp
-
-                    @if ($firstCinema)
-                        @foreach ($firstCinema['theatres'] as $theatre)
-                            <div class="md-theatre-block">
-                                <div class="md-theatre-name">{{ $theatre['name'] }}</div>
-                                <div class="md-time-pills">
-                                    @forelse ($theatre['times'] as $timeEntry)
-
-                                        @if ($timeEntry['is_bookable'])
-                                            {{-- ── BOOKABLE: normal clickable pill ── --}}
-                                            <button
-                                                type="button"
-                                                class="md-time-pill"
-                                                data-showtime-id="{{ $timeEntry['showtime_id'] }}"
-                                                data-time="{{ $timeEntry['time'] }}"
-                                                data-cinema-id="{{ $firstCinema['cinema_id'] }}"
-                                                data-hall-id="{{ $theatre['hall_id'] }}"
-                                                data-theatre-name="{{ $theatre['name'] }}"
-                                                data-date="{{ $activeDate?->toDateString() }}"
-                                            >
-                                                {{ $timeEntry['time'] }}
-                                            </button>
-                                        @else
-                                            {{-- ── NOT BOOKABLE: disabled, red, blurred pill ──
-                                                 pointer-events:none  = no JS click
-                                                 disabled attr        = no keyboard activation
-                                                 inline styles        = self-contained, no extra CSS class needed
-                                            --}}
-                                            <button
-                                                type="button"
-                                                class="md-time-pill md-time-pill--expired"
-                                                disabled
-                                                aria-disabled="true"
-                                                title="This showtime is no longer available for booking"
-                                                style="
-                                                    opacity: 0.4;
-                                                    cursor: not-allowed;
-                                                    color: #ef4444;
-                                                    border: 1px solid #991b1b;
-                                                    pointer-events: none;
-                                                    filter: blur(0.4px);
-                                                    background: transparent;
-                                                "
-                                            >
-                                                {{ $timeEntry['time'] }}
-                                            </button>
-                                        @endif
-
-                                    @empty
-                                        <span style="font-size:0.78rem;color:var(--md-text-muted);">
-                                            No times available.
-                                        </span>
-                                    @endforelse
-                                </div>
+                @if ($firstCinema)
+                    @foreach ($firstCinema['theatres'] as $theatre)
+                        <div class="md-theatre-block">
+                            <div class="md-theatre-name">{{ $theatre['name'] }}</div>
+                            <div class="md-time-pills">
+                                @forelse ($theatre['times'] as $timeEntry)
+                                    @if ($timeEntry['is_bookable'])
+                                        <button type="button" class="md-time-pill"
+                                            data-showtime-id="{{ $timeEntry['showtime_id'] }}"
+                                            data-time="{{ $timeEntry['time'] }}"
+                                            data-cinema-id="{{ $firstCinema['cinema_id'] }}"
+                                            data-hall-id="{{ $theatre['hall_id'] }}"
+                                            data-theatre-name="{{ $theatre['name'] }}"
+                                            data-date="{{ $activeDate?->toDateString() }}"
+                                        >
+                                            {{ $timeEntry['time'] }}
+                                        </button>
+                                    @else
+                                        <button type="button" class="md-time-pill md-time-pill--expired" disabled
+                                            style="opacity:0.4;cursor:not-allowed;color:#ef4444;border:1px solid #991b1b;pointer-events:none;filter:blur(0.4px);background:transparent;">
+                                            {{ $timeEntry['time'] }}
+                                        </button>
+                                    @endif
+                                @empty
+                                    <span style="font-size:0.78rem;color:var(--md-text-muted);">No times available.</span>
+                                @endforelse
                             </div>
-                        @endforeach
-                    @endif
+                        </div>
+                    @endforeach
+                @else
+                    <p class="md-select-hint">Select a cinema from the left to view showtimes.</p>
                 @endif
-
-            </div>{{-- /#md-showtime-section --}}
+            </div>
 
         </div>{{-- /.md-main-panel --}}
 
